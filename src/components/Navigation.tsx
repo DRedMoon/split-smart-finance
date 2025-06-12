@@ -2,17 +2,19 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, CreditCard, Plus, BarChart3, Settings } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
 
   const navItems = [
-    { path: '/', icon: Home, label: 'Home' },
-    { path: '/expenses/all', icon: CreditCard, label: 'Expenses' },
-    { path: '/add', icon: Plus, label: 'Add', special: true },
-    { path: '/transactions', icon: BarChart3, label: 'History' },
-    { path: '/settings', icon: Settings, label: 'Settings' }
+    { path: '/', icon: Home, label: t('home') },
+    { path: '/expenses/all', icon: CreditCard, label: t('expenses') },
+    { path: '/add', icon: Plus, label: t('add'), special: true },
+    { path: '/transactions', icon: BarChart3, label: t('history') },
+    { path: '/settings', icon: Settings, label: t('settings') }
   ];
 
   return (

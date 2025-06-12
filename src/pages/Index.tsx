@@ -10,7 +10,7 @@ import Navigation from '@/components/Navigation';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen" style={{ backgroundColor: '#192E45' }}>
       <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl">
         <Routes>
           <Route path="/" element={<Dashboard />} />
