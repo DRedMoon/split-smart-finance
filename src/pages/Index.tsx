@@ -15,6 +15,9 @@ const Index = () => {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/expenses/:type" element={<ExpenseDetails />} />
+          <Route path="/expenses/loans" element={<ExpenseDetails />} />
+          <Route path="/expenses/all" element={<ExpenseDetails />} />
+          <Route path="/expenses/monthly" element={<ExpenseDetails />} />
           <Route path="/add" element={<AddExpense />} />
           <Route path="/transactions" element={<TransactionHistory />} />
           <Route path="/settings" element={<Settings />} />
