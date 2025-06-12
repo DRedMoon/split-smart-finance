@@ -117,7 +117,8 @@ const Dashboard = () => {
 
   const handleSwipe = (e: React.TouchEvent) => {
     const touchEnd = e.changedTouches[0].clientX;
-    const touchStart = e.currentTarget.dataset.touchStart;
+    const target = e.currentTarget as HTMLElement;
+    const touchStart = target.dataset.touchStart;
     
     if (touchStart) {
       const diff = parseInt(touchStart) - touchEnd;
@@ -152,7 +153,8 @@ const Dashboard = () => {
         <Card 
           className="min-h-[200px] touch-pan-y"
           onTouchStart={(e) => {
-            e.currentTarget.dataset.touchStart = e.touches[0].clientX.toString();
+            const target = e.currentTarget as HTMLElement;
+            target.dataset.touchStart = e.touches[0].clientX.toString();
           }}
           onTouchEnd={handleSwipe}
         >
