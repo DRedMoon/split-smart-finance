@@ -1,11 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Bell, Shield, Download, LogOut, Upload, Database, Palette, Settings as SettingsIcon, Plus } from 'lucide-react';
+import { ArrowLeft, User, Bell, Shield, Download, Upload, Database, Palette, Settings as SettingsIcon, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
 import { exportFinancialData, importFinancialData, saveFinancialData, loadFinancialData, clearAllData, logError, logAnalytics } from '@/services/storageService';
@@ -270,19 +270,6 @@ const Settings = () => {
             className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10"
           >
             {t('clear_all_data')}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Logout Button */}
-      <Card className="mt-6 bg-[#294D73] border-none">
-        <CardContent className="p-4">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10"
-          >
-            <LogOut size={20} className="mr-3" />
-            {t('sign_out')}
           </Button>
         </CardContent>
       </Card>

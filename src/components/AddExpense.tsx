@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, Receipt, Calendar } from 'lucide-react';
@@ -11,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { addTransaction, addLoan, addMonthlyBill, calculateLoanPayment, loadFinancialData, saveFinancialData } from '@/services/storageService';
+import { addTransaction, addLoan, addMonthlyBill, calculateLoanPayment, calculateCreditPayment, loadFinancialData } from '@/services/storageService';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -28,11 +29,48 @@ const AddExpense = () => {
     dueDate: '',
     interestRate: '',
     totalAmount: '',
-    paymentTerm: ''
+    paymentTerm: '',
+    euriborRate: '',
+    personalMargin: '',
+    managementFee: '',
+    creditLimit: '',
+    minimumPaymentPercent: '3'
   });
   
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [activeTab, setActiveTab] = useState('quick');
+  const [loanType, setLoanType] = useState('simple'); // 'simple', 'precise', 'credit'
+  const [calculationResult, setCalculationResult] = useState<any>(null);
+
+  // Calculate loan details when inputs change
+  const calculateLoanDetails = () => {
+    if (loanType === 'precise' && expenseData.totalAmount && expenseData.euriborRate && expenseData.personalMargin && expenseData.paymentTerm) {
+      const principal = parseFloat(expenseData.totalAmount);
+      const euribor = parseFloat(expenseData.euriborRate);
+      const margin = parseFloat(expenseData.personalMargin);
+      const managementFee = parseFloat(expenseData.managementFee) || 0;
+      const termMonths = parseInt(expenseData.paymentTerm.match(/\d+/)?.[0] || '12');
+      
+      const result = calculateLoanPayment(principal, euribor, margin, managementFee, termMonths);
+      setCalculationResult(result);
+      setExpenseData(prev => ({ ...prev, amount: result.monthlyPayment.toString() }));
+    } else if (loanType === 'credit' && expenseData.creditLimit && expenseData.interestRate) {
+      const principal = parseFloat(expenseData.creditLimit);
+      const yearlyRate = parseFloat(expenseData.interestRate);
+      const managementFee = parseFloat(expenseData.managementFee) || 0;
+      const minimumPercent = parseFloat(expenseData.minimumPaymentPercent);
+      
+      const result = calculateCreditPayment(principal, yearlyRate, managementFee, minimumPercent);
+      setCalculationResult(result);
+      setExpenseData(prev => ({ ...prev, amount: result.monthlyMinimum.toString() }));
+    }
+  };
+
+  React.useEffect(() => {
+    if (activeTab === 'loan') {
+      calculateLoanDetails();
+    }
+  }, [expenseData.totalAmount, expenseData.euriborRate, expenseData.personalMargin, expenseData.managementFee, expenseData.paymentTerm, expenseData.creditLimit, expenseData.interestRate, expenseData.minimumPaymentPercent, loanType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +105,7 @@ const AddExpense = () => {
         description: activeTab === 'income' ? t('income_added_desc') : t('expense_added_desc'),
       });
     } else if (activeTab === 'loan') {
-      const totalAmount = parseFloat(expenseData.totalAmount);
+      const totalAmount = loanType === 'credit' ? parseFloat(expenseData.creditLimit) : parseFloat(expenseData.totalAmount);
       const monthlyAmount = parseFloat(expenseData.amount);
       const rate = parseFloat(expenseData.interestRate) || 0;
       
@@ -79,6 +117,9 @@ const AddExpense = () => {
         currentAmount: totalAmount,
         monthly: monthlyAmount,
         rate: rate,
+        euriborRate: loanType === 'precise' ? parseFloat(expenseData.euriborRate) : undefined,
+        personalMargin: loanType === 'precise' ? parseFloat(expenseData.personalMargin) : undefined,
+        managementFee: parseFloat(expenseData.managementFee) || 0,
         remaining: expenseData.paymentTerm,
         dueDate: expenseData.dueDate,
         lastPayment: format(new Date(), 'yyyy-MM-dd')
@@ -99,6 +140,29 @@ const AddExpense = () => {
     setExpenseData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Get user's custom categories
+  const data = loadFinancialData();
+  const customCategories = data?.categories || [];
+
+  const defaultCategories = [
+    { value: 'food', label: t('food_dining') },
+    { value: 'transportation', label: t('transportation') },
+    { value: 'utilities', label: t('utilities') },
+    { value: 'entertainment', label: t('entertainment') },
+    { value: 'shopping', label: t('shopping') },
+    { value: 'insurance', label: t('insurance') },
+    { value: 'subscriptions', label: t('subscriptions') },
+    { value: 'housing', label: t('housing') },
+    { value: 'healthcare', label: t('healthcare') },
+    { value: 'education', label: t('education') },
+    { value: 'other', label: t('other') }
+  ];
+
+  const allCategories = [
+    ...defaultCategories,
+    ...customCategories.map(cat => ({ value: cat.name.toLowerCase().replace(/\s+/g, '_'), label: cat.name }))
+  ];
+
   const handleCameraCapture = () => {
     if (cameraInputRef.current) {
       cameraInputRef.current.click();
@@ -114,7 +178,6 @@ const AddExpense = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Here you would implement OCR processing
       toast({
         title: t('receipt_scanner'),
         description: "OCR-toiminto tulossa pian / OCR feature coming soon",
@@ -215,14 +278,11 @@ const AddExpense = () => {
                       <SelectValue placeholder={t('select_category')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="food">{t('food_dining')}</SelectItem>
-                      <SelectItem value="transport">{t('transportation')}</SelectItem>
-                      <SelectItem value="utilities">{t('utilities')}</SelectItem>
-                      <SelectItem value="entertainment">{t('entertainment')}</SelectItem>
-                      <SelectItem value="shopping">{t('shopping')}</SelectItem>
-                      <SelectItem value="insurance">{t('insurance')}</SelectItem>
-                      <SelectItem value="subscriptions">{t('subscriptions')}</SelectItem>
-                      <SelectItem value="other">{t('other')}</SelectItem>
+                      {allCategories.map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -322,6 +382,21 @@ const AddExpense = () => {
               <CardTitle className="text-white">{t('add_loan_credit')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Loan Type Selection */}
+              <div>
+                <Label className="text-white">Lainatyyppi / Loan Type</Label>
+                <Select value={loanType} onValueChange={setLoanType}>
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="simple">Yksinkertainen laina / Simple Loan</SelectItem>
+                    <SelectItem value="precise">Tarkka laina (EURIBOR) / Precise Loan</SelectItem>
+                    <SelectItem value="credit">Luottokortti / Credit Card</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <Label htmlFor="loanName" className="text-white">{t('loan_credit_name')}</Label>
@@ -329,13 +404,56 @@ const AddExpense = () => {
                     id="loanName"
                     value={expenseData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="esim. Autolaina, Luottokortti"
+                    placeholder="esim. Asuntolaina, Autolaina, Luottokortti"
                     required
                     className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {loanType === 'credit' ? (
+                  <>
+                    <div>
+                      <Label htmlFor="creditLimit" className="text-white">{t('credit_limit')}</Label>
+                      <Input
+                        id="creditLimit"
+                        type="number"
+                        step="0.01"
+                        value={expenseData.creditLimit}
+                        onChange={(e) => handleInputChange('creditLimit', e.target.value)}
+                        placeholder="2000.00"
+                        required
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="creditRate" className="text-white">{t('yearly_rate')} (%)</Label>
+                        <Input
+                          id="creditRate"
+                          type="number"
+                          step="0.01"
+                          value={expenseData.interestRate}
+                          onChange={(e) => handleInputChange('interestRate', e.target.value)}
+                          placeholder="14.62"
+                          required
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="minPercent" className="text-white">{t('minimum_payment_percent')} (%)</Label>
+                        <Input
+                          id="minPercent"
+                          type="number"
+                          step="0.1"
+                          value={expenseData.minimumPaymentPercent}
+                          onChange={(e) => handleInputChange('minimumPaymentPercent', e.target.value)}
+                          placeholder="3"
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
                   <div>
                     <Label htmlFor="totalAmount" className="text-white">{t('total_amount')}</Label>
                     <Input
@@ -344,36 +462,97 @@ const AddExpense = () => {
                       step="0.01"
                       value={expenseData.totalAmount}
                       onChange={(e) => handleInputChange('totalAmount', e.target.value)}
-                      placeholder="25000.00"
+                      placeholder="190800.00"
                       required
                       className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="monthlyAmount" className="text-white">{t('monthly_payment')}</Label>
-                    <Input
-                      id="monthlyAmount"
-                      type="number"
-                      step="0.01"
-                      value={expenseData.amount}
-                      onChange={(e) => handleInputChange('amount', e.target.value)}
-                      placeholder="425.00"
-                      required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    />
-                  </div>
-                </div>
+                )}
+
+                {loanType === 'precise' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="euribor" className="text-white">{t('euribor_rate')} (%)</Label>
+                        <Input
+                          id="euribor"
+                          type="number"
+                          step="0.001"
+                          value={expenseData.euriborRate}
+                          onChange={(e) => handleInputChange('euriborRate', e.target.value)}
+                          placeholder="2.6760"
+                          required
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="margin" className="text-white">{t('personal_margin')} (%)</Label>
+                        <Input
+                          id="margin"
+                          type="number"
+                          step="0.001"
+                          value={expenseData.personalMargin}
+                          onChange={(e) => handleInputChange('personalMargin', e.target.value)}
+                          placeholder="0.5200"
+                          required
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="paymentTerm" className="text-white">{t('payment_term')}</Label>
+                      <Input
+                        id="paymentTerm"
+                        value={expenseData.paymentTerm}
+                        onChange={(e) => handleInputChange('paymentTerm', e.target.value)}
+                        placeholder="300 kuukautta"
+                        required
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {loanType === 'simple' && (
+                  <>
+                    <div>
+                      <Label htmlFor="monthlyAmount" className="text-white">{t('monthly_payment')}</Label>
+                      <Input
+                        id="monthlyAmount"
+                        type="number"
+                        step="0.01"
+                        value={expenseData.amount}
+                        onChange={(e) => handleInputChange('amount', e.target.value)}
+                        placeholder="425.00"
+                        required
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="interestRate" className="text-white">{t('interest_rate')} (%)</Label>
+                      <Input
+                        id="interestRate"
+                        type="number"
+                        step="0.1"
+                        value={expenseData.interestRate}
+                        onChange={(e) => handleInputChange('interestRate', e.target.value)}
+                        placeholder="3.5"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="interestRate" className="text-white">{t('interest_rate')}</Label>
+                    <Label htmlFor="managementFeeInput" className="text-white">{t('management_fee')} (€)</Label>
                     <Input
-                      id="interestRate"
+                      id="managementFeeInput"
                       type="number"
-                      step="0.1"
-                      value={expenseData.interestRate}
-                      onChange={(e) => handleInputChange('interestRate', e.target.value)}
-                      placeholder="3.5"
+                      step="0.01"
+                      value={expenseData.managementFee}
+                      onChange={(e) => handleInputChange('managementFee', e.target.value)}
+                      placeholder="2.50"
                       className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                     />
                   </div>
@@ -390,17 +569,19 @@ const AddExpense = () => {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="paymentTerm" className="text-white">{t('payment_term')}</Label>
-                  <Input
-                    id="paymentTerm"
-                    value={expenseData.paymentTerm}
-                    onChange={(e) => handleInputChange('paymentTerm', e.target.value)}
-                    placeholder="24 kuukautta"
-                    required
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  />
-                </div>
+                {/* Calculation Results */}
+                {calculationResult && (
+                  <div className="bg-white/10 p-4 rounded-lg">
+                    <h4 className="text-white font-semibold mb-2">Laskutoimituksen tulos / Calculation Result:</h4>
+                    <div className="text-white/80 space-y-1">
+                      <p>Kuukausierä / Monthly Payment: €{calculationResult.monthlyPayment || calculationResult.monthlyMinimum}</p>
+                      <p>Kokonaistakaisinmaksu / Total Payback: €{calculationResult.totalPayback || calculationResult.totalWithInterest}</p>
+                      {calculationResult.yearlyRate && (
+                        <p>Vuosikorko / Yearly Rate: {calculationResult.yearlyRate}%</p>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <Button type="submit" className="w-full bg-white text-[#294D73] hover:bg-white/90">
                   {t('add_loan_credit')}
