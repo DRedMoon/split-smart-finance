@@ -131,7 +131,20 @@ const translations: Translation = {
     category_name_required: 'Kategorian nimi vaaditaan',
     category_created: 'Kategoria luotu',
     created_successfully: 'luotu onnistuneesti',
-    optional: 'valinnainen'
+    optional: 'valinnainen',
+    total_loan_amount: 'Lainan kokonaismäärä',
+    amount_left_to_pay: 'Maksettava määrä jäljellä',
+    months_left: 'Kuukausia jäljellä',
+    estimated_interest_rate: 'Arvioitu korko',
+    confirm_delete_category: 'Haluatko varmasti poistaa kategorian',
+    total_bills: 'Laskuja yhteensä',
+    this_month: 'Tässä kuussa',
+    bills: 'laskua',
+    
+    // Category descriptions
+    maintenance_charge_description: 'Merkitse jos kyseessä on yhtiövastike',
+    housing_company_expenditure_description: 'Merkitse jos kyseessä on taloyhtiön meno',
+    monthly_payment_description: 'Merkitse jos kyseessä on kuukausittainen maksu'
   },
   en: {
     balance: 'Balance',
@@ -245,7 +258,20 @@ const translations: Translation = {
     category_name_required: 'Category name is required',
     category_created: 'Category Created',
     created_successfully: 'created successfully',
-    optional: 'optional'
+    optional: 'optional',
+    total_loan_amount: 'Total Loan Amount',
+    amount_left_to_pay: 'Amount Left to Pay',
+    months_left: 'Months Left',
+    estimated_interest_rate: 'Estimated Interest Rate',
+    confirm_delete_category: 'Are you sure you want to delete category',
+    total_bills: 'Total Bills',
+    this_month: 'This Month',
+    bills: 'bills',
+    
+    // Category descriptions
+    maintenance_charge_description: 'Mark if this is a maintenance charge',
+    housing_company_expenditure_description: 'Mark if this is a housing company expenditure',
+    monthly_payment_description: 'Mark if this is a monthly payment'
   }
 };
 

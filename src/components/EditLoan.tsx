@@ -29,7 +29,9 @@ const EditLoan = () => {
     minimumPercent: 3,
     remaining: '',
     dueDate: '',
-    lastPayment: ''
+    lastPayment: '',
+    totalPayback: 0,
+    yearlyInterestRate: 0
   });
 
   const [calculatedValues, setCalculatedValues] = useState({
@@ -46,7 +48,25 @@ const EditLoan = () => {
       if (data?.loans) {
         const existingLoan = data.loans.find(loan => loan.id === parseFloat(loanId));
         if (existingLoan) {
-          setLoanData(existingLoan);
+          // Ensure all required properties are present
+          const fullLoanData = {
+            id: existingLoan.id,
+            name: existingLoan.name,
+            totalAmount: existingLoan.totalAmount,
+            currentAmount: existingLoan.currentAmount,
+            monthly: existingLoan.monthly,
+            rate: existingLoan.rate,
+            euriborRate: existingLoan.euriborRate || 0,
+            personalMargin: existingLoan.personalMargin || 0,
+            managementFee: existingLoan.managementFee || 0,
+            minimumPercent: existingLoan.minimumPercent || 3,
+            remaining: existingLoan.remaining,
+            dueDate: existingLoan.dueDate,
+            lastPayment: existingLoan.lastPayment,
+            totalPayback: existingLoan.totalPayback || existingLoan.totalAmount,
+            yearlyInterestRate: existingLoan.yearlyInterestRate || existingLoan.rate
+          };
+          setLoanData(fullLoanData);
           setIsCredit(existingLoan.remaining === 'Credit Card');
         }
       }
@@ -106,7 +126,9 @@ const EditLoan = () => {
         const updatedLoan = {
           ...loanData,
           rate: calculatedValues.yearlyRate || loanData.rate,
-          monthly: loanData.monthly || calculatedValues.monthlyPayment
+          monthly: loanData.monthly || calculatedValues.monthlyPayment,
+          totalPayback: calculatedValues.totalPayback || loanData.totalPayback,
+          yearlyInterestRate: calculatedValues.yearlyRate || loanData.yearlyInterestRate
         };
         
         data.loans[loanIndex] = updatedLoan;

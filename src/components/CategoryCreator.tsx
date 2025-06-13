@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react';
@@ -9,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { loadFinancialData, saveFinancialData, deleteCategory } from '@/services/storageService';
+import { loadFinancialData, saveFinancialData, deleteCategory, getDefaultFinancialData } from '@/services/storageService';
 
 const CategoryCreator = () => {
   const navigate = useNavigate();
@@ -27,8 +28,8 @@ const CategoryCreator = () => {
   });
 
   useEffect(() => {
-    const data = loadFinancialData();
-    setCategories(data?.categories || []);
+    const data = loadFinancialData() || getDefaultFinancialData();
+    setCategories(data.categories || []);
   }, []);
 
   const handleCreateCategory = () => {
@@ -41,7 +42,7 @@ const CategoryCreator = () => {
       return;
     }
 
-    const data = loadFinancialData() || { categories: [] };
+    const data = loadFinancialData() || getDefaultFinancialData();
     if (!data.categories) data.categories = [];
 
     const categoryToAdd = {
@@ -70,10 +71,10 @@ const CategoryCreator = () => {
   };
 
   const handleDeleteCategory = (categoryId, categoryName) => {
-    if (confirm(`Haluatko varmasti poistaa kategorian "${categoryName}"?`)) {
+    if (confirm(`${t('confirm_delete_category')} "${categoryName}"?`)) {
       deleteCategory(categoryId);
-      const data = loadFinancialData();
-      setCategories(data?.categories || []);
+      const data = loadFinancialData() || getDefaultFinancialData();
+      setCategories(data.categories || []);
       
       toast({
         title: t('category_deleted'),
@@ -106,36 +107,57 @@ const CategoryCreator = () => {
             <p className="text-white/70 text-center py-4">{t('no_categories')}</p>
           ) : (
             categories.map((category) => (
-              <div key={category.id} className="flex items-center justify-between p-3 bg-white/10 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div 
-                    className="w-4 h-4 rounded-full" 
-                    style={{ backgroundColor: category.color }}
-                  />
-                  <div>
-                    <p className="text-white font-medium">{category.name}</p>
-                    {category.description && (
-                      <p className="text-white/70 text-sm">{category.description}</p>
-                    )}
+              <div key={category.id} className="bg-white/10 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-3">
+                    <div 
+                      className="w-4 h-4 rounded-full" 
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <div>
+                      <p className="text-white font-medium">{category.name}</p>
+                      {category.description && (
+                        <p className="text-white/70 text-sm">{category.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/edit-category/${category.id}`)}
+                      className="text-white hover:bg-white/10"
+                    >
+                      <Edit size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteCategory(category.id, category.name)}
+                      className="text-red-300 hover:bg-red-500/20"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/edit-category/${category.id}`)}
-                    className="text-white hover:bg-white/10"
-                  >
-                    <Edit size={16} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteCategory(category.id, category.name)}
-                    className="text-red-300 hover:bg-red-500/20"
-                  >
-                    <Trash2 size={16} />
-                  </Button>
+                
+                {/* Category flags */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {category.isMaintenanceCharge && (
+                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
+                      {t('maintenance_charge')}
+                    </span>
+                  )}
+                  {category.isHousingCompanyExpenditure && (
+                    <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">
+                      {t('housing_company_expenditure')}
+                    </span>
+                  )}
+                  {category.isMonthlyPayment && (
+                    <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded">
+                      {t('monthly_payment')}
+                    </span>
+                  )}
                 </div>
               </div>
             ))

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { addLoan, calculateLoanPayment2 } from '@/services/storageService';
+import { addLoan } from '@/services/storageService';
 
 const AddLoan = () => {
   const navigate = useNavigate();
@@ -21,43 +21,38 @@ const AddLoan = () => {
     currentAmount: 0,
     monthly: 0,
     rate: 0,
-    euriborRate: 0,
-    personalMargin: 0,
-    managementFee: 0,
     remaining: '',
-    dueDate: ''
+    dueDate: '',
+    managementFee: 0
   });
 
   const [calculatedValues, setCalculatedValues] = useState({
-    monthlyPayment: 0,
-    totalPayback: 0,
-    yearlyRate: 0
+    estimatedEuribor: 0,
+    totalPayback: 0
   });
 
-  // Auto-calculate when relevant fields change
+  // Calculate Euribor and other values from loan inputs
   useEffect(() => {
-    if (loanData.totalAmount > 0 && loanData.euriborRate >= 0 && loanData.personalMargin >= 0) {
-      const termMonths = parseInt(loanData.remaining.match(/\d+/)?.[0] || '12');
+    if (loanData.totalAmount > 0 && loanData.monthly > 0 && loanData.remaining) {
+      const termMonths = parseInt(loanData.remaining.match(/\d+/)?.[0] || '0');
       if (termMonths > 0) {
-        const calculation = calculateLoanPayment2(
-          loanData.totalAmount,
-          loanData.euriborRate,
-          loanData.personalMargin,
-          loanData.managementFee || 0,
-          termMonths
-        );
-        setCalculatedValues(calculation);
+        // Calculate total interest from monthly payments
+        const totalPayback = loanData.monthly * termMonths;
+        const totalInterest = totalPayback - loanData.totalAmount;
         
-        // Auto-update monthly payment if not manually set
-        if (loanData.monthly === 0) {
-          setLoanData(prev => ({ ...prev, monthly: calculation.monthlyPayment }));
-        }
+        // Estimate yearly interest rate (simplified calculation)
+        const yearlyRate = (totalInterest / loanData.totalAmount) * (12 / termMonths) * 100;
+        
+        setCalculatedValues({
+          estimatedEuribor: Math.max(0, yearlyRate),
+          totalPayback: totalPayback
+        });
       }
     }
-  }, [loanData.totalAmount, loanData.euriborRate, loanData.personalMargin, loanData.managementFee, loanData.remaining]);
+  }, [loanData.totalAmount, loanData.monthly, loanData.remaining]);
 
   const handleAddLoan = () => {
-    if (!loanData.name || loanData.totalAmount === 0) {
+    if (!loanData.name || loanData.totalAmount === 0 || loanData.monthly === 0) {
       toast({
         title: t('error'),
         description: t('fill_required_fields'),
@@ -70,11 +65,11 @@ const AddLoan = () => {
       name: loanData.name,
       totalAmount: loanData.totalAmount,
       currentAmount: loanData.currentAmount || loanData.totalAmount,
-      monthly: loanData.monthly || calculatedValues.monthlyPayment,
-      rate: calculatedValues.yearlyRate || loanData.rate,
-      euriborRate: loanData.euriborRate,
-      personalMargin: loanData.personalMargin,
-      managementFee: loanData.managementFee,
+      monthly: loanData.monthly,
+      rate: calculatedValues.estimatedEuribor,
+      euriborRate: 0, // Not directly calculated
+      personalMargin: calculatedValues.estimatedEuribor, // Using estimated rate
+      managementFee: loanData.managementFee || 0,
       remaining: loanData.remaining,
       dueDate: loanData.dueDate,
       lastPayment: new Date().toISOString().split('T')[0]
@@ -100,7 +95,7 @@ const AddLoan = () => {
       </div>
 
       {/* Calculation Info */}
-      {calculatedValues.monthlyPayment > 0 && (
+      {calculatedValues.estimatedEuribor > 0 && (
         <Card className="mb-4 bg-green-500/20 border-green-500/30">
           <CardHeader>
             <CardTitle className="text-white flex items-center">
@@ -111,16 +106,12 @@ const AddLoan = () => {
           <CardContent className="space-y-2">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-white/70">{t('monthly_payment')}</p>
-                <p className="text-white font-medium">€{calculatedValues.monthlyPayment.toFixed(2)}</p>
+                <p className="text-white/70">{t('estimated_interest_rate')}</p>
+                <p className="text-white font-medium">{calculatedValues.estimatedEuribor.toFixed(2)}%</p>
               </div>
               <div>
                 <p className="text-white/70">{t('total_payback')}</p>
                 <p className="text-white font-medium">€{calculatedValues.totalPayback.toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-white/70">{t('yearly_rate')}</p>
-                <p className="text-white font-medium">{calculatedValues.yearlyRate.toFixed(2)}%</p>
               </div>
             </div>
           </CardContent>
@@ -145,65 +136,51 @@ const AddLoan = () => {
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="total-amount" className="text-white">{t('total_amount')}</Label>
+              <Label htmlFor="total-amount" className="text-white">{t('total_loan_amount')}</Label>
               <Input
                 id="total-amount"
                 type="number"
                 value={loanData.totalAmount || ''}
                 onChange={(e) => setLoanData(prev => ({ ...prev, totalAmount: parseFloat(e.target.value) || 0 }))}
                 className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="0.00"
+                placeholder="15000.00"
               />
             </div>
             
             <div>
-              <Label htmlFor="current-amount" className="text-white">{t('current_amount')}</Label>
+              <Label htmlFor="current-amount" className="text-white">{t('amount_left_to_pay')}</Label>
               <Input
                 id="current-amount"
                 type="number"
                 value={loanData.currentAmount || ''}
                 onChange={(e) => setLoanData(prev => ({ ...prev, currentAmount: parseFloat(e.target.value) || 0 }))}
                 className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="0.00"
+                placeholder="12000.00"
               />
             </div>
-          </div>
-
-          <div>
-            <Label htmlFor="remaining-months" className="text-white">{t('remaining_months')}</Label>
-            <Input
-              id="remaining-months"
-              value={loanData.remaining}
-              onChange={(e) => setLoanData(prev => ({ ...prev, remaining: e.target.value }))}
-              className="bg-white/10 border-white/20 text-white mt-2"
-              placeholder="24 months"
-            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="euribor-rate" className="text-white">{t('euribor_rate')} (%)</Label>
+              <Label htmlFor="monthly-payment" className="text-white">{t('monthly_payment')} (€)</Label>
               <Input
-                id="euribor-rate"
+                id="monthly-payment"
                 type="number"
-                step="0.01"
-                value={loanData.euriborRate || ''}
-                onChange={(e) => setLoanData(prev => ({ ...prev, euriborRate: parseFloat(e.target.value) || 0 }))}
+                value={loanData.monthly || ''}
+                onChange={(e) => setLoanData(prev => ({ ...prev, monthly: parseFloat(e.target.value) || 0 }))}
                 className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="3.25"
+                placeholder="450.00"
               />
             </div>
             
             <div>
-              <Label htmlFor="personal-margin" className="text-white">{t('personal_margin')} (%)</Label>
+              <Label htmlFor="remaining-months" className="text-white">{t('months_left')}</Label>
               <Input
-                id="personal-margin"
-                type="number"
-                step="0.01"
-                value={loanData.personalMargin || ''}
-                onChange={(e) => setLoanData(prev => ({ ...prev, personalMargin: parseFloat(e.target.value) || 0 }))}
+                id="remaining-months"
+                value={loanData.remaining}
+                onChange={(e) => setLoanData(prev => ({ ...prev, remaining: e.target.value }))}
                 className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="1.50"
+                placeholder="24 months"
               />
             </div>
           </div>
@@ -217,7 +194,7 @@ const AddLoan = () => {
                 value={loanData.managementFee || ''}
                 onChange={(e) => setLoanData(prev => ({ ...prev, managementFee: parseFloat(e.target.value) || 0 }))}
                 className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="5.00"
+                placeholder="0.00"
               />
             </div>
             
@@ -231,19 +208,6 @@ const AddLoan = () => {
                 placeholder="15th"
               />
             </div>
-          </div>
-
-          <div>
-            <Label htmlFor="monthly-payment" className="text-white">{t('monthly_payment')} (€) - {t('optional')}</Label>
-            <Input
-              id="monthly-payment"
-              type="number"
-              value={loanData.monthly || ''}
-              onChange={(e) => setLoanData(prev => ({ ...prev, monthly: parseFloat(e.target.value) || 0 }))}
-              className="bg-white/10 border-white/20 text-white mt-2"
-              placeholder={calculatedValues.monthlyPayment > 0 ? calculatedValues.monthlyPayment.toFixed(2) : "0.00"}
-            />
-            <p className="text-white/70 text-xs mt-1">{t('leave_empty_for_auto_calculation')}</p>
           </div>
           
           <Button onClick={handleAddLoan} className="w-full bg-white text-[#294D73]">
