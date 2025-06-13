@@ -10,6 +10,7 @@ import MonthlyPayments from '@/components/MonthlyPayments';
 import UpcomingPayments from '@/components/UpcomingPayments';
 import PrivacySettings from '@/components/PrivacySettings';
 import SecuritySettings from '@/components/SecuritySettings';
+import DataManagement from '@/components/DataManagement';
 import Navigation from '@/components/Navigation';
 
 const Index = () => {
@@ -29,6 +30,7 @@ const Index = () => {
           <Route path="/settings" element={<Settings />} />
           <Route path="/privacy" element={<PrivacySettings />} />
           <Route path="/security" element={<SecuritySettings />} />
+          <Route path="/data-management" element={<DataManagement />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Navigation />

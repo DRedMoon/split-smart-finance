@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Eye, EyeOff } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,15 +21,13 @@ const Dashboard = () => {
       setFinancialData(savedData);
     } else {
       // Initialize with empty data
-      clearAllData();
       const defaultData = getDefaultFinancialData();
+      saveFinancialData(defaultData);
       setFinancialData(defaultData);
     }
   };
 
   useEffect(() => {
-    // Clear any test data on first load and recalculate balance
-    recalculateBalance();
     loadData();
   }, []);
 
@@ -193,18 +190,12 @@ const Dashboard = () => {
 
   return (
     <div className="p-4 pb-20 space-y-6 bg-[#192E45] min-h-screen">
-      {/* Header */}
+      {/* Header - Removed the + button */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-white">{t('financial_overview')}</h1>
           <p className="text-white/70">{t('manage_expenses')}</p>
         </div>
-        <Button
-          onClick={() => navigate('/add')}
-          className="rounded-full w-12 h-12 p-0 bg-[#294D73] hover:bg-[#1f3a5f]"
-        >
-          <Plus size={24} />
-        </Button>
       </div>
 
       {/* Swipeable Cards */}

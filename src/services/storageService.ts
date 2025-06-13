@@ -1,4 +1,3 @@
-
 export interface FinancialData {
   balance: number;
   loans: Array<{
@@ -89,10 +88,15 @@ export const getDefaultFinancialData = (): FinancialData => ({
   transactions: []
 });
 
-// Clear all data and reset to default
+// Clear all data and reset to default - COMPLETELY CLEAR EVERYTHING
 export const clearAllData = (): void => {
-  const defaultData = getDefaultFinancialData();
-  saveFinancialData(defaultData);
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    const defaultData = getDefaultFinancialData();
+    saveFinancialData(defaultData);
+  } catch (error) {
+    console.error('Error clearing data:', error);
+  }
 };
 
 // Recalculate balance based on transactions

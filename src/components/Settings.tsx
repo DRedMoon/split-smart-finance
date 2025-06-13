@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Bell, Shield, Download, LogOut, Upload } from 'lucide-react';
+import { ArrowLeft, User, Bell, Shield, Download, LogOut, Upload, Database } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -111,6 +110,7 @@ const Settings = () => {
     {
       title: t('data'),
       items: [
+        { icon: Database, label: 'Tiedonhallinta', action: () => navigate('/data-management') },
         { icon: Download, label: t('export_data'), action: handleExportData },
         { icon: Upload, label: t('import_data'), action: () => document.getElementById('import-input')?.click() },
         { label: t('backup_settings'), hasSwitch: true, switchValue: backupEnabled, onSwitchChange: setBackupEnabled, action: handleBackupSettings }
