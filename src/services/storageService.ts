@@ -23,7 +23,7 @@ export interface FinancialData {
     amount: number;
     dueDate: string;
     type: string;
-    paid?: boolean;
+    paid: boolean;
   }>;
   transactions: Array<{
     id: number;
@@ -284,7 +284,8 @@ export const addMonthlyBill = (bill: Omit<FinancialData['monthlyBills'][0], 'id'
   const data = loadFinancialData() || getDefaultFinancialData();
   const newBill = {
     ...bill,
-    id: Date.now() + Math.random()
+    id: Date.now() + Math.random(),
+    paid: false // Always start as unpaid
   };
   data.monthlyBills.push(newBill);
   saveFinancialData(data);
@@ -645,6 +646,45 @@ export const deleteCategory = (categoryId: number): void => {
   const data = loadFinancialData() || getDefaultFinancialData();
   if (data.categories) {
     data.categories = data.categories.filter(cat => cat.id !== categoryId);
+    saveFinancialData(data);
+  }
+};
+
+// Enhanced function to reset monthly bills for new month
+export const resetMonthlyBills = (): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  
+  // Reset all monthly bills to unpaid for new month
+  data.monthlyBills.forEach(bill => {
+    if (bill.type !== 'laina' && 
+        bill.type !== 'luottokortti' && 
+        bill.type !== 'loan_payment' && 
+        bill.type !== 'credit_payment') {
+      bill.paid = false;
+    }
+  });
+  
+  saveFinancialData(data);
+};
+
+// Mark monthly bill as paid
+export const markBillAsPaid = (billId: number): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  const billIndex = data.monthlyBills.findIndex(bill => bill.id === billId);
+  
+  if (billIndex !== -1) {
+    data.monthlyBills[billIndex].paid = true;
+    saveFinancialData(data);
+  }
+};
+
+// Mark monthly bill as unpaid
+export const markBillAsUnpaid = (billId: number): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  const billIndex = data.monthlyBills.findIndex(bill => bill.id === billId);
+  
+  if (billIndex !== -1) {
+    data.monthlyBills[billIndex].paid = false;
     saveFinancialData(data);
   }
 };

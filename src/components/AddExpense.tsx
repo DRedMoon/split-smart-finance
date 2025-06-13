@@ -58,9 +58,15 @@ const AddExpense = () => {
         cat.name.toLowerCase().replace(/\s+/g, '_') === quickData.category
       );
 
-      if (categoryData?.isMonthlyPayment || 
-          ['insurance', 'subscription', 'bill'].includes(quickData.category)) {
-        // Add to monthly bills
+      // Add to monthly bills if it's a recurring payment category
+      const recurringCategories = ['insurance', 'subscription', 'bill', 'maintenance_charge', 'hoitovastike', 'housing_company_expenditure'];
+      const isRecurring = categoryData?.isMonthlyPayment || 
+                         categoryData?.isMaintenanceCharge || 
+                         categoryData?.isHousingCompanyExpenditure ||
+                         recurringCategories.includes(quickData.category);
+
+      if (isRecurring) {
+        // Add to monthly bills with default due date
         addMonthlyBill({
           name: quickData.name,
           amount: quickData.amount,
@@ -119,6 +125,11 @@ const AddExpense = () => {
       label: cat.name
     }))
   ];
+
+  // Remove duplicates based on value
+  const uniqueCategories = allCategories.filter((category, index, self) =>
+    index === self.findIndex((t) => t.value === category.value)
+  );
 
   return (
     <div className="p-4 pb-20 bg-[#192E45] min-h-screen">
@@ -190,7 +201,7 @@ const AddExpense = () => {
                 <SelectValue placeholder={t('select_category')} />
               </SelectTrigger>
               <SelectContent>
-                {allCategories.map((category) => (
+                {uniqueCategories.map((category) => (
                   <SelectItem key={category.value} value={category.value}>
                     {category.label}
                   </SelectItem>
