@@ -1,159 +1,208 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit, Trash2, CreditCard, Banknote, Settings, Calculator } from 'lucide-react';
+import { ArrowLeft, Plus, Settings, Calculator, CreditCard, Coins } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { loadFinancialData } from '@/services/storageService';
+import { loadFinancialData, calculateLoanPayment2, calculateCreditPayment } from '@/services/storageService';
 
 const LoansCredits = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  
-  const data = loadFinancialData();
-  const loans = data?.loans || [];
+  const [financialData, setFinancialData] = useState(null);
+
+  useEffect(() => {
+    const data = loadFinancialData();
+    setFinancialData(data);
+    // Store that we came from loans-credits view
+    localStorage.setItem('dashboardLastView', 'loans-credits');
+  }, []);
 
   const handleBackNavigation = () => {
-    // Navigate back to dashboard and set it to loans & credits view
-    navigate('/?view=loans-credits');
+    const lastView = localStorage.getItem('dashboardLastView') || 'loans-credits';
+    navigate(`/?returnTo=${lastView}`);
   };
 
-  // Calculate loan details for each loan
-  const calculateLoanDetails = (loan: any) => {
-    const monthlyRate = loan.yearlyInterestRate / 100 / 12;
-    const remainingMonths = Math.ceil(loan.currentAmount / (loan.monthly - (loan.currentAmount * monthlyRate)));
-    const totalInterestRemaining = (loan.monthly * remainingMonths) - loan.currentAmount;
-    const totalPayback = loan.currentAmount + totalInterestRemaining;
-    
+  const calculateLoanDetails = (loan) => {
+    if (loan.remaining === 'Credit Card') {
+      // Credit card calculation
+      if (loan.currentAmount > 0 && loan.rate > 0) {
+        const calculation = calculateCreditPayment(
+          loan.currentAmount,
+          loan.rate,
+          loan.managementFee || 0,
+          loan.minimumPercent || 3
+        );
+        return {
+          monthlyPayment: calculation.monthlyMinimum,
+          totalPayback: calculation.totalWithInterest,
+          interestAmount: calculation.totalWithInterest - loan.currentAmount,
+          remainingMonths: 'N/A'
+        };
+      }
+    } else {
+      // Loan calculation
+      if (loan.totalAmount > 0 && loan.euriborRate >= 0 && loan.personalMargin >= 0) {
+        const termMonths = parseInt(loan.remaining.match(/\d+/)?.[0] || '12');
+        if (termMonths > 0) {
+          const calculation = calculateLoanPayment2(
+            loan.currentAmount,
+            loan.euriborRate,
+            loan.personalMargin,
+            loan.managementFee || 0,
+            termMonths
+          );
+          return {
+            monthlyPayment: calculation.monthlyPayment,
+            totalPayback: calculation.totalPayback,
+            interestAmount: calculation.totalPayback - loan.currentAmount,
+            remainingMonths: termMonths
+          };
+        }
+      }
+    }
     return {
-      remainingMonths: isNaN(remainingMonths) ? 0 : remainingMonths,
-      totalInterestRemaining: Math.max(0, totalInterestRemaining),
-      totalPayback: Math.max(loan.currentAmount, totalPayback),
-      monthlyInterest: loan.currentAmount * monthlyRate,
-      monthlyPrincipal: loan.monthly - (loan.currentAmount * monthlyRate)
+      monthlyPayment: loan.monthly || 0,
+      totalPayback: loan.totalPayback || 0,
+      interestAmount: (loan.totalPayback || 0) - loan.currentAmount,
+      remainingMonths: loan.remaining === 'Credit Card' ? 'N/A' : parseInt(loan.remaining.match(/\d+/)?.[0] || '0')
     };
   };
 
+  if (!financialData) {
+    return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
+  }
+
   return (
-    <div className="p-4 pb-20 bg-[#192E45] min-h-screen">
-      <div className="flex items-center space-x-3 mb-6">
-        <Button variant="ghost" size="sm" onClick={handleBackNavigation} className="text-white hover:bg-white/10">
-          <ArrowLeft size={20} />
-        </Button>
-        <h1 className="text-2xl font-bold text-white">{t('loans_credits')}</h1>
+    <div className="p-4 pb-20 bg-[#192E45] min-h-screen max-w-md mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <Button variant="ghost" size="sm" onClick={handleBackNavigation} className="text-white hover:bg-white/10">
+            <ArrowLeft size={20} />
+          </Button>
+          <h1 className="text-2xl font-bold text-white">{t('loans_credits')}</h1>
+        </div>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => navigate('/manage-loans-credits')} 
+            size="sm" 
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            <Settings size={16} />
+          </Button>
+          <Button onClick={() => navigate('/add-loan')} size="sm" className="bg-[#294D73] hover:bg-[#1f3a5f]">
+            <Plus size={16} />
+          </Button>
+        </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-1 gap-4 mb-6">
-        <Button
-          onClick={() => navigate('/add-loan')}
-          className="h-16 bg-[#294D73] text-white hover:bg-[#1f3a5f] flex items-center justify-center space-x-3"
-        >
-          <Banknote size={20} />
-          <span>{t('add_loan')}</span>
-        </Button>
-        
-        <Button
-          onClick={() => navigate('/add-credit')}
-          className="h-16 bg-[#294D73] text-white hover:bg-[#1f3a5f] flex items-center justify-center space-x-3"
-        >
-          <CreditCard size={20} />
-          <span>{t('add_credit_card')}</span>
-        </Button>
-        
-        <Button
-          onClick={() => navigate('/manage-loans-credits')}
-          className="h-16 bg-[#294D73] text-white hover:bg-[#1f3a5f] flex items-center justify-center space-x-3"
-        >
-          <Settings size={20} />
-          <span>{t('manage_loans_credits')}</span>
-        </Button>
-      </div>
-
-      {/* Detailed Loans List */}
+      {/* Loans and Credits List */}
       <div className="space-y-4">
-        {loans.length === 0 ? (
+        {financialData.loans?.length === 0 ? (
           <Card className="bg-[#294D73] border-none">
-            <CardContent className="p-8 text-center text-white/70">
+            <CardContent className="p-6 text-center text-white/70">
               {t('no_loans_credits')}
             </CardContent>
           </Card>
         ) : (
-          loans.map((loan) => {
+          financialData.loans?.map((loan) => {
             const details = calculateLoanDetails(loan);
+            const isCredit = loan.remaining === 'Credit Card';
+            const progress = loan.totalAmount > 0 ? ((loan.totalAmount - loan.currentAmount) / loan.totalAmount) * 100 : 0;
+            
             return (
               <Card key={loan.id} className="bg-[#294D73] border-none">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-white text-lg">{loan.name}</CardTitle>
-                    <Badge variant="outline" className="text-white border-white/30">
-                      {loan.yearlyInterestRate}% korko
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      {isCredit ? <CreditCard size={20} /> : <Coins size={20} />}
+                      <span>{loan.name}</span>
+                    </div>
+                    <Badge variant={isCredit ? 'secondary' : 'default'} className="text-xs">
+                      {isCredit ? t('credit_card') : t('loan')}
                     </Badge>
-                  </div>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Main Numbers */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-white/70 text-sm">Jäljellä</p>
-                      <p className="text-xl font-bold text-red-400">€{loan.currentAmount.toFixed(2)}</p>
+                  {/* Progress Bar */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-white/70">
+                      <span>{isCredit ? t('used_credit') : t('paid_off')}</span>
+                      <span>{progress.toFixed(1)}%</span>
                     </div>
-                    <div>
-                      <p className="text-white/70 text-sm">Kuukausierä</p>
-                      <p className="text-xl font-bold text-white">€{loan.monthly.toFixed(2)}</p>
-                    </div>
-                  </div>
-
-                  {/* Detailed Breakdown */}
-                  <div className="bg-white/10 rounded-lg p-3 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/70">Lyhennys/kk:</span>
-                      <span className="text-white">€{details.monthlyPrincipal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/70">Korko/kk:</span>
-                      <span className="text-white">€{details.monthlyInterest.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/70">Kuukausia jäljellä:</span>
-                      <span className="text-white">{details.remainingMonths} kk</span>
-                    </div>
-                    <div className="flex justify-between text-sm border-t border-white/20 pt-2">
-                      <span className="text-white/70">Kokonaiskorko jäljellä:</span>
-                      <span className="text-red-300">€{details.totalInterestRemaining.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm font-semibold">
-                      <span className="text-white">Kokonaissumma:</span>
-                      <span className="text-white">€{details.totalPayback.toFixed(2)}</span>
+                    <div className="w-full bg-white/20 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${isCredit ? 'bg-red-400' : 'bg-green-400'}`}
+                        style={{ width: `${progress}%` }}
+                      ></div>
                     </div>
                   </div>
 
-                  {/* Payment Info */}
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-white/70">Eräpäivä: {loan.dueDate}</span>
-                    <span className="text-white/70">Viimeisin maksu: {loan.lastPayment}</span>
+                  {/* Amount Details */}
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-white/70">{isCredit ? t('credit_limit') : t('original_amount')}</p>
+                      <p className="text-white font-medium">€{loan.totalAmount.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-white/70">{isCredit ? t('available_credit') : t('remaining_balance')}</p>
+                      <p className="text-white font-medium">€{loan.currentAmount.toFixed(2)}</p>
+                    </div>
+                  </div>
+
+                  {/* Payment Details */}
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-white/70">{t('monthly_payment')}</p>
+                      <p className="text-white font-medium">€{details.monthlyPayment.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-white/70">{t('interest_rate')}</p>
+                      <p className="text-white font-medium">{loan.rate.toFixed(2)}%</p>
+                    </div>
+                  </div>
+
+                  {/* Advanced Details */}
+                  <div className="border-t border-white/20 pt-3 space-y-2">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-white/70">{t('total_payback')}</p>
+                        <p className="text-white font-bold">€{details.totalPayback.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-white/70">{t('total_interest')}</p>
+                        <p className="text-red-300 font-medium">€{details.interestAmount.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    
+                    {!isCredit && (
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-white/70">{t('remaining_months')}</p>
+                          <p className="text-white font-medium">{details.remainingMonths}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/70">{t('due_date')}</p>
+                          <p className="text-white font-medium">{loan.dueDate}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Action Buttons */}
                   <div className="flex space-x-2 pt-2">
                     <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1 border-white/30 text-white hover:bg-white/10"
                       onClick={() => navigate(`/edit-loan/${loan.id}`)}
-                    >
-                      <Edit size={14} className="mr-1" />
-                      Muokkaa
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="flex-1 border-white/30 text-white hover:bg-white/10"
+                      size="sm" 
+                      variant="outline"
+                      className="flex-1 border-white/20 text-white hover:bg-white/10"
                     >
                       <Calculator size={14} className="mr-1" />
-                      Maksa erä
+                      {t('edit')}
                     </Button>
                   </div>
                 </CardContent>
@@ -163,26 +212,24 @@ const LoansCredits = () => {
         )}
       </div>
 
-      {/* Summary Card */}
-      {loans.length > 0 && (
-        <Card className="mt-6 bg-[#294D73] border-none">
+      {/* Total Summary */}
+      {financialData.loans?.length > 0 && (
+        <Card className="mt-6 bg-[#1a4a6b] border-none">
           <CardHeader>
-            <CardTitle className="text-white">Yhteenveto</CardTitle>
+            <CardTitle className="text-white">{t('total_overview')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-white">
               <div className="flex justify-between">
-                <span>Kokonaisvelka:</span>
-                <span className="font-bold text-red-400">€{loans.reduce((sum, loan) => sum + loan.currentAmount, 0).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Kuukausierät yhteensä:</span>
-                <span className="font-bold">€{loans.reduce((sum, loan) => sum + loan.monthly, 0).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Keskikorko:</span>
+                <span>{t('total_debt')}:</span>
                 <span className="font-bold">
-                  {loans.length > 0 ? (loans.reduce((sum, loan) => sum + loan.yearlyInterestRate, 0) / loans.length).toFixed(1) : 0}%
+                  €{financialData.loans.reduce((sum, loan) => sum + loan.currentAmount, 0).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>{t('monthly_payments')}:</span>
+                <span className="font-bold text-red-300">
+                  €{financialData.loans.reduce((sum, loan) => sum + (loan.monthly || 0), 0).toFixed(2)}
                 </span>
               </div>
             </div>

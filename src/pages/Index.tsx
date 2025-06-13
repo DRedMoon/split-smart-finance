@@ -19,17 +19,17 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Handle view parameter for dashboard navigation
+    // Handle returnTo parameter for proper navigation back to dashboard views
     const urlParams = new URLSearchParams(location.search);
-    const view = urlParams.get('view');
+    const returnTo = urlParams.get('returnTo');
     
-    if (view && location.pathname === '/') {
-      // Set the dashboard to the correct view based on the parameter
+    if (returnTo && location.pathname === '/') {
+      // Set the dashboard to the correct view based on the returnTo parameter
       const dashboard = document.querySelector('[data-dashboard-carousel]');
       if (dashboard) {
-        const viewIndex = view === 'balance' ? 0 : 
-                         view === 'loans-credits' ? 1 : 
-                         view === 'monthly-payments' ? 2 : 0;
+        const viewIndex = returnTo === 'balance' ? 0 : 
+                         returnTo === 'loans-credits' ? 1 : 
+                         returnTo === 'monthly-payments' ? 2 : 0;
         
         // Trigger carousel navigation to the correct view
         const event = new CustomEvent('navigate-dashboard', {
@@ -39,6 +39,24 @@ const Index = () => {
       }
       
       // Clean up the URL
+      navigate('/', { replace: true });
+    }
+
+    // Handle legacy view parameter for dashboard navigation
+    const view = urlParams.get('view');
+    if (view && location.pathname === '/') {
+      const dashboard = document.querySelector('[data-dashboard-carousel]');
+      if (dashboard) {
+        const viewIndex = view === 'balance' ? 0 : 
+                         view === 'loans-credits' ? 1 : 
+                         view === 'monthly-payments' ? 2 : 0;
+        
+        const event = new CustomEvent('navigate-dashboard', {
+          detail: { index: viewIndex }
+        });
+        dashboard.dispatchEvent(event);
+      }
+      
       navigate('/', { replace: true });
     }
   }, [location, navigate]);

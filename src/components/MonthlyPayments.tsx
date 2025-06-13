@@ -18,6 +18,8 @@ const MonthlyPayments = () => {
   useEffect(() => {
     const data = loadFinancialData();
     setFinancialData(data);
+    // Store that we came from monthly payments view
+    localStorage.setItem('dashboardLastView', 'monthly-payments');
   }, []);
 
   const togglePaymentStatus = (billId: number) => {
@@ -67,8 +69,9 @@ const MonthlyPayments = () => {
   };
 
   const handleBackNavigation = () => {
-    // Navigate back to dashboard and set it to monthly payments view
-    navigate('/?view=monthly-payments');
+    // Navigate back to dashboard with the stored view
+    const lastView = localStorage.getItem('dashboardLastView') || 'monthly-payments';
+    navigate(`/?returnTo=${lastView}`);
   };
 
   if (!financialData) {
