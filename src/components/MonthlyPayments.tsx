@@ -39,11 +39,19 @@ const MonthlyPayments = () => {
   };
 
   if (!financialData) {
-    return <div className="p-4 text-white bg-[#192E45] min-h-screen">Ladataan...</div>;
+    return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
   }
 
+  // Filter out loan and credit payments - only show actual recurring bills
+  const actualMonthlyBills = financialData.monthlyBills.filter(bill => 
+    bill.type !== 'laina' && 
+    bill.type !== 'luottokortti' && 
+    bill.type !== 'loan_payment' && 
+    bill.type !== 'credit_payment'
+  );
+
   return (
-    <div className="p-4 pb-20 bg-[#192E45] min-h-screen">
+    <div className="p-4 pb-20 bg-[#192E45] min-h-screen max-w-md mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
@@ -59,14 +67,14 @@ const MonthlyPayments = () => {
 
       {/* Monthly Bills */}
       <div className="space-y-3">
-        {financialData.monthlyBills.length === 0 ? (
+        {actualMonthlyBills.length === 0 ? (
           <Card className="bg-[#294D73] border-none">
             <CardContent className="p-6 text-center text-white/70">
               Ei kuukausimaksuja lisätty
             </CardContent>
           </Card>
         ) : (
-          financialData.monthlyBills.map(bill => (
+          actualMonthlyBills.map(bill => (
             <Card key={bill.id} className={`bg-[#294D73] border-none ${bill.paid ? 'opacity-60' : ''}`}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -110,15 +118,15 @@ const MonthlyPayments = () => {
           <div className="space-y-2 text-white">
             <div className="flex justify-between">
               <span>Kokonaismäärä:</span>
-              <span className="font-bold">€{financialData.monthlyBills.reduce((sum, bill) => sum + bill.amount, 0).toFixed(2)}</span>
+              <span className="font-bold">€{actualMonthlyBills.reduce((sum, bill) => sum + bill.amount, 0).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Maksettu:</span>
-              <span className="font-bold text-green-400">€{financialData.monthlyBills.filter(bill => bill.paid).reduce((sum, bill) => sum + bill.amount, 0).toFixed(2)}</span>
+              <span className="font-bold text-green-400">€{actualMonthlyBills.filter(bill => bill.paid).reduce((sum, bill) => sum + bill.amount, 0).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Jäljellä:</span>
-              <span className="font-bold text-red-400">€{financialData.monthlyBills.filter(bill => !bill.paid).reduce((sum, bill) => sum + bill.amount, 0).toFixed(2)}</span>
+              <span className="font-bold text-red-400">€{actualMonthlyBills.filter(bill => !bill.paid).reduce((sum, bill) => sum + bill.amount, 0).toFixed(2)}</span>
             </div>
           </div>
         </CardContent>

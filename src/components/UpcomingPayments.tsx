@@ -22,13 +22,21 @@ const UpcomingPayments = () => {
   }, []);
 
   if (!financialData) {
-    return <div className="p-4 text-white bg-[#192E45] min-h-screen">Ladataan...</div>;
+    return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
   }
 
-  const allUpcomingPayments = financialData.monthlyBills.filter(bill => !bill.paid);
+  // Filter out loan and credit payments - only show actual recurring bills
+  const allUpcomingPayments = financialData.monthlyBills
+    .filter(bill => !bill.paid)
+    .filter(bill => 
+      bill.type !== 'laina' && 
+      bill.type !== 'luottokortti' && 
+      bill.type !== 'loan_payment' && 
+      bill.type !== 'credit_payment'
+    );
 
   return (
-    <div className="p-4 pb-20 bg-[#192E45] min-h-screen">
+    <div className="p-4 pb-20 bg-[#192E45] min-h-screen max-w-md mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
@@ -56,15 +64,22 @@ const UpcomingPayments = () => {
               Ei maksuja tällä viikolla
             </div>
           ) : (
-            thisWeekPayments.map(bill => (
-              <div key={bill.id} className="flex justify-between items-center p-3 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
-                <div>
-                  <div className="font-medium text-white">{bill.name}</div>
-                  <div className="text-sm text-white/70">{t('due')} {bill.dueDate}</div>
+            thisWeekPayments
+              .filter(bill => 
+                bill.type !== 'laina' && 
+                bill.type !== 'luottokortti' && 
+                bill.type !== 'loan_payment' && 
+                bill.type !== 'credit_payment'
+              )
+              .map(bill => (
+                <div key={bill.id} className="flex justify-between items-center p-3 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+                  <div>
+                    <div className="font-medium text-white">{bill.name}</div>
+                    <div className="text-sm text-white/70">{t('due')} {bill.dueDate}</div>
+                  </div>
+                  <div className="font-bold text-yellow-300">€{bill.amount}</div>
                 </div>
-                <div className="font-bold text-yellow-300">€{bill.amount}</div>
-              </div>
-            ))
+              ))
           )}
         </CardContent>
       </Card>
