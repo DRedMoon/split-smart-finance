@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from '@/components/Dashboard';
@@ -12,6 +11,9 @@ import PrivacySettings from '@/components/PrivacySettings';
 import SecuritySettings from '@/components/SecuritySettings';
 import DataManagement from '@/components/DataManagement';
 import Navigation from '@/components/Navigation';
+import BackupSettings from '@/components/BackupSettings';
+import ProfileSettings from '@/components/ProfileSettings';
+import AppearanceSettings from '@/components/AppearanceSettings';
 
 const Index = () => {
   return (
@@ -28,8 +30,11 @@ const Index = () => {
           <Route path="/monthly-payments" element={<MonthlyPayments />} />
           <Route path="/upcoming" element={<UpcomingPayments />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/profile" element={<ProfileSettings />} />
           <Route path="/privacy" element={<PrivacySettings />} />
           <Route path="/security" element={<SecuritySettings />} />
+          <Route path="/appearance" element={<AppearanceSettings />} />
+          <Route path="/backup-settings" element={<BackupSettings />} />
           <Route path="/data-management" element={<DataManagement />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

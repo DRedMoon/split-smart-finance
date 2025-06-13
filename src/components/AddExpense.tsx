@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, Receipt, Calendar } from 'lucide-react';
@@ -12,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { addTransaction, addLoan, addMonthlyBill } from '@/services/storageService';
+import { addTransaction, addLoan, addMonthlyBill, calculateLoanPayment, loadFinancialData, saveFinancialData } from '@/services/storageService';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 

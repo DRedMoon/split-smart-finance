@@ -7,9 +7,14 @@ export interface FinancialData {
     currentAmount: number;
     monthly: number;
     rate: number;
+    euriborRate?: number;
+    personalMargin?: number;
+    managementFee?: number;
     remaining: string;
     dueDate: string;
     lastPayment: string;
+    totalPayback: number; // Total amount to pay back including interest
+    yearlyInterestRate: number;
   }>;
   monthlyBills: Array<{
     id: number;
@@ -27,6 +32,19 @@ export interface FinancialData {
     type: string;
     category: string;
   }>;
+  profile: {
+    name: string;
+    email: string;
+    profilePicture?: string;
+  };
+  settings: {
+    backupFrequency: 'daily' | 'weekly' | 'monthly';
+    backupPassword?: string;
+    errorReporting: boolean;
+    analytics: boolean;
+    theme: 'light' | 'dark';
+    fontSize: 'small' | 'medium' | 'large';
+  };
 }
 
 const STORAGE_KEY = 'financial-data';
@@ -49,15 +67,26 @@ export const loadFinancialData = (): FinancialData | null => {
   }
 };
 
-export const exportFinancialData = (): void => {
+export const exportFinancialData = (password?: string): void => {
   const data = loadFinancialData();
   if (data) {
-    const dataStr = JSON.stringify(data, null, 2);
+    let dataToExport = data;
+    
+    if (password) {
+      // Simple encryption for demo - in production use proper encryption
+      dataToExport = {
+        ...data,
+        encrypted: true,
+        password: btoa(password) // Base64 encoding for demo
+      } as any;
+    }
+    
+    const dataStr = JSON.stringify(dataToExport, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `financial-data-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `financial-backup-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -65,12 +94,22 @@ export const exportFinancialData = (): void => {
   }
 };
 
-export const importFinancialData = (file: File): Promise<void> => {
+export const importFinancialData = (file: File, password?: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const data = JSON.parse(e.target?.result as string);
+        let data = JSON.parse(e.target?.result as string);
+        
+        if (data.encrypted && password) {
+          if (data.password !== btoa(password)) {
+            reject(new Error('Invalid password'));
+            return;
+          }
+          delete data.encrypted;
+          delete data.password;
+        }
+        
         saveFinancialData(data);
         resolve();
       } catch (error) {
@@ -85,7 +124,18 @@ export const getDefaultFinancialData = (): FinancialData => ({
   balance: 0,
   loans: [],
   monthlyBills: [],
-  transactions: []
+  transactions: [],
+  profile: {
+    name: 'Käyttäjä',
+    email: 'user@example.com'
+  },
+  settings: {
+    backupFrequency: 'weekly',
+    errorReporting: false,
+    analytics: false,
+    theme: 'dark',
+    fontSize: 'medium'
+  }
 });
 
 // Clear all data and reset to default - COMPLETELY CLEAR EVERYTHING
@@ -126,12 +176,33 @@ export const addTransaction = (transaction: Omit<FinancialData['transactions'][0
   saveFinancialData(data);
 };
 
-export const addLoan = (loan: Omit<FinancialData['loans'][0], 'id'>): void => {
+export const addLoan = (loan: Omit<FinancialData['loans'][0], 'id' | 'totalPayback' | 'yearlyInterestRate'>): void => {
   const data = loadFinancialData() || getDefaultFinancialData();
+  
+  // Calculate precise payments if rates are provided
+  let totalPayback = loan.totalAmount;
+  let yearlyInterestRate = loan.rate;
+  
+  if (loan.euriborRate !== undefined && loan.personalMargin !== undefined) {
+    const termMonths = parseInt(loan.remaining.match(/\d+/)?.[0] || '12');
+    const calculation = calculateLoanPayment(
+      loan.totalAmount,
+      loan.euriborRate,
+      loan.personalMargin,
+      loan.managementFee || 0,
+      termMonths
+    );
+    totalPayback = calculation.totalPayback;
+    yearlyInterestRate = calculation.yearlyRate;
+  }
+  
   const newLoan = {
     ...loan,
-    id: Date.now() + Math.random()
+    id: Date.now() + Math.random(),
+    totalPayback,
+    yearlyInterestRate
   };
+  
   data.loans.push(newLoan);
   
   // Add to monthly bills
@@ -232,4 +303,117 @@ export const getThisWeekUpcomingPayments = () => {
     
     return dueDate >= today && dueDate <= weekFromNow;
   });
+};
+
+// Calculate precise loan payments with EURIBOR
+export const calculateLoanPayment = (
+  principal: number,
+  euriborRate: number,
+  personalMargin: number,
+  managementFee: number,
+  termMonths: number
+): { monthlyPayment: number; totalPayback: number; yearlyRate: number } => {
+  const yearlyRate = euriborRate + personalMargin;
+  const monthlyRate = yearlyRate / 100 / 12;
+  
+  // Calculate monthly payment using standard loan formula
+  const monthlyPrincipalInterest = principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / 
+    (Math.pow(1 + monthlyRate, termMonths) - 1);
+  
+  const monthlyPayment = monthlyPrincipalInterest + managementFee;
+  const totalPayback = (monthlyPayment * termMonths);
+  
+  return {
+    monthlyPayment: Math.round(monthlyPayment * 100) / 100,
+    totalPayback: Math.round(totalPayback * 100) / 100,
+    yearlyRate
+  };
+};
+
+// Calculate credit card payments
+export const calculateCreditPayment = (
+  principal: number,
+  yearlyRate: number,
+  managementFee: number,
+  minimumPercent: number = 3
+): { monthlyMinimum: number; totalWithInterest: number } => {
+  const monthlyRate = yearlyRate / 100 / 12;
+  const interest = principal * monthlyRate;
+  const minimumPayment = Math.max(principal * (minimumPercent / 100), 25); // Minimum 25€
+  const monthlyMinimum = minimumPayment + managementFee;
+  
+  // Estimate total payback (simplified calculation)
+  const totalWithInterest = principal * (1 + (yearlyRate / 100) * 2); // Rough estimate
+  
+  return {
+    monthlyMinimum: Math.round(monthlyMinimum * 100) / 100,
+    totalWithInterest: Math.round(totalWithInterest * 100) / 100
+  };
+};
+
+// Store error reports locally
+export const logError = (error: Error, context?: string): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  
+  if (data.settings.errorReporting) {
+    const errorLog = {
+      timestamp: new Date().toISOString(),
+      error: error.message,
+      stack: error.stack,
+      context,
+      userAgent: navigator.userAgent
+    };
+    
+    const existingLogs = JSON.parse(localStorage.getItem('error-logs') || '[]');
+    existingLogs.push(errorLog);
+    localStorage.setItem('error-logs', JSON.stringify(existingLogs));
+  }
+};
+
+// Store analytics locally
+export const logAnalytics = (event: string, data?: any): void => {
+  const financialData = loadFinancialData() || getDefaultFinancialData();
+  
+  if (financialData.settings.analytics) {
+    const analyticsEvent = {
+      timestamp: new Date().toISOString(),
+      event,
+      data,
+      page: window.location.pathname
+    };
+    
+    const existingAnalytics = JSON.parse(localStorage.getItem('analytics-logs') || '[]');
+    existingAnalytics.push(analyticsEvent);
+    localStorage.setItem('analytics-logs', JSON.stringify(existingAnalytics));
+  }
+};
+
+// Automatic backup function
+export const performAutomaticBackup = (): void => {
+  const data = loadFinancialData();
+  if (!data) return;
+  
+  const lastBackup = localStorage.getItem('last-backup');
+  const now = new Date();
+  const shouldBackup = !lastBackup || (() => {
+    const lastBackupDate = new Date(lastBackup);
+    const daysDiff = (now.getTime() - lastBackupDate.getTime()) / (1000 * 3600 * 24);
+    
+    switch (data.settings.backupFrequency) {
+      case 'daily': return daysDiff >= 1;
+      case 'weekly': return daysDiff >= 7;
+      case 'monthly': return daysDiff >= 30;
+      default: return false;
+    }
+  })();
+  
+  if (shouldBackup) {
+    const backupData = {
+      ...data,
+      backupDate: now.toISOString()
+    };
+    
+    localStorage.setItem('auto-backup', JSON.stringify(backupData));
+    localStorage.setItem('last-backup', now.toISOString());
+  }
 };

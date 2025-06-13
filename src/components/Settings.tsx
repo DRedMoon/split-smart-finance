@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Bell, Shield, Download, LogOut, Upload, Database } from 'lucide-react';
+import { ArrowLeft, User, Bell, Shield, Download, LogOut, Upload, Database, Palette, Settings as SettingsIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -8,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
-import { exportFinancialData, importFinancialData, saveFinancialData, loadFinancialData, clearAllData } from '@/services/storageService';
+import { exportFinancialData, importFinancialData, saveFinancialData, loadFinancialData, clearAllData, logError, logAnalytics } from '@/services/storageService';
 import { initializeNotifications, showNotification }  from '@/services/notificationService';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,7 +18,8 @@ const Settings = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [backupEnabled, setBackupEnabled] = useState(true);
+  const [errorReporting, setErrorReporting] = useState(false);
+  const [analytics, setAnalytics] = useState(false);
 
   useEffect(() => {
     const checkNotificationPermission = async () => {
@@ -25,6 +27,13 @@ const Settings = () => {
       setNotificationsEnabled(hasPermission);
     };
     checkNotificationPermission();
+
+    // Load settings
+    const data = loadFinancialData();
+    if (data?.settings) {
+      setErrorReporting(data.settings.errorReporting);
+      setAnalytics(data.settings.analytics);
+    }
   }, []);
 
   const handleExportData = () => {
@@ -52,17 +61,6 @@ const Settings = () => {
             variant: "destructive"
           });
         });
-    }
-  };
-
-  const handleBackupSettings = () => {
-    const data = loadFinancialData();
-    if (data && backupEnabled) {
-      saveFinancialData(data);
-      toast({
-        title: "Varmuuskopio luotu",
-        description: "Tiedot on tallennettu onnistuneesti",
-      });
     }
   };
 
@@ -98,6 +96,42 @@ const Settings = () => {
     }
   };
 
+  const handleErrorReportingToggle = (enabled: boolean) => {
+    setErrorReporting(enabled);
+    const data = loadFinancialData();
+    if (data) {
+      data.settings.errorReporting = enabled;
+      saveFinancialData(data);
+      
+      if (enabled) {
+        logError(new Error('Test error report'), 'Settings toggle');
+      }
+      
+      toast({
+        title: enabled ? "Virheraportit käytössä" : "Virheraportit pois käytöstä",
+        description: enabled ? "Virheet tallennetaan paikallisesti" : "Virheraportit poistettu käytöstä",
+      });
+    }
+  };
+
+  const handleAnalyticsToggle = (enabled: boolean) => {
+    setAnalytics(enabled);
+    const data = loadFinancialData();
+    if (data) {
+      data.settings.analytics = enabled;
+      saveFinancialData(data);
+      
+      if (enabled) {
+        logAnalytics('settings_analytics_enabled', { timestamp: new Date().toISOString() });
+      }
+      
+      toast({
+        title: enabled ? "Analytiikka käytössä" : "Analytiikka pois käytöstä",
+        description: enabled ? "Käyttötiedot tallennetaan paikallisesti" : "Analytiikka poistettu käytöstä",
+      });
+    }
+  };
+
   const settingsGroups = [
     {
       title: t('account'),
@@ -108,12 +142,25 @@ const Settings = () => {
       ]
     },
     {
+      title: 'Ulkoasu ja toiminnot',
+      items: [
+        { icon: Palette, label: 'Ulkoasuasetukset', action: () => navigate('/appearance') },
+        { icon: SettingsIcon, label: 'Varmuuskopiot', action: () => navigate('/backup-settings') }
+      ]
+    },
+    {
       title: t('data'),
       items: [
         { icon: Database, label: 'Tiedonhallinta', action: () => navigate('/data-management') },
         { icon: Download, label: t('export_data'), action: handleExportData },
-        { icon: Upload, label: t('import_data'), action: () => document.getElementById('import-input')?.click() },
-        { label: t('backup_settings'), hasSwitch: true, switchValue: backupEnabled, onSwitchChange: setBackupEnabled, action: handleBackupSettings }
+        { icon: Upload, label: t('import_data'), action: () => document.getElementById('import-input')?.click() }
+      ]
+    },
+    {
+      title: 'Yksityisyys ja virheet',
+      items: [
+        { label: 'Automaattiset virheraportit', hasSwitch: true, switchValue: errorReporting, onSwitchChange: handleErrorReportingToggle },
+        { label: 'Analytiikka', hasSwitch: true, switchValue: analytics, onSwitchChange: handleAnalyticsToggle }
       ]
     }
   ];
@@ -136,8 +183,10 @@ const Settings = () => {
               <User size={32} className="text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-lg text-white">Käyttäjä</h3>
-              <p className="text-white/70">user@example.com</p>
+              <h3 className="font-semibold text-lg text-white">
+                {loadFinancialData()?.profile?.name || 'Käyttäjä'}
+              </h3>
+              <p className="text-white/70">{loadFinancialData()?.profile?.email || 'user@example.com'}</p>
               <div className="flex space-x-4 mt-2 text-sm">
                 <span className="text-green-300">Saldo: €{loadFinancialData()?.balance?.toFixed(2) || '0.00'}</span>
                 <span className="text-red-300">Velat: €{loadFinancialData()?.loans?.reduce((sum, loan) => sum + loan.currentAmount, 0)?.toFixed(2) || '0.00'}</span>
