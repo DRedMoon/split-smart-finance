@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'fi' | 'en';
@@ -89,7 +88,22 @@ const translations = {
     'delete': 'Poista',
     'mark_paid': 'Merkitse Maksetuksi',
     'paid': 'Maksettu',
-    'pending': 'Odottaa'
+    'pending': 'Odottaa',
+    'upcoming': 'Tulevat',
+    'loan_payment': 'Lainanmaksu',
+    'credit_payment': 'Luottomaksu',
+    'clear_all_data': 'Tyhjennä Kaikki Tiedot',
+    'import_data': 'Tuo Tiedot',
+    'backup_created': 'Varmuuskopio Luotu',
+    'data_imported': 'Tiedot Tuotu',
+    'pin_code': 'PIN-koodi',
+    'fingerprint': 'Sormenjälki',
+    'enable_pin': 'Ota PIN käyttöön',
+    'enable_fingerprint': 'Ota sormenjälki käyttöön',
+    'privacy_policy': 'Tietosuojaseloste',
+    'data_collection': 'Tiedonkeruu',
+    'security_settings': 'Turvallisuusasetukset',
+    'two_factor': 'Kaksivaiheinen tunnistus'
   },
   en: {
     'financial_overview': 'Financial Overview',
@@ -170,7 +184,22 @@ const translations = {
     'delete': 'Delete',
     'mark_paid': 'Mark Paid',
     'paid': 'Paid',
-    'pending': 'Pending'
+    'pending': 'Pending',
+    'upcoming': 'Upcoming',
+    'loan_payment': 'Loan Payment',
+    'credit_payment': 'Credit Payment',
+    'clear_all_data': 'Clear All Data',
+    'import_data': 'Import Data',
+    'backup_created': 'Backup Created',
+    'data_imported': 'Data Imported',
+    'pin_code': 'PIN Code',
+    'fingerprint': 'Fingerprint',
+    'enable_pin': 'Enable PIN',
+    'enable_fingerprint': 'Enable Fingerprint',
+    'privacy_policy': 'Privacy Policy',
+    'data_collection': 'Data Collection',
+    'security_settings': 'Security Settings',
+    'two_factor': 'Two Factor Authentication'
   }
 };
 

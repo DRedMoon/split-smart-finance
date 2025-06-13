@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, CreditCard, Plus, BarChart3, Settings } from 'lucide-react';
+import { Home, Calendar, Plus, BarChart3, Settings } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const Navigation = () => {
@@ -11,7 +11,7 @@ const Navigation = () => {
 
   const navItems = [
     { path: '/', icon: Home, label: t('home') },
-    { path: '/expenses/all', icon: CreditCard, label: t('expenses') },
+    { path: '/upcoming', icon: Calendar, label: t('upcoming') },
     { path: '/add', icon: Plus, label: t('add'), special: true },
     { path: '/transactions', icon: BarChart3, label: t('history') },
     { path: '/settings', icon: Settings, label: t('settings') }

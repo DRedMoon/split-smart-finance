@@ -1,14 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Bell, Shield, Download, LogOut } from 'lucide-react';
+import { ArrowLeft, User, Bell, Shield, Download, LogOut, Upload } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
-import { exportFinancialData, saveFinancialData, loadFinancialData } from '@/services/storageService';
+import { exportFinancialData, importFinancialData, saveFinancialData, loadFinancialData, clearAllData } from '@/services/storageService';
 import { initializeNotifications, showNotification }  from '@/services/notificationService';
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,19 +31,48 @@ const Settings = () => {
   const handleExportData = () => {
     exportFinancialData();
     toast({
-      title: "Tiedot viety",
+      title: t('backup_created'),
       description: "Taloudelliset tiedot on viety onnistuneesti",
     });
+  };
+
+  const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      importFinancialData(file)
+        .then(() => {
+          toast({
+            title: t('data_imported'),
+            description: "Tiedot on tuotu onnistuneesti",
+          });
+        })
+        .catch(() => {
+          toast({
+            title: "Virhe",
+            description: "Tietojen tuonti epäonnistui",
+            variant: "destructive"
+          });
+        });
+    }
   };
 
   const handleBackupSettings = () => {
     const data = loadFinancialData();
     if (data && backupEnabled) {
-      // Simulate backup to cloud
       saveFinancialData(data);
       toast({
         title: "Varmuuskopio luotu",
         description: "Tiedot on tallennettu onnistuneesti",
+      });
+    }
+  };
+
+  const handleClearAllData = () => {
+    if (confirm("Haluatko varmasti tyhjentää kaikki tiedot? Tätä toimintoa ei voi peruuttaa.")) {
+      clearAllData();
+      toast({
+        title: "Tiedot tyhjennetty",
+        description: "Kaikki tiedot on poistettu",
       });
     }
   };
@@ -73,15 +103,16 @@ const Settings = () => {
     {
       title: t('account'),
       items: [
-        { icon: User, label: t('profile'), action: () => console.log('Profile') },
+        { icon: User, label: t('profile'), action: () => navigate('/profile') },
         { icon: Bell, label: t('notifications'), hasSwitch: true, switchValue: notificationsEnabled, onSwitchChange: handleNotificationToggle },
-        { icon: Shield, label: t('privacy_security'), action: () => console.log('Privacy') }
+        { icon: Shield, label: t('privacy_security'), action: () => navigate('/privacy') }
       ]
     },
     {
       title: t('data'),
       items: [
         { icon: Download, label: t('export_data'), action: handleExportData },
+        { icon: Upload, label: t('import_data'), action: () => document.getElementById('import-input')?.click() },
         { label: t('backup_settings'), hasSwitch: true, switchValue: backupEnabled, onSwitchChange: setBackupEnabled, action: handleBackupSettings }
       ]
     }
@@ -105,11 +136,11 @@ const Settings = () => {
               <User size={32} className="text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-lg text-white">John Doe</h3>
-              <p className="text-white/70">john.doe@example.com</p>
+              <h3 className="font-semibold text-lg text-white">Käyttäjä</h3>
+              <p className="text-white/70">user@example.com</p>
               <div className="flex space-x-4 mt-2 text-sm">
-                <span className="text-green-300">Saldo: €2 450,75</span>
-                <span className="text-red-300">Velat: €12 500</span>
+                <span className="text-green-300">Saldo: €{loadFinancialData()?.balance?.toFixed(2) || '0.00'}</span>
+                <span className="text-red-300">Velat: €{loadFinancialData()?.loans?.reduce((sum, loan) => sum + loan.currentAmount, 0)?.toFixed(2) || '0.00'}</span>
               </div>
             </div>
           </div>
@@ -167,6 +198,33 @@ const Settings = () => {
         ))}
       </div>
 
+      {/* Security Settings */}
+      <Card className="mt-6 bg-[#294D73] border-none">
+        <CardContent className="p-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/security')}
+            className="w-full justify-start text-white hover:bg-white/10"
+          >
+            <Shield size={20} className="mr-3" />
+            Turvallisuusasetukset
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Data Management */}
+      <Card className="mt-6 bg-[#294D73] border-none">
+        <CardContent className="p-4 space-y-2">
+          <Button
+            variant="ghost"
+            onClick={handleClearAllData}
+            className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10"
+          >
+            Tyhjennä kaikki tiedot
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Logout Button */}
       <Card className="mt-6 bg-[#294D73] border-none">
         <CardContent className="p-4">
@@ -179,6 +237,15 @@ const Settings = () => {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Hidden file input for import */}
+      <input
+        id="import-input"
+        type="file"
+        accept=".json"
+        onChange={handleImportData}
+        className="hidden"
+      />
 
       {/* App Info */}
       <div className="text-center mt-6 text-sm text-white/50">

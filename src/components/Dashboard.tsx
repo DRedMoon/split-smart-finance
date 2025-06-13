@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { loadFinancialData, saveFinancialData, getDefaultFinancialData, type FinancialData } from '@/services/storageService';
+import { loadFinancialData, saveFinancialData, getDefaultFinancialData, getThisWeekUpcomingPayments, clearAllData, recalculateBalance, type FinancialData } from '@/services/storageService';
 import { schedulePaymentNotifications } from '@/services/notificationService';
 
 const Dashboard = () => {
@@ -20,13 +21,16 @@ const Dashboard = () => {
     if (savedData) {
       setFinancialData(savedData);
     } else {
+      // Initialize with empty data
+      clearAllData();
       const defaultData = getDefaultFinancialData();
       setFinancialData(defaultData);
-      saveFinancialData(defaultData);
     }
   };
 
   useEffect(() => {
+    // Clear any test data on first load and recalculate balance
+    recalculateBalance();
     loadData();
   }, []);
 
@@ -56,6 +60,7 @@ const Dashboard = () => {
 
   const totalLoansCredits = financialData.loans.reduce((sum, loan) => sum + loan.currentAmount, 0);
   const monthlyPayments = financialData.monthlyBills.reduce((sum, bill) => sum + bill.amount, 0);
+  const thisWeekPayments = getThisWeekUpcomingPayments();
 
   const cards = [
     {
@@ -149,7 +154,7 @@ const Dashboard = () => {
               {financialData.monthlyBills.length > 3 && (
                 <button 
                   className="text-xs text-blue-300 hover:underline"
-                  onClick={() => navigate('/expenses/monthly')}
+                  onClick={() => navigate('/monthly-payments')}
                 >
                   {t('view_all_payments')} ({financialData.monthlyBills.length})
                 </button>
@@ -247,7 +252,7 @@ const Dashboard = () => {
               key={index}
               onClick={() => setCurrentCard(index)}
               className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentCard ? 'bg-white' : 'bg-white/30'
+                index === currentCard ?  'bg-white' : 'bg-white/30'
               }`}
             />
           ))}
@@ -258,11 +263,11 @@ const Dashboard = () => {
       <div className="grid grid-cols-2 gap-3">
         <Button
           variant="outline"
-          onClick={() => navigate('/expenses/loans')}
+          onClick={() => navigate('/upcoming')}
           className="h-20 flex flex-col items-center justify-center space-y-1 bg-[#294D73] border-[#294D73] text-white hover:bg-[#1f3a5f]"
         >
-          <span className="text-lg">🏦</span>
-          <span className="text-sm">{t('loans_credits')}</span>
+          <span className="text-lg">⏰</span>
+          <span className="text-sm">{t('upcoming')}</span>
         </Button>
         <Button
           variant="outline"
@@ -274,18 +279,18 @@ const Dashboard = () => {
         </Button>
       </div>
 
-      {/* Upcoming Payments */}
+      {/* Upcoming This Week */}
       <Card className="bg-[#294D73] border-none">
         <CardHeader>
           <CardTitle className="text-lg text-white">{t('upcoming_week')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {financialData.monthlyBills.filter(bill => !bill.paid).length === 0 ? (
+          {thisWeekPayments.length === 0 ? (
             <div className="text-white/70 text-center py-4">
-              Ei tulevia maksuja
+              Ei tulevia maksuja tällä viikolla
             </div>
           ) : (
-            financialData.monthlyBills.filter(bill => !bill.paid).slice(0, 2).map(bill => (
+            thisWeekPayments.slice(0, 2).map(bill => (
               <div key={bill.id} className="flex justify-between items-center p-3 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
                 <div>
                   <div className="font-medium text-white">{bill.name}</div>

@@ -6,6 +6,10 @@ import ExpenseDetails from '@/components/ExpenseDetails';
 import AddExpense from '@/components/AddExpense';
 import TransactionHistory from '@/components/TransactionHistory';
 import Settings from '@/components/Settings';
+import MonthlyPayments from '@/components/MonthlyPayments';
+import UpcomingPayments from '@/components/UpcomingPayments';
+import PrivacySettings from '@/components/PrivacySettings';
+import SecuritySettings from '@/components/SecuritySettings';
 import Navigation from '@/components/Navigation';
 
 const Index = () => {
@@ -20,7 +24,11 @@ const Index = () => {
           <Route path="/expenses/monthly" element={<ExpenseDetails />} />
           <Route path="/add" element={<AddExpense />} />
           <Route path="/transactions" element={<TransactionHistory />} />
+          <Route path="/monthly-payments" element={<MonthlyPayments />} />
+          <Route path="/upcoming" element={<UpcomingPayments />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/privacy" element={<PrivacySettings />} />
+          <Route path="/security" element={<SecuritySettings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Navigation />

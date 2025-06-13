@@ -66,6 +66,22 @@ export const exportFinancialData = (): void => {
   }
 };
 
+export const importFinancialData = (file: File): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string);
+        saveFinancialData(data);
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.readAsText(file);
+  });
+};
+
 export const getDefaultFinancialData = (): FinancialData => ({
   balance: 0,
   loans: [],
@@ -73,7 +89,25 @@ export const getDefaultFinancialData = (): FinancialData => ({
   transactions: []
 });
 
-// Utility functions to update financial data
+// Clear all data and reset to default
+export const clearAllData = (): void => {
+  const defaultData = getDefaultFinancialData();
+  saveFinancialData(defaultData);
+};
+
+// Recalculate balance based on transactions
+export const recalculateBalance = (): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  
+  // Calculate balance from transactions
+  const calculatedBalance = data.transactions.reduce((sum, transaction) => {
+    return sum + transaction.amount;
+  }, 0);
+  
+  data.balance = calculatedBalance;
+  saveFinancialData(data);
+};
+
 export const addTransaction = (transaction: Omit<FinancialData['transactions'][0], 'id'>): void => {
   const data = loadFinancialData() || getDefaultFinancialData();
   const newTransaction = {
@@ -82,12 +116,8 @@ export const addTransaction = (transaction: Omit<FinancialData['transactions'][0
   };
   data.transactions.unshift(newTransaction);
   
-  // Update balance if it's income or expense
-  if (transaction.type === 'income') {
-    data.balance += transaction.amount;
-  } else if (transaction.type === 'expense') {
-    data.balance += transaction.amount; // amount is already negative
-  }
+  // Update balance
+  data.balance += transaction.amount;
   
   saveFinancialData(data);
 };
@@ -128,8 +158,11 @@ export const updateTransaction = (id: number, updates: Partial<FinancialData['tr
   const data = loadFinancialData() || getDefaultFinancialData();
   const index = data.transactions.findIndex(t => t.id === id);
   if (index !== -1) {
-    data.transactions[index] = { ...data.transactions[index], ...updates };
-    saveFinancialData(data);
+    const oldTransaction = data.transactions[index];
+    data.transactions[index] = { ...oldTransaction, ...updates };
+    
+    // Recalculate balance
+    recalculateBalance();
   }
 };
 
@@ -137,13 +170,62 @@ export const deleteTransaction = (id: number): void => {
   const data = loadFinancialData() || getDefaultFinancialData();
   const transaction = data.transactions.find(t => t.id === id);
   if (transaction) {
-    // Reverse balance change
-    if (transaction.type === 'income') {
-      data.balance -= transaction.amount;
-    } else if (transaction.type === 'expense') {
-      data.balance -= transaction.amount; // amount is already negative
-    }
     data.transactions = data.transactions.filter(t => t.id !== id);
+    // Recalculate balance after deletion
+    recalculateBalance();
+  }
+};
+
+// Pay loan installment - reduces current loan amount
+export const payLoanInstallment = (loanId: number, paymentAmount: number): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  const loanIndex = data.loans.findIndex(l => l.id === loanId);
+  
+  if (loanIndex !== -1) {
+    data.loans[loanIndex].currentAmount = Math.max(0, data.loans[loanIndex].currentAmount - paymentAmount);
+    
+    // Add transaction for the payment
+    const transaction = {
+      id: Date.now() + Math.random(),
+      name: `${data.loans[loanIndex].name} - Maksu`,
+      amount: -paymentAmount,
+      date: new Date().toISOString().split('T')[0],
+      type: 'expense',
+      category: 'loan_payment'
+    };
+    
+    data.transactions.unshift(transaction);
+    data.balance -= paymentAmount;
+    
     saveFinancialData(data);
   }
+};
+
+// Get this week's upcoming payments
+export const getThisWeekUpcomingPayments = () => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  const today = new Date();
+  const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+  
+  return data.monthlyBills.filter(bill => {
+    if (bill.paid) return false;
+    
+    // Parse due date (assuming format like "15th", "1st", etc.)
+    const dayMatch = bill.dueDate.match(/\d+/);
+    if (!dayMatch) return false;
+    
+    const dueDay = parseInt(dayMatch[0]);
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // Create due date for current month
+    const dueDate = new Date(currentYear, currentMonth, dueDay);
+    
+    // If due date has passed this month, check next month
+    if (dueDate < today) {
+      dueDate.setMonth(currentMonth + 1);
+    }
+    
+    return dueDate >= today && dueDate <= weekFromNow;
+  });
 };
