@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { addTransaction, addIncome, loadFinancialData } from '@/services/storageService';
+import { addTransaction, addIncome, loadFinancialData, addMonthlyBill } from '@/services/storageService';
 
 const AddExpense = () => {
   const navigate = useNavigate();
@@ -51,6 +51,24 @@ const AddExpense = () => {
         date: new Date().toISOString().split('T')[0],
         type: 'expense'
       });
+
+      // Check if this should be added as a monthly bill (for recurring expenses)
+      const data = loadFinancialData();
+      const categoryData = data?.categories?.find(cat => 
+        cat.name.toLowerCase().replace(/\s+/g, '_') === quickData.category
+      );
+
+      if (categoryData?.isMonthlyPayment || 
+          ['insurance', 'subscription', 'bill'].includes(quickData.category)) {
+        // Add to monthly bills
+        addMonthlyBill({
+          name: quickData.name,
+          amount: quickData.amount,
+          dueDate: '15th', // Default due date
+          type: quickData.category,
+          paid: false
+        });
+      }
       
       toast({
         title: t('expense_added'),
@@ -88,8 +106,8 @@ const AddExpense = () => {
     { value: 'subscription', label: t('subscription') },
     { value: 'other', label: t('other') },
     { value: 'paycheck', label: t('paycheck') },
-    { value: 'loan_bill_payment', label: t('loan_bill_payment') },
-    { value: 'credit_card_payment', label: t('credit_card_payment') },
+    { value: 'loan_repayment', label: t('loan_repayment') },
+    { value: 'credit_repayment', label: t('credit_repayment') },
     { value: 'credit_purchase', label: t('credit_purchase') }
   ];
 

@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Bell, Shield, Download, Upload, Database, Palette, Settings as SettingsIcon, Lock, Key } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
@@ -17,8 +16,6 @@ const Settings = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [errorReporting, setErrorReporting] = useState(false);
-  const [analytics, setAnalytics] = useState(false);
 
   useEffect(() => {
     const checkNotificationPermission = async () => {
@@ -26,13 +23,6 @@ const Settings = () => {
       setNotificationsEnabled(hasPermission);
     };
     checkNotificationPermission();
-
-    // Load settings
-    const data = loadFinancialData();
-    if (data?.settings) {
-      setErrorReporting(data.settings.errorReporting);
-      setAnalytics(data.settings.analytics);
-    }
   }, []);
 
   const handleExportData = () => {
@@ -95,42 +85,6 @@ const Settings = () => {
     }
   };
 
-  const handleErrorReportingToggle = (enabled: boolean) => {
-    setErrorReporting(enabled);
-    const data = loadFinancialData();
-    if (data) {
-      data.settings.errorReporting = enabled;
-      saveFinancialData(data);
-      
-      if (enabled) {
-        logError(new Error('Test error report'), 'Settings toggle');
-      }
-      
-      toast({
-        title: enabled ? t('error_reports_enabled') : t('error_reports_disabled'),
-        description: enabled ? t('error_reports_saved') : t('error_reports_cleared'),
-      });
-    }
-  };
-
-  const handleAnalyticsToggle = (enabled: boolean) => {
-    setAnalytics(enabled);
-    const data = loadFinancialData();
-    if (data) {
-      data.settings.analytics = enabled;
-      saveFinancialData(data);
-      
-      if (enabled) {
-        logAnalytics('settings_analytics_enabled', { timestamp: new Date().toISOString() });
-      }
-      
-      toast({
-        title: enabled ? t('analytics_enabled') : t('analytics_disabled'),
-        description: enabled ? t('analytics_saved') : t('analytics_cleared'),
-      });
-    }
-  };
-
   const settingsGroups = [
     {
       title: t('account'),
@@ -160,29 +114,6 @@ const Settings = () => {
         { icon: Database, label: t('data_management'), action: () => navigate('/data-management') },
         { icon: Download, label: t('export_data'), action: handleExportData },
         { icon: Upload, label: t('import_data'), action: () => document.getElementById('import-input')?.click() }
-      ]
-    },
-    {
-      title: t('privacy_and_errors'),
-      items: [
-        { 
-          label: t('automatic_error_reports'), 
-          hasSwitch: true, 
-          switchValue: errorReporting, 
-          onSwitchChange: handleErrorReportingToggle,
-          hasButton: true,
-          buttonLabel: 'Choose Location',
-          buttonAction: () => navigate('/privacy')
-        },
-        { 
-          label: t('analytics'), 
-          hasSwitch: true, 
-          switchValue: analytics, 
-          onSwitchChange: handleAnalyticsToggle,
-          hasButton: true,
-          buttonLabel: 'Choose Location',
-          buttonAction: () => navigate('/privacy')
-        }
       ]
     }
   ];
@@ -235,43 +166,15 @@ const Settings = () => {
                 <div key={itemIndex}>
                   <div 
                     className="flex items-center justify-between py-3 cursor-pointer hover:bg-white/5 rounded-lg px-2"
-                    onClick={item.hasSwitch ? undefined : item.action}
+                    onClick={item.action}
                   >
                     <div className="flex items-center space-x-3">
                       {item.icon && <item.icon size={20} className="text-white/70" />}
                       <span className="font-medium text-white">{item.label}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      {item.hasSwitch ? (
-                        <>
-                          <Switch 
-                            checked={item.switchValue}
-                            onCheckedChange={(checked) => {
-                              if (item.onSwitchChange) {
-                                item.onSwitchChange(checked);
-                              }
-                              if (item.action && checked) {
-                                item.action();
-                              }
-                            }}
-                          />
-                          {item.hasButton && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={item.buttonAction}
-                              className="text-white/70 hover:bg-white/10 text-xs px-2 py-1"
-                            >
-                              {item.buttonLabel}
-                            </Button>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-white/70">→</span>
-                      )}
-                    </div>
+                    <span className="text-white/70">→</span>
                   </div>
-                  {itemIndex < group.items.length - 1 && <Separator className="bg-white/10" />}
+                  {itemIndex < group.items.length -1 && <Separator className="bg-white/10" />}
                 </div>
               ))}
             </CardContent>

@@ -202,6 +202,20 @@ export const addTransaction = (transaction: Omit<FinancialData['transactions'][0
   };
   data.transactions.unshift(newTransaction);
   
+  // Handle credit/loan repayments - reduce loan amounts instead of just affecting balance
+  if (transaction.category === 'credit_repayment' || transaction.category === 'loan_repayment') {
+    // Find matching loan/credit and reduce its current amount
+    const loanIndex = data.loans.findIndex(loan => 
+      loan.name.toLowerCase().includes(transaction.name.toLowerCase().split(' - ')[0].toLowerCase())
+    );
+    
+    if (loanIndex !== -1) {
+      const paymentAmount = Math.abs(transaction.amount);
+      data.loans[loanIndex].currentAmount = Math.max(0, data.loans[loanIndex].currentAmount - paymentAmount);
+      data.loans[loanIndex].lastPayment = new Date().toISOString().split('T')[0];
+    }
+  }
+  
   // Update balance
   data.balance += transaction.amount;
   
