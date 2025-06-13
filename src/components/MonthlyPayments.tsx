@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { loadFinancialData, saveFinancialData, payBill } from '@/services/storageService';
+import { loadFinancialData, saveFinancialData } from '@/services/storageService';
 import PaymentItem from './payments/PaymentItem';
 import PaymentSummary from './payments/PaymentSummary';
 
@@ -29,11 +29,15 @@ const MonthlyPayments = () => {
   const getDaysUntilDue = (dueDate) => {
     if (!dueDate) return null;
     const today = new Date();
-    const due = new Date(`${today.getFullYear()}-${today.getMonth() + 1}-${dueDate}`);
+    const dayMatch = dueDate.match(/\d+/);
+    if (!dayMatch) return null;
+    
+    const dueDay = parseInt(dayMatch[0]);
+    const due = new Date(today.getFullYear(), today.getMonth(), dueDay);
     if (due < today) {
       due.setMonth(due.getMonth() + 1);
     }
-    const diffTime = due - today;
+    const diffTime = due.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
@@ -44,46 +48,59 @@ const MonthlyPayments = () => {
     if (!bill) return;
 
     const newPaidStatus = !bill.isPaid;
+    const updatedData = { ...financialData };
+    const billIndex = updatedData.monthlyBills.findIndex(b => b.id === billId);
     
-    if (newPaidStatus) {
-      // Mark as paid - deduct from balance and handle loan payments
-      const result = payBill(billId, bill.amount);
-      if (result.success) {
-        setFinancialData(result.data);
+    if (billIndex !== -1) {
+      if (newPaidStatus) {
+        // Check if sufficient balance
+        if (updatedData.currentBalance < bill.amount) {
+          toast({
+            title: t('insufficient_funds'),
+            description: `${t('balance')}: €${updatedData.currentBalance.toFixed(2)}, ${t('required')}: €${bill.amount.toFixed(2)}`,
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Mark as paid - deduct from balance
+        updatedData.monthlyBills[billIndex].isPaid = true;
+        updatedData.currentBalance -= bill.amount;
+        
+        // If it's a loan payment, reduce loan amount
+        if (bill.category === 'Loan' || bill.category === 'Credit Card' || bill.type === 'laina' || bill.type === 'luottokortti') {
+          const loan = updatedData.loans?.find(l => l.name === bill.name);
+          if (loan) {
+            loan.currentAmount = Math.max(0, loan.currentAmount - bill.amount);
+            loan.lastPayment = new Date().toISOString().split('T')[0];
+          }
+        }
+        
         toast({
           title: t('payment_processed'),
           description: `${bill.name} ${t('marked_as_paid')}`
         });
       } else {
-        toast({
-          title: t('insufficient_funds'),
-          description: result.message,
-          variant: "destructive"
-        });
-      }
-    } else {
-      // Mark as unpaid - add back to balance
-      const updatedData = { ...financialData };
-      const billIndex = updatedData.monthlyBills.findIndex(b => b.id === billId);
-      if (billIndex !== -1) {
+        // Mark as unpaid - add back to balance
         updatedData.monthlyBills[billIndex].isPaid = false;
         updatedData.currentBalance += bill.amount;
         
         // If it's a loan payment, add back to the loan amount
-        if (bill.category === 'Loan' || bill.category === 'Credit Card') {
+        if (bill.category === 'Loan' || bill.category === 'Credit Card' || bill.type === 'laina' || bill.type === 'luottokortti') {
           const loan = updatedData.loans?.find(l => l.name === bill.name);
           if (loan) {
             loan.currentAmount += bill.amount;
           }
         }
         
-        saveFinancialData(updatedData);
-        setFinancialData(updatedData);
         toast({
           title: t('payment_reversed'),
           description: `${bill.name} ${t('marked_as_unpaid')}`
         });
       }
+      
+      saveFinancialData(updatedData);
+      setFinancialData(updatedData);
     }
   };
 
