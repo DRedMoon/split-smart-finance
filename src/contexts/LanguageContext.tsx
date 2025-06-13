@@ -1,7 +1,5 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import i18next from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import en from 'i18next-browser-languagedetector';
 
 interface Translation {
   [key: string]: {
@@ -60,7 +58,6 @@ const translations: Translation = {
     add_income_title: 'Lisää tulo',
     add_expense_title: 'Lisää kulu',
     income_name: 'Tulon nimi',
-    income: 'Tulo',
     expense: 'Kulu',
     monthly_payment_checkbox: 'Kuukausittainen maksu',
     quick_add: 'Pikalisäys',
@@ -97,6 +94,11 @@ const translations: Translation = {
     credit_limit: 'Luottoraja',
     used_credit: 'Käytetty luotto',
     credit_card_added: 'Luottokortti lisätty',
+    interest: 'Korko',
+    upcoming_week: 'Tuleva viikko',
+    financial_overview: 'Taloudellinen katsaus',
+    manage_expenses: 'Hallinnoi kuluja',
+    this_month: 'Tämä kuukausi',
   },
   en: {
     balance: 'Balance',
@@ -136,7 +138,6 @@ const translations: Translation = {
     add_income_title: 'Add Income',
     add_expense_title: 'Add Expense',
     income_name: 'Income name',
-    income: 'Income',
     expense: 'Expense',
     monthly_payment_checkbox: 'Monthly payment',
     quick_add: 'Quick Add',
@@ -173,6 +174,11 @@ const translations: Translation = {
     credit_limit: 'Credit Limit',
     used_credit: 'Used Credit',
     credit_card_added: 'Credit Card Added',
+    interest: 'Interest',
+    upcoming_week: 'Upcoming Week',
+    financial_overview: 'Financial Overview',
+    manage_expenses: 'Manage Expenses',
+    this_month: 'This Month',
   }
 };
 
@@ -180,28 +186,11 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [language, setLanguage] = useState(localStorage.getItem('language') || 'fi');
 
   useEffect(() => {
-    i18next
-      .use(en)
-      .use(initReactI18next)
-      .init({
-        resources: {
-          en: { translation: translations.en },
-          fi: { translation: translations.fi },
-        },
-        lng: language,
-        fallbackLng: 'fi',
-        interpolation: {
-          escapeValue: false,
-        },
-      });
-  }, [language]);
-
-  useEffect(() => {
     localStorage.setItem('language', language);
   }, [language]);
 
   const t = (key: string) => {
-    return i18next.t(key);
+    return translations[language]?.[key] || key;
   };
 
   return (
