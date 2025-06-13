@@ -1,0 +1,124 @@
+
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Calculator, CreditCard, Coins } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+interface LoanCardProps {
+  loan: any;
+  calculateLoanDetails: (loan: any) => {
+    monthlyPayment: number;
+    totalPayback: number;
+    interestAmount: number;
+    remainingMonths: number | string;
+  };
+}
+
+const LoanCard = ({ loan, calculateLoanDetails }: LoanCardProps) => {
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+  
+  const details = calculateLoanDetails(loan);
+  const isCredit = loan.remaining === 'Credit Card';
+  const progress = loan.totalAmount > 0 ? ((loan.totalAmount - loan.currentAmount) / loan.totalAmount) * 100 : 0;
+
+  return (
+    <Card className="bg-[#294D73] border-none">
+      <CardHeader>
+        <CardTitle className="text-white flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            {isCredit ? <CreditCard size={20} /> : <Coins size={20} />}
+            <span>{loan.name}</span>
+          </div>
+          <Badge variant={isCredit ? 'secondary' : 'default'} className="text-xs">
+            {isCredit ? t('credit_card') : t('loan')}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Progress Bar */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm text-white/70">
+            <span>{isCredit ? t('used_credit') : t('paid_off')}</span>
+            <span>{progress.toFixed(1)}%</span>
+          </div>
+          <div className="w-full bg-white/20 rounded-full h-2">
+            <div 
+              className={`h-2 rounded-full ${isCredit ? 'bg-red-400' : 'bg-green-400'}`}
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Amount Details */}
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-white/70">{isCredit ? t('credit_limit') : t('original_amount')}</p>
+            <p className="text-white font-medium">€{loan.totalAmount.toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-white/70">{isCredit ? t('available_credit') : t('remaining_balance')}</p>
+            <p className="text-white font-medium">€{loan.currentAmount.toFixed(2)}</p>
+          </div>
+        </div>
+
+        {/* Payment Details */}
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-white/70">{t('monthly_payment')}</p>
+            <p className="text-white font-medium">€{details.monthlyPayment.toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-white/70">{t('interest_rate')}</p>
+            <p className="text-white font-medium">{loan.rate.toFixed(2)}%</p>
+          </div>
+        </div>
+
+        {/* Advanced Details */}
+        <div className="border-t border-white/20 pt-3 space-y-2">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-white/70">{t('total_payback')}</p>
+              <p className="text-white font-bold">€{details.totalPayback.toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-white/70">{t('total_interest')}</p>
+              <p className="text-red-300 font-medium">€{details.interestAmount.toFixed(2)}</p>
+            </div>
+          </div>
+          
+          {!isCredit && (
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-white/70">{t('remaining_months')}</p>
+                <p className="text-white font-medium">{details.remainingMonths}</p>
+              </div>
+              <div>
+                <p className="text-white/70">{t('due_date')}</p>
+                <p className="text-white font-medium">{loan.dueDate}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex space-x-2 pt-2">
+          <Button 
+            onClick={() => navigate(`/edit-loan/${loan.id}`)}
+            size="sm" 
+            variant="outline"
+            className="flex-1 border-white/20 text-white hover:bg-white/10"
+          >
+            <Calculator size={14} className="mr-1" />
+            {t('edit')}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default LoanCard;

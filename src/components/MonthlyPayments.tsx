@@ -1,90 +1,104 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Check, X } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, Plus, Settings } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { loadFinancialData, saveFinancialData, payBill, type FinancialData } from '@/services/storageService';
 import { useToast } from '@/hooks/use-toast';
+import { loadFinancialData, saveFinancialData, payBill } from '@/services/storageService';
+import PaymentItem from './payments/PaymentItem';
+import PaymentSummary from './payments/PaymentSummary';
 
 const MonthlyPayments = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { toast } = useToast();
-  const [financialData, setFinancialData] = useState<FinancialData | null>(null);
+  const [financialData, setFinancialData] = useState(null);
 
   useEffect(() => {
     const data = loadFinancialData();
     setFinancialData(data);
-    // Store that we came from monthly payments view
     localStorage.setItem('dashboardLastView', 'monthly-payments');
   }, []);
 
-  const togglePaymentStatus = (billId: number) => {
+  const handleBackNavigation = () => {
+    navigate('/?view=monthly-payments');
+  };
+
+  const getDaysUntilDue = (dueDate) => {
+    if (!dueDate) return null;
+    const today = new Date();
+    const due = new Date(`${today.getFullYear()}-${today.getMonth() + 1}-${dueDate}`);
+    if (due < today) {
+      due.setMonth(due.getMonth() + 1);
+    }
+    const diffTime = due - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const handleTogglePaid = (billId) => {
     if (!financialData) return;
+
+    const bill = financialData.monthlyBills.find(b => b.id === billId);
+    if (!bill) return;
+
+    const newPaidStatus = !bill.isPaid;
     
-    const updatedData = { ...financialData };
-    const billIndex = updatedData.monthlyBills.findIndex(bill => bill.id === billId);
-    
-    if (billIndex !== -1) {
-      const bill = updatedData.monthlyBills[billIndex];
-      const wasPaid = bill.paid;
-      
-      // Toggle payment status
-      updatedData.monthlyBills[billIndex].paid = !bill.paid;
-      
-      // Handle balance changes and loan reductions
-      if (!wasPaid) {
-        // Bill is being marked as paid
-        payBill(bill.id, bill.amount, bill.type);
+    if (newPaidStatus) {
+      // Mark as paid - deduct from balance and handle loan payments
+      const result = payBill(billId, bill.amount);
+      if (result.success) {
+        setFinancialData(result.data);
         toast({
-          title: "Merkitty maksetuksi",
-          description: `${bill.name} maksettu - Saldo päivitetty`,
+          title: t('payment_processed'),
+          description: `${bill.name} ${t('marked_as_paid')}`
         });
       } else {
-        // Bill is being marked as unpaid - reverse the payment
-        updatedData.balance += bill.amount;
+        toast({
+          title: t('insufficient_funds'),
+          description: result.message,
+          variant: "destructive"
+        });
+      }
+    } else {
+      // Mark as unpaid - add back to balance
+      const updatedData = { ...financialData };
+      const billIndex = updatedData.monthlyBills.findIndex(b => b.id === billId);
+      if (billIndex !== -1) {
+        updatedData.monthlyBills[billIndex].isPaid = false;
+        updatedData.currentBalance += bill.amount;
         
-        // If it was a loan/credit payment, restore the loan amount
-        if (bill.type === 'loan_payment' || bill.type === 'credit_payment') {
-          const loanIndex = updatedData.loans.findIndex(loan => 
-            loan.name.toLowerCase().includes(bill.name.toLowerCase().split(' - ')[0].toLowerCase())
-          );
-          if (loanIndex !== -1) {
-            updatedData.loans[loanIndex].currentAmount += bill.amount;
+        // If it's a loan payment, add back to the loan amount
+        if (bill.category === 'Loan' || bill.category === 'Credit Card') {
+          const loan = updatedData.loans?.find(l => l.name === bill.name);
+          if (loan) {
+            loan.currentAmount += bill.amount;
           }
         }
         
+        saveFinancialData(updatedData);
+        setFinancialData(updatedData);
         toast({
-          title: "Merkitty maksamattomaksi",
-          description: `${bill.name} peruttu - Saldo palautettu`,
+          title: t('payment_reversed'),
+          description: `${bill.name} ${t('marked_as_unpaid')}`
         });
       }
-      
-      saveFinancialData(updatedData);
-      setFinancialData(updatedData);
     }
-  };
-
-  const handleBackNavigation = () => {
-    // Navigate back to dashboard with the stored view
-    const lastView = localStorage.getItem('dashboardLastView') || 'monthly-payments';
-    navigate(`/?returnTo=${lastView}`);
   };
 
   if (!financialData) {
     return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
   }
 
-  // Filter out loan and credit payments - only show actual recurring bills
-  const actualMonthlyBills = financialData.monthlyBills.filter(bill => 
-    bill.type !== 'laina' && 
-    bill.type !== 'luottokortti' && 
-    bill.type !== 'loan_payment' && 
-    bill.type !== 'credit_payment'
-  );
+  const sortedBills = [...(financialData.monthlyBills || [])].sort((a, b) => {
+    // Paid bills go to bottom
+    if (a.isPaid !== b.isPaid) {
+      return a.isPaid ? 1 : -1;
+    }
+    // Sort by due date
+    return parseInt(a.dueDate) - parseInt(b.dueDate);
+  });
 
   return (
     <div className="p-4 pb-20 bg-[#192E45] min-h-screen max-w-md mx-auto">
@@ -96,77 +110,42 @@ const MonthlyPayments = () => {
           </Button>
           <h1 className="text-2xl font-bold text-white">{t('monthly_payments')}</h1>
         </div>
-        <Button onClick={() => navigate('/add')} size="sm" className="bg-[#294D73] hover:bg-[#1f3a5f]">
-          <Plus size={16} />
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => navigate('/settings')} 
+            size="sm" 
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            <Settings size={16} />
+          </Button>
+          <Button onClick={() => navigate('/add')} size="sm" className="bg-[#294D73] hover:bg-[#1f3a5f]">
+            <Plus size={16} />
+          </Button>
+        </div>
       </div>
 
-      {/* Monthly Bills */}
-      <div className="space-y-3">
-        {actualMonthlyBills.length === 0 ? (
+      <PaymentSummary bills={financialData.monthlyBills || []} />
+
+      {/* Bills List */}
+      <div className="space-y-4">
+        {sortedBills.length === 0 ? (
           <Card className="bg-[#294D73] border-none">
             <CardContent className="p-6 text-center text-white/70">
-              Ei kuukausimaksuja lisätty
+              {t('no_monthly_payments')}
             </CardContent>
           </Card>
         ) : (
-          actualMonthlyBills.map(bill => (
-            <Card key={bill.id} className={`bg-[#294D73] border-none ${bill.paid ? 'opacity-60' : ''}`}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium text-white">{bill.name}</span>
-                      <Badge variant={bill.paid ? 'default' : 'secondary'} className="text-xs">
-                        {bill.paid ? t('paid') : t('pending')}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-white/60">
-                      {t('due')} {bill.dueDate} • {bill.type}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="text-right">
-                      <div className="font-bold text-white">€{bill.amount}</div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => togglePaymentStatus(bill.id)}
-                      className={`p-2 ${bill.paid ? 'text-green-400 hover:bg-green-400/10' : 'text-red-400 hover:bg-red-400/10'}`}
-                    >
-                      {bill.paid ? <Check size={16} /> : <X size={16} />}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          sortedBills.map((bill) => (
+            <PaymentItem
+              key={bill.id}
+              bill={bill}
+              onTogglePaid={handleTogglePaid}
+              getDaysUntilDue={getDaysUntilDue}
+            />
           ))
         )}
       </div>
-
-      {/* Summary */}
-      <Card className="mt-6 bg-[#294D73] border-none">
-        <CardHeader>
-          <CardTitle className="text-white">Yhteenveto</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-white">
-            <div className="flex justify-between">
-              <span>Kokonaismäärä:</span>
-              <span className="font-bold">€{actualMonthlyBills.reduce((sum, bill) => sum + bill.amount, 0).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Maksettu:</span>
-              <span className="font-bold text-green-400">€{actualMonthlyBills.filter(bill => bill.paid).reduce((sum, bill) => sum + bill.amount, 0).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Jäljellä:</span>
-              <span className="font-bold text-red-400">€{actualMonthlyBills.filter(bill => !bill.paid).reduce((sum, bill) => sum + bill.amount, 0).toFixed(2)}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
