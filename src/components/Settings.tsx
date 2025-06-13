@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Bell, Shield, Download, Upload, Database, Palette, Settings as SettingsIcon, Plus } from 'lucide-react';
+import { ArrowLeft, User, Bell, Shield, Download, Upload, Database, Palette, Settings as SettingsIcon, Plus, Edit, Lock, Key } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -131,6 +131,10 @@ const Settings = () => {
     }
   };
 
+  // Load existing categories for the management section
+  const data = loadFinancialData();
+  const categories = data?.categories || [];
+
   const settingsGroups = [
     {
       title: t('account'),
@@ -144,8 +148,25 @@ const Settings = () => {
       title: t('appearance_and_features'),
       items: [
         { icon: Palette, label: t('appearance'), action: () => navigate('/appearance') },
-        { icon: SettingsIcon, label: t('backup'), action: () => navigate('/backup-settings') },
-        { icon: Plus, label: t('create_category'), action: () => navigate('/create-category') }
+        { icon: SettingsIcon, label: t('backup'), action: () => navigate('/backup-settings') }
+      ]
+    },
+    {
+      title: t('categories'),
+      items: [
+        { icon: Plus, label: t('create_category'), action: () => navigate('/create-category') },
+        ...categories.map(category => ({
+          icon: Edit,
+          label: category.name,
+          action: () => navigate(`/edit-category/${category.id}`)
+        }))
+      ]
+    },
+    {
+      title: 'Security & Passwords',
+      items: [
+        { icon: Lock, label: t('change_password'), action: () => navigate('/security') },
+        { icon: Key, label: t('add_password'), action: () => navigate('/security') }
       ]
     },
     {
@@ -246,20 +267,6 @@ const Settings = () => {
           </Card>
         ))}
       </div>
-
-      {/* Security Settings */}
-      <Card className="mt-6 bg-[#294D73] border-none">
-        <CardContent className="p-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/security')}
-            className="w-full justify-start text-white hover:bg-white/10"
-          >
-            <Shield size={20} className="mr-3" />
-            {t('security_settings')}
-          </Button>
-        </CardContent>
-      </Card>
 
       {/* Data Management */}
       <Card className="mt-6 bg-[#294D73] border-none">

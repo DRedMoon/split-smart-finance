@@ -1,252 +1,263 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Receipt, Calendar } from 'lucide-react';
+import { ArrowLeft, Plus, Calculator } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { addTransaction, addLoan, addMonthlyBill, calculateLoanPayment, calculateCreditPayment, loadFinancialData, addCreditPaymentTransaction, addLoanRepaymentTransaction, calculateLoanFromPaymentDetails } from '@/services/storageService';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { addTransaction, addLoan, addMonthlyBill, addLoanRepaymentTransaction, addCreditPaymentTransaction, calculateLoanFromPaymentDetails } from '@/services/storageService';
 
 const AddExpense = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
   
-  const [expenseData, setExpenseData] = useState({
-    name: '',
-    amount: '',
-    type: '',
-    dueDate: '',
-    interestRate: '',
-    totalAmount: '',
-    paymentTerm: '',
-    euriborRate: '',
-    personalMargin: '',
-    managementFee: '',
-    creditLimit: '',
-    minimumPaymentPercent: '3',
-    // New fields for loan repayment
-    loanRepayment: '',
-    interestPayment: '',
-    remainingLoanAmount: ''
-  });
-  
-  const [selectedDate, setSelectedDate] = useState<Date>();
   const [activeTab, setActiveTab] = useState('quick');
-  const [loanType, setLoanType] = useState('simple'); // 'simple', 'precise', 'credit', 'repayment'
-  const [calculationResult, setCalculationResult] = useState<any>(null);
+  const [expense, setExpense] = useState({
+    name: '',
+    amount: 0,
+    category: '',
+    type: 'expense' as const
+  });
 
-  // Calculate loan details when inputs change
-  const calculateLoanDetails = () => {
-    if (loanType === 'precise' && expenseData.totalAmount && expenseData.euriborRate && expenseData.personalMargin && expenseData.paymentTerm) {
-      const principal = parseFloat(expenseData.totalAmount);
-      const euribor = parseFloat(expenseData.euriborRate);
-      const margin = parseFloat(expenseData.personalMargin);
-      const managementFee = parseFloat(expenseData.managementFee) || 0;
-      const termMonths = parseInt(expenseData.paymentTerm.match(/\d+/)?.[0] || '12');
-      
-      const result = calculateLoanPayment(principal, euribor, margin, managementFee, termMonths);
-      setCalculationResult(result);
-      setExpenseData(prev => ({ ...prev, amount: result.monthlyPayment.toString() }));
-    } else if (loanType === 'credit' && expenseData.creditLimit && expenseData.interestRate) {
-      const principal = parseFloat(expenseData.creditLimit);
-      const yearlyRate = parseFloat(expenseData.interestRate);
-      const managementFee = parseFloat(expenseData.managementFee) || 0;
-      const minimumPercent = parseFloat(expenseData.minimumPaymentPercent);
-      
-      const result = calculateCreditPayment(principal, yearlyRate, managementFee, minimumPercent);
-      setCalculationResult(result);
-      setExpenseData(prev => ({ ...prev, amount: result.monthlyMinimum.toString() }));
-    } else if (loanType === 'repayment' && expenseData.loanRepayment && expenseData.interestPayment && expenseData.remainingLoanAmount) {
-      const loanRepayment = parseFloat(expenseData.loanRepayment);
-      const interest = parseFloat(expenseData.interestPayment);
-      const managementFee = parseFloat(expenseData.managementFee) || 0;
-      const remainingAmount = parseFloat(expenseData.remainingLoanAmount);
-      
-      const result = calculateLoanFromPaymentDetails(loanRepayment, interest, managementFee, remainingAmount);
-      setCalculationResult(result);
-      setExpenseData(prev => ({ ...prev, amount: result.monthlyTotal.toString() }));
-    }
-  };
+  // Loan states
+  const [loanData, setLoanData] = useState({
+    name: '',
+    totalAmount: 0,
+    currentAmount: 0,
+    monthly: 0,
+    rate: 0,
+    euriborRate: 0,
+    personalMargin: 0,
+    managementFee: 0,
+    remaining: '',
+    dueDate: ''
+  });
 
-  React.useEffect(() => {
-    if (activeTab === 'loan') {
-      calculateLoanDetails();
-    }
-  }, [expenseData.totalAmount, expenseData.euriborRate, expenseData.personalMargin, expenseData.managementFee, expenseData.paymentTerm, expenseData.creditLimit, expenseData.interestRate, expenseData.minimumPaymentPercent, expenseData.loanRepayment, expenseData.interestPayment, expenseData.remainingLoanAmount, loanType]);
+  // Loan repayment states
+  const [repaymentData, setRepaymentData] = useState({
+    loanName: '',
+    loanRepayment: 0,
+    interest: 0,
+    managementFee: 0
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (activeTab === 'quick' || activeTab === 'income') {
-      const amount = parseFloat(expenseData.amount);
-      if (isNaN(amount)) return;
-      
-      // Handle special loan and credit payment categories
-      if (expenseData.type === 'loan_payment') {
-        // This is a loan payment - we need loan selection logic here
-        // For now, we'll add it as a regular transaction
-        const transaction = {
-          name: expenseData.name,
-          amount: -Math.abs(amount),
-          date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-          type: 'expense',
-          category: 'loan_payment'
-        };
-        addTransaction(transaction);
-      } else if (expenseData.type === 'credit_payment') {
-        // Handle credit card payment
-        addCreditPaymentTransaction(expenseData.name, Math.abs(amount), 0); // Credit limit would need to be specified
-      } else {
-        const transaction = {
-          name: expenseData.name,
-          amount: activeTab === 'income' ? amount : -amount,
-          date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-          type: activeTab === 'income' ? 'income' : 'expense',
-          category: expenseData.type || 'other'
-        };
-        
-        addTransaction(transaction);
-      }
-      
-      // If it's a subscription, also add to monthly bills
-      if (expenseData.type === 'subscriptions') {
-        addMonthlyBill({
-          name: expenseData.name,
-          amount: amount,
-          dueDate: expenseData.dueDate || '1.',
-          type: 'tilaus',
-          paid: false
-        });
-      }
-      
-      toast({
-        title: activeTab === 'income' ? t('income_added') : t('expense_added'),
-        description: activeTab === 'income' ? t('income_added_desc') : t('expense_added_desc'),
-      });
-    } else if (activeTab === 'loan') {
-      if (loanType === 'repayment') {
-        // Handle loan repayment with breakdown
-        const loanRepayment = parseFloat(expenseData.loanRepayment);
-        const interest = parseFloat(expenseData.interestPayment);
-        const managementFee = parseFloat(expenseData.managementFee) || 0;
-        
-        if (!isNaN(loanRepayment) && !isNaN(interest)) {
-          // For now, create a new loan entry - in a real app, user would select existing loan
-          const remainingAmount = parseFloat(expenseData.remainingLoanAmount) || loanRepayment * 100; // Estimate if not provided
-          
-          const loan = {
-            name: expenseData.name,
-            totalAmount: remainingAmount + loanRepayment, // Original amount estimate
-            currentAmount: remainingAmount,
-            monthly: loanRepayment + interest + managementFee,
-            rate: calculationResult?.interestRate || 0,
-            remaining: `${calculationResult?.estimatedMonthsLeft || 'N/A'} kuukautta`,
-            dueDate: expenseData.dueDate,
-            lastPayment: format(new Date(), 'yyyy-MM-dd')
-          };
-          
-          addLoan(loan);
-          
-          // Add the repayment transaction
-          addLoanRepaymentTransaction(loan.id, loanRepayment, interest, managementFee);
-        }
-      } else {
-        const totalAmount = loanType === 'credit' ? parseFloat(expenseData.creditLimit) : parseFloat(expenseData.totalAmount);
-        const monthlyAmount = parseFloat(expenseData.amount);
-        const rate = parseFloat(expenseData.interestRate) || 0;
-        
-        if (isNaN(totalAmount) || isNaN(monthlyAmount)) return;
-        
-        const loan = {
-          name: expenseData.name,
-          totalAmount: totalAmount,
-          currentAmount: totalAmount,
-          monthly: monthlyAmount,
-          rate: rate,
-          euriborRate: loanType === 'precise' ? parseFloat(expenseData.euriborRate) : undefined,
-          personalMargin: loanType === 'precise' ? parseFloat(expenseData.personalMargin) : undefined,
-          managementFee: parseFloat(expenseData.managementFee) || 0,
-          remaining: expenseData.paymentTerm,
-          dueDate: expenseData.dueDate,
-          lastPayment: format(new Date(), 'yyyy-MM-dd')
-        };
-        
-        addLoan(loan);
-      }
-      
-      toast({
-        title: t('loan_added'),
-        description: t('loan_added_desc'),
-      });
-    }
-    
-    navigate('/');
-  };
+  // Credit payment states
+  const [creditData, setCreditData] = useState({
+    creditName: '',
+    paymentAmount: 0,
+    creditLimit: 0
+  });
 
-  const handleInputChange = (field: string, value: string) => {
-    setExpenseData(prev => ({ ...prev, [field]: value }));
-  };
+  // Calculation results
+  const [calculationResults, setCalculationResults] = useState(null);
 
-  // Get user's custom categories
-  const data = loadFinancialData();
-  const customCategories = data?.categories || [];
-
-  const defaultCategories = [
-    { value: 'food', label: t('food_dining') },
-    { value: 'transportation', label: t('transportation') },
-    { value: 'utilities', label: t('utilities') },
-    { value: 'entertainment', label: t('entertainment') },
-    { value: 'shopping', label: t('shopping') },
-    { value: 'insurance', label: t('insurance') },
-    { value: 'subscriptions', label: t('subscriptions') },
-    { value: 'housing', label: t('housing') },
-    { value: 'healthcare', label: t('healthcare') },
-    { value: 'education', label: t('education') },
-    { value: 'loan_payment', label: 'Lainan maksu / Loan Payment' },
-    { value: 'credit_payment', label: 'Luottokorttilasku / Credit Card Payment' },
-    { value: 'other', label: t('other') }
+  const quickAddOptions = [
+    { label: t('grocery'), category: 'grocery', amount: 50 },
+    { label: t('transport'), category: 'transport', amount: 25 },
+    { label: t('entertainment'), category: 'entertainment', amount: 30 },
+    { label: t('loan_payment'), category: 'loan_payment', amount: 500 },
+    { label: t('credit_payment'), category: 'credit_payment', amount: 100 },
+    { label: t('bills'), category: 'bills', amount: 100 },
+    { label: t('other'), category: 'other', amount: 0 }
   ];
 
-  const allCategories = [
-    ...defaultCategories,
-    ...customCategories.map(cat => ({ value: cat.name.toLowerCase().replace(/\s+/g, '_'), label: cat.name }))
-  ];
-
-  const handleCameraCapture = () => {
-    if (cameraInputRef.current) {
-      cameraInputRef.current.click();
+  const handleQuickAdd = (option: typeof quickAddOptions[0]) => {
+    if (option.category === 'loan_payment') {
+      setActiveTab('loan-repayment');
+      return;
     }
+    if (option.category === 'credit_payment') {
+      setActiveTab('credit-payment');
+      return;
+    }
+
+    const transaction = {
+      name: option.label,
+      amount: -Math.abs(option.amount || 0),
+      date: new Date().toISOString().split('T')[0],
+      type: 'expense' as const,
+      category: option.category
+    };
+
+    addTransaction(transaction);
+    toast({
+      title: t('expense_added'),
+      description: `${option.label}: -€${Math.abs(option.amount || 0).toFixed(2)}`
+    });
   };
 
-  const handleFileUpload = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+  const handleAddExpense = () => {
+    if (!expense.name || expense.amount === 0) {
       toast({
-        title: t('receipt_scanner'),
-        description: "OCR-toiminto tulossa pian / OCR feature coming soon",
+        title: t('error'),
+        description: t('fill_required_fields'),
+        variant: "destructive"
       });
+      return;
     }
+
+    const transaction = {
+      name: expense.name,
+      amount: expense.type === 'income' ? Math.abs(expense.amount) : -Math.abs(expense.amount),
+      date: new Date().toISOString().split('T')[0],
+      type: expense.type,
+      category: expense.category || 'other'
+    };
+
+    addTransaction(transaction);
+    
+    toast({
+      title: expense.type === 'income' ? t('income_added') : t('expense_added'),
+      description: `${expense.name}: ${expense.type === 'income' ? '+' : '-'}€${Math.abs(expense.amount).toFixed(2)}`
+    });
+
+    setExpense({ name: '', amount: 0, category: '', type: 'expense' });
   };
+
+  const handleAddLoan = () => {
+    if (!loanData.name || loanData.totalAmount === 0) {
+      toast({
+        title: t('error'),
+        description: t('fill_required_fields'),
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const loanToAdd = {
+      name: loanData.name,
+      totalAmount: loanData.totalAmount,
+      currentAmount: loanData.currentAmount || loanData.totalAmount,
+      monthly: loanData.monthly,
+      rate: loanData.rate,
+      euriborRate: loanData.euriborRate,
+      personalMargin: loanData.personalMargin,
+      managementFee: loanData.managementFee,
+      remaining: loanData.remaining,
+      dueDate: loanData.dueDate,
+      lastPayment: new Date().toISOString().split('T')[0]
+    };
+
+    addLoan(loanToAdd);
+    
+    toast({
+      title: t('loan_added'),
+      description: `${loanData.name}: €${loanData.totalAmount.toFixed(2)}`
+    });
+
+    setLoanData({
+      name: '',
+      totalAmount: 0,
+      currentAmount: 0,
+      monthly: 0,
+      rate: 0,
+      euriborRate: 0,
+      personalMargin: 0,
+      managementFee: 0,
+      remaining: '',
+      dueDate: ''
+    });
+  };
+
+  const handleCalculateFromPayment = () => {
+    if (repaymentData.loanRepayment === 0 || repaymentData.interest === 0) {
+      toast({
+        title: t('error'),
+        description: 'Anna lainan lyhennys ja korko',
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Estimate remaining loan amount based on interest
+    const estimatedLoanAmount = (repaymentData.interest * 12) / (loanData.rate / 100);
+    
+    const results = calculateLoanFromPaymentDetails(
+      repaymentData.loanRepayment,
+      repaymentData.interest,
+      repaymentData.managementFee,
+      estimatedLoanAmount
+    );
+
+    setCalculationResults(results);
+  };
+
+  const handleAddLoanRepayment = () => {
+    if (!repaymentData.loanName || repaymentData.loanRepayment === 0) {
+      toast({
+        title: t('error'),
+        description: t('fill_required_fields'),
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // For now, we'll add this as a transaction since we need loan ID to properly reduce loan amount
+    const transaction = {
+      name: `${repaymentData.loanName} - Lainan maksu`,
+      amount: -(repaymentData.loanRepayment + repaymentData.interest + repaymentData.managementFee),
+      date: new Date().toISOString().split('T')[0],
+      type: 'expense' as const,
+      category: 'loan_payment'
+    };
+
+    addTransaction(transaction);
+    
+    toast({
+      title: 'Lainanmaksu lisätty',
+      description: `${repaymentData.loanName}: -€${(repaymentData.loanRepayment + repaymentData.interest + repaymentData.managementFee).toFixed(2)}`
+    });
+
+    setRepaymentData({
+      loanName: '',
+      loanRepayment: 0,
+      interest: 0,
+      managementFee: 0
+    });
+  };
+
+  const handleAddCreditPayment = () => {
+    if (!creditData.creditName || creditData.paymentAmount === 0) {
+      toast({
+        title: t('error'),
+        description: t('fill_required_fields'),
+        variant: "destructive"
+      });
+      return;
+    }
+
+    addCreditPaymentTransaction(
+      creditData.creditName,
+      creditData.paymentAmount,
+      creditData.creditLimit
+    );
+    
+    toast({
+      title: 'Luottokorttimaksu lisätty',
+      description: `${creditData.creditName}: -€${creditData.paymentAmount.toFixed(2)}`
+    });
+
+    setCreditData({
+      creditName: '',
+      paymentAmount: 0,
+      creditLimit: 0
+    });
+  };
+
+  const tabs = [
+    { id: 'quick', label: t('quick_add') },
+    { id: 'manual', label: t('manual_entry') },
+    { id: 'loan', label: t('add_loan') },
+    { id: 'loan-repayment', label: 'Lainanmaksu' },
+    { id: 'credit-payment', label: 'Luottokorttimaksu' }
+  ];
 
   return (
     <div className="p-4 pb-20 bg-[#192E45] min-h-screen">
-      {/* Header */}
       <div className="flex items-center space-x-3 mb-6">
         <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-white hover:bg-white/10">
           <ArrowLeft size={20} />
@@ -254,500 +265,292 @@ const AddExpense = () => {
         <h1 className="text-2xl font-bold text-white">{t('add_expense')}</h1>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 bg-[#294D73]">
-          <TabsTrigger value="quick" className="text-white data-[state=active]:bg-white data-[state=active]:text-[#294D73]">
-            {t('quick_add')}
-          </TabsTrigger>
-          <TabsTrigger value="income" className="text-white data-[state=active]:bg-white data-[state=active]:text-[#294D73]">
-            {t('add_income')}
-          </TabsTrigger>
-          <TabsTrigger value="loan" className="text-white data-[state=active]:bg-white data-[state=active]:text-[#294D73]">
-            {t('loan_credit')}
-          </TabsTrigger>
-          <TabsTrigger value="receipt" className="text-white data-[state=active]:bg-white data-[state=active]:text-[#294D73]">
-            {t('receipt')}
-          </TabsTrigger>
-        </TabsList>
+      {/* Tabs */}
+      <div className="flex space-x-1 mb-6 bg-[#294D73] p-1 rounded-lg">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+              activeTab === tab.id 
+                ? 'bg-[#192E45] text-white' 
+                : 'text-white/70 hover:text-white'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="quick" className="space-y-4">
-          <Card className="bg-[#294D73] border-none">
-            <CardHeader>
-              <CardTitle className="text-white">{t('quick_expense')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="name" className="text-white">{t('expense_name')}</Label>
-                  <Input
-                    id="name"
-                    value={expenseData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="esim. Ruokakauppa, Bensiini"
-                    required
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="amount" className="text-white">{t('amount')}</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    step="0.01"
-                    value={expenseData.amount}
-                    onChange={(e) => handleInputChange('amount', e.target.value)}
-                    placeholder="0.00"
-                    required
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="date" className="text-white">Päivämäärä</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
-                          !selectedDate && "text-white/50"
-                        )}
-                      >
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "dd.MM.yyyy") : <span>{t('select_date')}</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div>
-                  <Label htmlFor="type" className="text-white">{t('category')}</Label>
-                  <Select value={expenseData.type} onValueChange={(value) => handleInputChange('type', value)} required>
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                      <SelectValue placeholder={t('select_category')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allCategories.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {expenseData.type === 'subscriptions' && (
-                  <div>
-                    <Label htmlFor="dueDate" className="text-white">{t('due_date')}</Label>
-                    <Input
-                      id="dueDate"
-                      value={expenseData.dueDate}
-                      onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                      placeholder="1."
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    />
-                  </div>
+      {/* Quick Add */}
+      {activeTab === 'quick' && (
+        <div className="grid grid-cols-2 gap-3">
+          {quickAddOptions.map((option, index) => (
+            <Card key={index} className="bg-[#294D73] border-none cursor-pointer hover:bg-[#3A5A7A] transition-colors">
+              <CardContent 
+                className="p-4 text-center"
+                onClick={() => handleQuickAdd(option)}
+              >
+                <div className="text-white font-medium mb-1">{option.label}</div>
+                {option.amount > 0 && (
+                  <div className="text-white/70 text-sm">€{option.amount}</div>
                 )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-                <Button type="submit" className="w-full bg-white text-[#294D73] hover:bg-white/90">
-                  {t('add_expense')}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
+      {/* Manual Entry */}
+      {activeTab === 'manual' && (
+        <Card className="bg-[#294D73] border-none">
+          <CardHeader>
+            <CardTitle className="text-white">{t('manual_entry')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="name" className="text-white">{t('name')}</Label>
+              <Input
+                id="name"
+                value={expense.name}
+                onChange={(e) => setExpense(prev => ({ ...prev, name: e.target.value }))}
+                className="bg-white/10 border-white/20 text-white mt-2"
+                placeholder={t('expense_name')}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="amount" className="text-white">{t('amount')}</Label>
+              <Input
+                id="amount"
+                type="number"
+                value={expense.amount || ''}
+                onChange={(e) => setExpense(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
+                className="bg-white/10 border-white/20 text-white mt-2"
+                placeholder="0.00"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="category" className="text-white">{t('category')}</Label>
+              <Select value={expense.category} onValueChange={(value) => setExpense(prev => ({ ...prev, category: value }))}>
+                <SelectTrigger className="bg-white/10 border-white/20 text-white mt-2">
+                  <SelectValue placeholder={t('select_category')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="grocery">{t('grocery')}</SelectItem>
+                  <SelectItem value="transport">{t('transport')}</SelectItem>
+                  <SelectItem value="entertainment">{t('entertainment')}</SelectItem>
+                  <SelectItem value="bills">{t('bills')}</SelectItem>
+                  <SelectItem value="other">{t('other')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="type" className="text-white">{t('type')}</Label>
+              <Select value={expense.type} onValueChange={(value: 'income' | 'expense') => setExpense(prev => ({ ...prev, type: value }))}>
+                <SelectTrigger className="bg-white/10 border-white/20 text-white mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="expense">{t('expense')}</SelectItem>
+                  <SelectItem value="income">{t('income')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Button onClick={handleAddExpense} className="w-full bg-white text-[#294D73]">
+              <Plus size={16} className="mr-2" />
+              {expense.type === 'income' ? t('add_income') : t('add_expense')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
-        <TabsContent value="income" className="space-y-4">
-          <Card className="bg-[#294D73] border-none">
-            <CardHeader>
-              <CardTitle className="text-white">{t('add_income')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="incomeName" className="text-white">{t('income_name')}</Label>
-                  <Input
-                    id="incomeName"
-                    value={expenseData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="esim. Palkka, Bonus"
-                    required
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="incomeAmount" className="text-white">{t('amount')}</Label>
-                  <Input
-                    id="incomeAmount"
-                    type="number"
-                    step="0.01"
-                    value={expenseData.amount}
-                    onChange={(e) => handleInputChange('amount', e.target.value)}
-                    placeholder="0.00"
-                    required
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="incomeDate" className="text-white">Päivämäärä</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
-                          !selectedDate && "text-white/50"
-                        )}
-                      >
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "dd.MM.yyyy") : <span>{t('select_date')}</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <Button type="submit" className="w-full bg-white text-[#294D73] hover:bg-white/90">
-                  {t('add_income')}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="loan" className="space-y-4">
-          <Card className="bg-[#294D73] border-none">
-            <CardHeader>
-              <CardTitle className="text-white">{t('add_loan_credit')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Loan Type Selection */}
+      {/* Add Loan */}
+      {activeTab === 'loan' && (
+        <Card className="bg-[#294D73] border-none">
+          <CardHeader>
+            <CardTitle className="text-white">{t('add_loan')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="loan-name" className="text-white">{t('loan_name')}</Label>
+              <Input
+                id="loan-name"
+                value={loanData.name}
+                onChange={(e) => setLoanData(prev => ({ ...prev, name: e.target.value }))}
+                className="bg-white/10 border-white/20 text-white mt-2"
+                placeholder={t('loan_name')}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-white">Lainatyyppi / Loan Type</Label>
-                <Select value={loanType} onValueChange={setLoanType}>
-                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="simple">Yksinkertainen laina / Simple Loan</SelectItem>
-                    <SelectItem value="precise">Tarkka laina (EURIBOR) / Precise Loan</SelectItem>
-                    <SelectItem value="credit">Luottokortti / Credit Card</SelectItem>
-                    <SelectItem value="repayment">Lainan lyhennys / Loan Repayment</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="loanName" className="text-white">{t('loan_credit_name')}</Label>
-                  <Input
-                    id="loanName"
-                    value={expenseData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="esim. Asuntolaina, Autolaina, Luottokortti"
-                    required
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  />
-                </div>
-
-                {loanType === 'repayment' ? (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="loanRepayment" className="text-white">Lainan lyhennys / Loan Repayment (€)</Label>
-                        <Input
-                          id="loanRepayment"
-                          type="number"
-                          step="0.01"
-                          value={expenseData.loanRepayment}
-                          onChange={(e) => handleInputChange('loanRepayment', e.target.value)}
-                          placeholder="453.17"
-                          required
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="interestPayment" className="text-white">Korko / Interest (€)</Label>
-                        <Input
-                          id="interestPayment"
-                          type="number"
-                          step="0.01"
-                          value={expenseData.interestPayment}
-                          onChange={(e) => handleInputChange('interestPayment', e.target.value)}
-                          placeholder="425.48"
-                          required
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="remainingLoanAmount" className="text-white">Lainaa jäljellä / Remaining Loan Amount (€)</Label>
-                      <Input
-                        id="remainingLoanAmount"
-                        type="number"
-                        step="0.01"
-                        value={expenseData.remainingLoanAmount}
-                        onChange={(e) => handleInputChange('remainingLoanAmount', e.target.value)}
-                        placeholder="190346.63"
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                      />
-                    </div>
-                  </>
-                ) : loanType === 'credit' ? (
-                  <>
-                    <div>
-                      <Label htmlFor="creditLimit" className="text-white">{t('credit_limit')}</Label>
-                      <Input
-                        id="creditLimit"
-                        type="number"
-                        step="0.01"
-                        value={expenseData.creditLimit}
-                        onChange={(e) => handleInputChange('creditLimit', e.target.value)}
-                        placeholder="2000.00"
-                        required
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="creditRate" className="text-white">{t('yearly_rate')} (%)</Label>
-                        <Input
-                          id="creditRate"
-                          type="number"
-                          step="0.01"
-                          value={expenseData.interestRate}
-                          onChange={(e) => handleInputChange('interestRate', e.target.value)}
-                          placeholder="14.62"
-                          required
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="minPercent" className="text-white">{t('minimum_payment_percent')} (%)</Label>
-                        <Input
-                          id="minPercent"
-                          type="number"
-                          step="0.1"
-                          value={expenseData.minimumPaymentPercent}
-                          onChange={(e) => handleInputChange('minimumPaymentPercent', e.target.value)}
-                          placeholder="3"
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        />
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div>
-                    <Label htmlFor="totalAmount" className="text-white">{t('total_amount')}</Label>
-                    <Input
-                      id="totalAmount"
-                      type="number"
-                      step="0.01"
-                      value={expenseData.totalAmount}
-                      onChange={(e) => handleInputChange('totalAmount', e.target.value)}
-                      placeholder="190800.00"
-                      required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    />
-                  </div>
-                )}
-
-                {loanType === 'precise' && (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="euribor" className="text-white">{t('euribor_rate')} (%)</Label>
-                        <Input
-                          id="euribor"
-                          type="number"
-                          step="0.001"
-                          value={expenseData.euriborRate}
-                          onChange={(e) => handleInputChange('euriborRate', e.target.value)}
-                          placeholder="2.6760"
-                          required
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="margin" className="text-white">{t('personal_margin')} (%)</Label>
-                        <Input
-                          id="margin"
-                          type="number"
-                          step="0.001"
-                          value={expenseData.personalMargin}
-                          onChange={(e) => handleInputChange('personalMargin', e.target.value)}
-                          placeholder="0.5200"
-                          required
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="paymentTerm" className="text-white">{t('payment_term')}</Label>
-                      <Input
-                        id="paymentTerm"
-                        value={expenseData.paymentTerm}
-                        onChange={(e) => handleInputChange('paymentTerm', e.target.value)}
-                        placeholder="300 kuukautta"
-                        required
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                      />
-                    </div>
-                  </>
-                )}
-
-                {loanType === 'simple' && (
-                  <>
-                    <div>
-                      <Label htmlFor="monthlyAmount" className="text-white">{t('monthly_payment')}</Label>
-                      <Input
-                        id="monthlyAmount"
-                        type="number"
-                        step="0.01"
-                        value={expenseData.amount}
-                        onChange={(e) => handleInputChange('amount', e.target.value)}
-                        placeholder="425.00"
-                        required
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="interestRate" className="text-white">{t('interest_rate')} (%)</Label>
-                      <Input
-                        id="interestRate"
-                        type="number"
-                        step="0.1"
-                        value={expenseData.interestRate}
-                        onChange={(e) => handleInputChange('interestRate', e.target.value)}
-                        placeholder="3.5"
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                      />
-                    </div>
-                  </>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="managementFeeInput" className="text-white">{t('management_fee')} (€)</Label>
-                    <Input
-                      id="managementFeeInput"
-                      type="number"
-                      step="0.01"
-                      value={expenseData.managementFee}
-                      onChange={(e) => handleInputChange('managementFee', e.target.value)}
-                      placeholder="2.50"
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="dueDate" className="text-white">{t('due_date')}</Label>
-                    <Input
-                      id="dueDate"
-                      value={expenseData.dueDate}
-                      onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                      placeholder="15."
-                      required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    />
-                  </div>
-                </div>
-
-                {/* Calculation Results */}
-                {calculationResult && (
-                  <div className="bg-white/10 p-4 rounded-lg">
-                    <h4 className="text-white font-semibold mb-2">Laskutoimituksen tulos / Calculation Result:</h4>
-                    <div className="text-white/80 space-y-1">
-                      <p>Kuukausierä / Monthly Payment: €{calculationResult.monthlyPayment || calculationResult.monthlyMinimum || calculationResult.monthlyTotal}</p>
-                      <p>Kokonaistakaisinmaksu / Total Payback: €{calculationResult.totalPayback || calculationResult.totalWithInterest || calculationResult.totalPaybackEstimate}</p>
-                      {calculationResult.yearlyRate && (
-                        <p>Vuosikorko / Yearly Rate: {calculationResult.yearlyRate}%</p>
-                      )}
-                      {calculationResult.interestRate && (
-                        <p>Laskettu korko / Calculated Rate: {calculationResult.interestRate}%</p>
-                      )}
-                      {calculationResult.estimatedMonthsLeft && (
-                        <p>Arvioitu kuukausia jäljellä / Estimated Months Left: {calculationResult.estimatedMonthsLeft}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <Button type="submit" className="w-full bg-white text-[#294D73] hover:bg-white/90">
-                  {loanType === 'repayment' ? 'Lisää lainan lyhennys / Add Loan Repayment' : t('add_loan_credit')}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="receipt" className="space-y-4">
-          <Card className="bg-[#294D73] border-none">
-            <CardHeader>
-              <CardTitle className="text-white">{t('receipt_scanner')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="border-2 border-dashed border-white/30 rounded-lg p-8 text-center">
-                <Camera size={48} className="mx-auto mb-4 text-white/60" />
-                <p className="text-white/70 mb-4">{t('take_photo_receipt')}</p>
-                <Button onClick={handleCameraCapture} className="mb-2 bg-white text-[#294D73] hover:bg-white/90">
-                  <Camera size={16} className="mr-2" />
-                  {t('take_photo')}
-                </Button>
-                <p className="text-sm text-white/50">tai</p>
-                <Button onClick={handleFileUpload} variant="outline" className="mt-2 border-white/30 text-white hover:bg-white/10">
-                  <Receipt size={16} className="mr-2" />
-                  {t('upload_receipt')}
-                </Button>
+                <Label htmlFor="total-amount" className="text-white">{t('total_amount')}</Label>
+                <Input
+                  id="total-amount"
+                  type="number"
+                  value={loanData.totalAmount || ''}
+                  onChange={(e) => setLoanData(prev => ({ ...prev, totalAmount: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
               </div>
               
-              <div className="text-sm text-white/70">
-                <p>📱 {t('ocr_extract')}</p>
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>{t('item_names_prices')}</li>
-                  <li>{t('total_tax')}</li>
-                  <li>{t('store_date')}</li>
-                </ul>
+              <div>
+                <Label htmlFor="current-amount" className="text-white">{t('current_amount')}</Label>
+                <Input
+                  id="current-amount"
+                  type="number"
+                  value={loanData.currentAmount || ''}
+                  onChange={(e) => setLoanData(prev => ({ ...prev, currentAmount: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <Button onClick={handleAddLoan} className="w-full bg-white text-[#294D73]">
+              <Plus size={16} className="mr-2" />
+              {t('add_loan')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loan Repayment */}
+      {activeTab === 'loan-repayment' && (
+        <Card className="bg-[#294D73] border-none">
+          <CardHeader>
+            <CardTitle className="text-white">Lainanmaksu</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="loan-name-repay" className="text-white">Lainan nimi</Label>
+              <Input
+                id="loan-name-repay"
+                value={repaymentData.loanName}
+                onChange={(e) => setRepaymentData(prev => ({ ...prev, loanName: e.target.value }))}
+                className="bg-white/10 border-white/20 text-white mt-2"
+                placeholder="Lainan nimi"
+              />
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="loan-repayment" className="text-white">Lyhennys</Label>
+                <Input
+                  id="loan-repayment"
+                  type="number"
+                  value={repaymentData.loanRepayment || ''}
+                  onChange={(e) => setRepaymentData(prev => ({ ...prev, loanRepayment: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
               </div>
               
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleFileChange}
-                className="hidden"
+              <div>
+                <Label htmlFor="interest" className="text-white">Korko</Label>
+                <Input
+                  id="interest"
+                  type="number"
+                  value={repaymentData.interest || ''}
+                  onChange={(e) => setRepaymentData(prev => ({ ...prev, interest: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="mgmt-fee" className="text-white">Hallintamaksu</Label>
+                <Input
+                  id="mgmt-fee"
+                  type="number"
+                  value={repaymentData.managementFee || ''}
+                  onChange={(e) => setRepaymentData(prev => ({ ...prev, managementFee: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button onClick={handleCalculateFromPayment} variant="outline" className="flex-1">
+                <Calculator size={16} className="mr-2" />
+                Laske
+              </Button>
+              <Button onClick={handleAddLoanRepayment} className="flex-1 bg-white text-[#294D73]">
+                <Plus size={16} className="mr-2" />
+                Lisää maksu
+              </Button>
+            </div>
+            
+            {calculationResults && (
+              <div className="bg-white/10 p-4 rounded-lg text-white">
+                <h4 className="font-medium mb-2">Laskentatulokset:</h4>
+                <p>Kuukausimaksu yhteensä: €{calculationResults.monthlyTotal}</p>
+                <p>Arvioitu korkoprosentti: {calculationResults.interestRate}%</p>
+                <p>Arvioitu kuukausia jäljellä: {calculationResults.estimatedMonthsLeft}</p>
+                <p>Arvioitu kokonaismaksu: €{calculationResults.totalPaybackEstimate}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Credit Payment */}
+      {activeTab === 'credit-payment' && (
+        <Card className="bg-[#294D73] border-none">
+          <CardHeader>
+            <CardTitle className="text-white">Luottokorttimaksu</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="credit-name" className="text-white">Luottokortin nimi</Label>
+              <Input
+                id="credit-name"
+                value={creditData.creditName}
+                onChange={(e) => setCreditData(prev => ({ ...prev, creditName: e.target.value }))}
+                className="bg-white/10 border-white/20 text-white mt-2"
+                placeholder="Esim. Nordea Visa"
               />
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="payment-amount" className="text-white">Maksun määrä</Label>
+                <Input
+                  id="payment-amount"
+                  type="number"
+                  value={creditData.paymentAmount || ''}
+                  onChange={(e) => setCreditData(prev => ({ ...prev, paymentAmount: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="credit-limit" className="text-white">Luottoraja</Label>
+                <Input
+                  id="credit-limit"
+                  type="number"
+                  value={creditData.creditLimit || ''}
+                  onChange={(e) => setCreditData(prev => ({ ...prev, creditLimit: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <Button onClick={handleAddCreditPayment} className="w-full bg-white text-[#294D73]">
+              <Plus size={16} className="mr-2" />
+              Lisää luottokorttimaksu
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

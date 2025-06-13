@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from '@/components/Dashboard';
@@ -14,6 +15,9 @@ import Navigation from '@/components/Navigation';
 import BackupSettings from '@/components/BackupSettings';
 import ProfileSettings from '@/components/ProfileSettings';
 import AppearanceSettings from '@/components/AppearanceSettings';
+import CategoryCreator from '@/components/CategoryCreator';
+import CategoryEditor from '@/components/CategoryEditor';
+import NotificationSettings from '@/components/NotificationSettings';
 
 const Index = () => {
   return (
@@ -36,6 +40,9 @@ const Index = () => {
           <Route path="/appearance" element={<AppearanceSettings />} />
           <Route path="/backup-settings" element={<BackupSettings />} />
           <Route path="/data-management" element={<DataManagement />} />
+          <Route path="/create-category" element={<CategoryCreator />} />
+          <Route path="/edit-category/:categoryId" element={<CategoryEditor />} />
+          <Route path="/notification-settings" element={<NotificationSettings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Navigation />

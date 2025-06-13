@@ -1,133 +1,76 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Palette, Type, Monitor, Contrast } from 'lucide-react';
+import { ArrowLeft, Type, Monitor, Eye, Palette } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
 
 const AppearanceSettings = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { t } = useLanguage();
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-  const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
-  const [highContrast, setHighContrast] = useState(false);
+  const { toast } = useToast();
+  
+  const [settings, setSettings] = useState({
+    theme: 'dark' as 'light' | 'dark',
+    fontSize: 'medium' as 'small' | 'medium' | 'large',
+    highContrast: false,
+    screenBrightness: 100,
+    screenTimeout: 30,
+    showBalanceOnLockScreen: true,
+    animationsEnabled: true
+  });
 
   useEffect(() => {
     const data = loadFinancialData();
     if (data?.settings) {
-      setTheme(data.settings.theme || 'dark');
-      setFontSize(data.settings.fontSize || 'medium');
-      setHighContrast(data.settings.highContrast || false);
+      setSettings(prev => ({
+        ...prev,
+        theme: data.settings.theme,
+        fontSize: data.settings.fontSize,
+        highContrast: data.settings.highContrast || false
+      }));
     }
-    
-    // Apply current theme to document
-    applyTheme(data?.settings?.theme || 'dark');
   }, []);
 
-  const applyTheme = (newTheme: 'light' | 'dark') => {
-    const root = document.documentElement;
+  const handleSettingChange = (key: string, value: any) => {
+    const newSettings = { ...settings, [key]: value };
+    setSettings(newSettings);
     
-    if (newTheme === 'light') {
-      root.style.setProperty('--background', '210 45% 98%');
-      root.style.setProperty('--foreground', '210 45% 15%');
-      root.style.setProperty('--card',  '0 0% 100%');
-      root.style.setProperty('--card-foreground', '210 45% 15%');
-      root.style.setProperty('--primary', '210 32% 32%');
-      root.style.setProperty('--primary-foreground', '210 40% 98%');
-      root.style.setProperty('--secondary', '210 45% 96%');
-      root.style.setProperty('--secondary-foreground', '210 32% 32%');
-      root.style.setProperty('--muted', '210 45% 96%');
-      root.style.setProperty('--muted-foreground', '210 20% 50%');
-      root.style.setProperty('--accent', '210 45% 96%');
-      root.style.setProperty('--accent-foreground', '210 32% 32%');
-      root.style.setProperty('--border', '210 30% 85%');
-      root.style.setProperty('--input', '210 30% 85%');
-      root.classList.remove('dark');
-      root.classList.add('light');
-    } else {
-      root.style.setProperty('--background', '210 45% 15%');
-      root.style.setProperty('--foreground', '210 40% 98%');
-      root.style.setProperty('--card', '210 45% 15%');
-      root.style.setProperty('--card-foreground', '210 40% 98%');
-      root.style.setProperty('--primary', '210 32% 32%');
-      root.style.setProperty('--primary-foreground', '210 40% 98%');
-      root.style.setProperty('--secondary', '210 35% 20%');
-      root.style.setProperty('--secondary-foreground', '210 40% 98%');
-      root.style.setProperty('--muted', '210 35% 20%');
-      root.style.setProperty('--muted-foreground', '210 20% 65%');
-      root.style.setProperty('--accent', '210 35% 20%');
-      root.style.setProperty('--accent-foreground', '210 40% 98%');
-      root.style.setProperty('--border', '210 35% 20%');
-      root.style.setProperty('--input', '210 35% 20%');
-      root.classList.remove('light');
-      root.classList.add('dark');
-    }
-  };
-
-  const handleThemeChange = (newTheme: 'light' | 'dark') => {
-    setTheme(newTheme);
+    // Save to storage
     const data = loadFinancialData();
     if (data) {
-      data.settings.theme = newTheme;
-      saveFinancialData(data);
-      
-      applyTheme(newTheme);
-      
-      toast({
-        title: t('theme_changed'),
-        description: `${newTheme === 'dark' ? t('dark_theme') : t('light_theme')} ${t('is_active')}`,
-      });
-    }
-  };
-
-  const handleFontSizeChange = (newSize: 'small' | 'medium' | 'large') => {
-    setFontSize(newSize);
-    const data = loadFinancialData();
-    if (data) {
-      data.settings.fontSize = newSize;
-      saveFinancialData(data);
-      
-      // Apply font size to document
-      const sizes = { small: '14px', medium: '16px', large: '18px' };
-      document.documentElement.style.fontSize = sizes[newSize];
-      
-      toast({
-        title: t('font_size_changed'),
-        description: `${newSize === 'small' ? t('small') : newSize === 'medium' ? t('medium') : t('large')} ${t('font_size')}`,
-      });
-    }
-  };
-
-  const handleHighContrastToggle = (enabled: boolean) => {
-    setHighContrast(enabled);
-    const data = loadFinancialData();
-    if (data) {
-      data.settings.highContrast = enabled;
-      saveFinancialData(data);
-      
-      // Apply high contrast
-      if (enabled) {
-        document.documentElement.classList.add('high-contrast');
-      } else {
-        document.documentElement.classList.remove('high-contrast');
+      data.settings = { ...data.settings, [key]: value };
+      if (key === 'highContrast') {
+        data.settings.highContrast = value;
       }
-      
-      toast({
-        title: enabled ? t('high_contrast_enabled') : t('high_contrast_disabled'),
-        description: enabled ? t('high_contrast_mode_active') : t('high_contrast_mode_disabled'),
-      });
+      saveFinancialData(data);
     }
+    
+    // Apply theme changes immediately
+    if (key === 'theme') {
+      document.documentElement.setAttribute('data-theme', value);
+    }
+    
+    // Apply brightness changes
+    if (key === 'screenBrightness') {
+      document.documentElement.style.filter = `brightness(${value}%)`;
+    }
+    
+    toast({
+      title: 'Asetus päivitetty',
+      description: `${key} päivitetty onnistuneesti`
+    });
   };
 
   return (
     <div className="p-4 pb-20 bg-[#192E45] min-h-screen">
+      {/* Header */}
       <div className="flex items-center space-x-3 mb-6">
         <Button variant="ghost" size="sm" onClick={() => navigate('/settings')} className="text-white hover:bg-white/10">
           <ArrowLeft size={20} />
@@ -135,42 +78,7 @@ const AppearanceSettings = () => {
         <h1 className="text-2xl font-bold text-white">{t('appearance')}</h1>
       </div>
 
-      {/* Theme Settings */}
-      <Card className="mb-6 bg-[#294D73] border-none">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center space-x-2">
-            <Palette size={20} />
-            <span>{t('theme')}</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label className="text-white">{t('color_theme')}</Label>
-            <Select value={theme} onValueChange={handleThemeChange}>
-              <SelectTrigger className="bg-white/10 border-white/20 text-white mt-2">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="light">{t('light_theme')}</SelectItem>
-                <SelectItem value="dark">{t('dark_theme')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="text-white">
-              <div className="font-medium">{t('high_contrast')}</div>
-              <div className="text-sm text-white/70">{t('high_contrast_description')}</div>
-            </div>
-            <Switch 
-              checked={highContrast}
-              onCheckedChange={handleHighContrastToggle}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Font Settings */}
+      {/* Text Settings */}
       <Card className="mb-6 bg-[#294D73] border-none">
         <CardHeader>
           <CardTitle className="text-white flex items-center space-x-2">
@@ -180,39 +88,113 @@ const AppearanceSettings = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label className="text-white">{t('font_size')}</Label>
-            <Select value={fontSize} onValueChange={handleFontSizeChange}>
-              <SelectTrigger className="bg-white/10 border-white/20 text-white mt-2">
+            <label className="text-white font-medium mb-2 block">Fonttikoko</label>
+            <Select value={settings.fontSize} onValueChange={(value: 'small' | 'medium' | 'large') => handleSettingChange('fontSize', value)}>
+              <SelectTrigger className="bg-white/10 border-white/20 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="small">{t('small')}</SelectItem>
-                <SelectItem value="medium">{t('medium')}</SelectItem>
-                <SelectItem value="large">{t('large')}</SelectItem>
+                <SelectItem value="small">Pieni</SelectItem>
+                <SelectItem value="medium">Keskikokoinen</SelectItem>
+                <SelectItem value="large">Suuri</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="text-white">
+              <div className="font-medium">Korkea kontrasti</div>
+              <div className="text-sm text-white/70">Parempi näkyvyys</div>
+            </div>
+            <Switch 
+              checked={settings.highContrast}
+              onCheckedChange={(checked) => handleSettingChange('highContrast', checked)}
+            />
           </div>
         </CardContent>
       </Card>
 
-      {/* Display Settings */}
-      <Card className="bg-[#294D73] border-none">
+      {/* Screen Settings */}
+      <Card className="mb-6 bg-[#294D73] border-none">
         <CardHeader>
           <CardTitle className="text-white flex items-center space-x-2">
             <Monitor size={20} />
             <span>{t('screen_settings')}</span>
           </CardTitle>
         </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <label className="text-white font-medium mb-3 block">Näytön kirkkaus: {settings.screenBrightness}%</label>
+            <Slider
+              value={[settings.screenBrightness]}
+              onValueChange={(value) => handleSettingChange('screenBrightness', value[0])}
+              max={100}
+              min={10}
+              step={10}
+              className="w-full"
+            />
+          </div>
+          
+          <div>
+            <label className="text-white font-medium mb-2 block">Näytön aikakatkaisu</label>
+            <Select value={settings.screenTimeout.toString()} onValueChange={(value) => handleSettingChange('screenTimeout', parseInt(value))}>
+              <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="15">15 sekuntia</SelectItem>
+                <SelectItem value="30">30 sekuntia</SelectItem>
+                <SelectItem value="60">1 minuutti</SelectItem>
+                <SelectItem value="300">5 minuuttia</SelectItem>
+                <SelectItem value="0">Ei koskaan</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="text-white">
+              <div className="font-medium">Saldo lukitusnäytössä</div>
+              <div className="text-sm text-white/70">Näytä saldo lukitusnäytössä</div>
+            </div>
+            <Switch 
+              checked={settings.showBalanceOnLockScreen}
+              onCheckedChange={(checked) => handleSettingChange('showBalanceOnLockScreen', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="text-white">
+              <div className="font-medium">Animaatiot</div>
+              <div className="text-sm text-white/70">Käytä siirtymäanimaatioita</div>
+            </div>
+            <Switch 
+              checked={settings.animationsEnabled}
+              onCheckedChange={(checked) => handleSettingChange('animationsEnabled', checked)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Theme Settings */}
+      <Card className="bg-[#294D73] border-none">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center space-x-2">
+            <Palette size={20} />
+            <span>Teema</span>
+          </CardTitle>
+        </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-white/70 text-sm">
-            <p>{t('additional_screen_settings_coming')}</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>{t('background_color_options')}</li>
-              <li>{t('card_color_themes')}</li>
-              <li>{t('font_family_selection')}</li>
-              <li>{t('custom_color_schemes')}</li>
-              <li>{t('accessibility_options')}</li>
-            </ul>
+          <div>
+            <label className="text-white font-medium mb-2 block">Sovelluksen teema</label>
+            <Select value={settings.theme} onValueChange={(value: 'light' | 'dark') => handleSettingChange('theme', value)}>
+              <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Vaalea</SelectItem>
+                <SelectItem value="dark">Tumma</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
