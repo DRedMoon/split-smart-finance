@@ -67,23 +67,83 @@ export const exportFinancialData = (): void => {
 };
 
 export const getDefaultFinancialData = (): FinancialData => ({
-  balance: 2450.75,
-  loans: [
-    { id: 1, name: 'Autolaina', totalAmount: 25000, currentAmount: 8500, monthly: 425, rate: 3.5, remaining: "24 kuukautta", dueDate: "15.", lastPayment: "2024-01-15" },
-    { id: 2, name: 'Opintolaina', totalAmount: 15000, currentAmount: 4000, monthly: 180, rate: 4.2, remaining: "18 kuukautta", dueDate: "1.", lastPayment: "2024-01-01" }
-  ],
-  monthlyBills: [
-    { id: 1, name: "Vuokra", amount: 800, dueDate: "1.", type: "asuminen", paid: true },
-    { id: 2, name: "Automaksu", amount: 425, dueDate: "15.", type: "laina", paid: false },
-    { id: 3, name: "Luottokortti", amount: 250, dueDate: "20.", type: "luotto", paid: false },
-    { id: 4, name: "Puhelin", amount: 65, dueDate: "28.", type: "lasku", paid: true },
-    { id: 5, name: "Internet", amount: 50, dueDate: "10.", type: "lasku", paid: true },
-    { id: 6, name: "Vakuutus", amount: 120, dueDate: "5.", type: "vakuutus", paid: true }
-  ],
-  transactions: [
-    { id: 1, name: "Ruokakauppa", amount: -85.50, date: "2024-01-15", type: "kulu", category: "ruoka" },
-    { id: 2, name: "Autolainan maksu", amount: -425.00, date: "2024-01-15", type: "laina", category: "laina" },
-    { id: 3, name: "Palkan talletus", amount: 3200.00, date: "2024-01-14", type: "tulo", category: "palkka" },
-    { id: 4, name: "Huoltoasema", amount: -45.20, date: "2024-01-13", type: "kulu", category: "liikenne" }
-  ]
+  balance: 0,
+  loans: [],
+  monthlyBills: [],
+  transactions: []
 });
+
+// Utility functions to update financial data
+export const addTransaction = (transaction: Omit<FinancialData['transactions'][0], 'id'>): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  const newTransaction = {
+    ...transaction,
+    id: Date.now() + Math.random()
+  };
+  data.transactions.unshift(newTransaction);
+  
+  // Update balance if it's income or expense
+  if (transaction.type === 'income') {
+    data.balance += transaction.amount;
+  } else if (transaction.type === 'expense') {
+    data.balance += transaction.amount; // amount is already negative
+  }
+  
+  saveFinancialData(data);
+};
+
+export const addLoan = (loan: Omit<FinancialData['loans'][0], 'id'>): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  const newLoan = {
+    ...loan,
+    id: Date.now() + Math.random()
+  };
+  data.loans.push(newLoan);
+  
+  // Add to monthly bills
+  const monthlyBill = {
+    id: Date.now() + Math.random() + 1,
+    name: loan.name,
+    amount: loan.monthly,
+    dueDate: loan.dueDate,
+    type: 'laina',
+    paid: false
+  };
+  data.monthlyBills.push(monthlyBill);
+  
+  saveFinancialData(data);
+};
+
+export const addMonthlyBill = (bill: Omit<FinancialData['monthlyBills'][0], 'id'>): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  const newBill = {
+    ...bill,
+    id: Date.now() + Math.random()
+  };
+  data.monthlyBills.push(newBill);
+  saveFinancialData(data);
+};
+
+export const updateTransaction = (id: number, updates: Partial<FinancialData['transactions'][0]>): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  const index = data.transactions.findIndex(t => t.id === id);
+  if (index !== -1) {
+    data.transactions[index] = { ...data.transactions[index], ...updates };
+    saveFinancialData(data);
+  }
+};
+
+export const deleteTransaction = (id: number): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  const transaction = data.transactions.find(t => t.id === id);
+  if (transaction) {
+    // Reverse balance change
+    if (transaction.type === 'income') {
+      data.balance -= transaction.amount;
+    } else if (transaction.type === 'expense') {
+      data.balance -= transaction.amount; // amount is already negative
+    }
+    data.transactions = data.transactions.filter(t => t.id !== id);
+    saveFinancialData(data);
+  }
+};

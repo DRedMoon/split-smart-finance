@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +15,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  useEffect(() => {
+  const loadData = () => {
     const savedData = loadFinancialData();
     if (savedData) {
       setFinancialData(savedData);
@@ -25,19 +24,34 @@ const Dashboard = () => {
       setFinancialData(defaultData);
       saveFinancialData(defaultData);
     }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Refresh data when navigating back to dashboard
+  useEffect(() => {
+    const handleFocus = () => {
+      loadData();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   useEffect(() => {
     // Schedule notifications for upcoming payments
-    const upcomingPayments = financialData.monthlyBills
-      .filter(bill => !bill.paid)
-      .map(bill => ({
-        name: bill.name,
-        amount: bill.amount,
-        dueDate: bill.dueDate
-      }));
-    
-    schedulePaymentNotifications(upcomingPayments);
+    if (financialData.monthlyBills.length > 0) {
+      const upcomingPayments = financialData.monthlyBills
+        .filter(bill => !bill.paid)
+        .map(bill => ({
+          name: bill.name,
+          amount: bill.amount,
+          dueDate: bill.dueDate
+        }));
+      
+      schedulePaymentNotifications(upcomingPayments);
+    }
   }, [financialData.monthlyBills]);
 
   const totalLoansCredits = financialData.loans.reduce((sum, loan) => sum + loan.currentAmount, 0);
@@ -65,7 +79,15 @@ const Dashboard = () => {
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-white/70">{t('this_month')}</span>
-            <span className="text-green-300">+€340,25</span>
+            <span className="text-green-300">
+              {financialData.transactions.length > 0 
+                ? `€${financialData.transactions
+                    .filter(t => t.date.startsWith(new Date().toISOString().slice(0, 7)))
+                    .reduce((sum, t) => sum + (t.type === 'income' ? t.amount : 0), 0)
+                    .toLocaleString('fi-FI', { minimumFractionDigits: 2 })}`
+                : '€0,00'
+              }
+            </span>
           </div>
         </div>
       )
@@ -78,20 +100,26 @@ const Dashboard = () => {
           <div className="text-2xl font-bold text-red-300">
             €{totalLoansCredits.toLocaleString('fi-FI', { minimumFractionDigits: 2 })}
           </div>
-          <div className="space-y-2">
-            {financialData.loans.map(loan => (
-              <div key={loan.id} className="flex justify-between items-center p-2 bg-white/10 rounded">
-                <div>
-                  <div className="font-medium text-sm text-white">{loan.name}</div>
-                  <div className="text-xs text-white/70">{loan.remaining} {t('remaining')}</div>
+          {financialData.loans.length === 0 ? (
+            <div className="text-white/70 text-center py-4">
+              Ei lainoja lisätty
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {financialData.loans.map(loan => (
+                <div key={loan.id} className="flex justify-between items-center p-2 bg-white/10 rounded">
+                  <div>
+                    <div className="font-medium text-sm text-white">{loan.name}</div>
+                    <div className="text-xs text-white/70">{loan.remaining} {t('remaining')}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold text-white">€{loan.currentAmount.toLocaleString('fi-FI')}</div>
+                    <div className="text-xs text-white/70">€{loan.monthly}/kk</div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-semibold text-white">€{loan.currentAmount.toLocaleString('fi-FI')}</div>
-                  <div className="text-xs text-white/70">€{loan.monthly}/kk</div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )
     },
@@ -103,23 +131,31 @@ const Dashboard = () => {
           <div className="text-2xl font-bold text-orange-300">
             €{monthlyPayments.toLocaleString('fi-FI', { minimumFractionDigits: 2 })}
           </div>
-          <div className="space-y-2">
-            {financialData.monthlyBills.slice(0, 3).map(bill => (
-              <div key={bill.id} className="flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                  <Badge variant="outline" className="text-xs border-white/30 text-white">{bill.dueDate}</Badge>
-                  <span className="text-sm text-white">{bill.name}</span>
+          {financialData.monthlyBills.length === 0 ? (
+            <div className="text-white/70 text-center py-4">
+              Ei kuukausimaksuja lisätty
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {financialData.monthlyBills.slice(0, 3).map(bill => (
+                <div key={bill.id} className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline" className="text-xs border-white/30 text-white">{bill.dueDate}</Badge>
+                    <span className="text-sm text-white">{bill.name}</span>
+                  </div>
+                  <span className="font-semibold text-white">€{bill.amount}</span>
                 </div>
-                <span className="font-semibold text-white">€{bill.amount}</span>
-              </div>
-            ))}
-            <button 
-              className="text-xs text-blue-300 hover:underline"
-              onClick={() => navigate('/expenses/monthly')}
-            >
-              {t('view_all_payments')} ({financialData.monthlyBills.length})
-            </button>
-          </div>
+              ))}
+              {financialData.monthlyBills.length > 3 && (
+                <button 
+                  className="text-xs text-blue-300 hover:underline"
+                  onClick={() => navigate('/expenses/monthly')}
+                >
+                  {t('view_all_payments')} ({financialData.monthlyBills.length})
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )
     }
@@ -151,7 +187,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-4 pb-20 space-y-6">
+    <div className="p-4 pb-20 space-y-6 bg-[#192E45] min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -244,15 +280,21 @@ const Dashboard = () => {
           <CardTitle className="text-lg text-white">{t('upcoming_week')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {financialData.monthlyBills.filter(bill => !bill.paid).slice(0, 2).map(bill => (
-            <div key={bill.id} className="flex justify-between items-center p-3 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
-              <div>
-                <div className="font-medium text-white">{bill.name}</div>
-                <div className="text-sm text-white/70">{t('due')} {bill.dueDate}</div>
-              </div>
-              <div className="font-bold text-yellow-300">€{bill.amount}</div>
+          {financialData.monthlyBills.filter(bill => !bill.paid).length === 0 ? (
+            <div className="text-white/70 text-center py-4">
+              Ei tulevia maksuja
             </div>
-          ))}
+          ) : (
+            financialData.monthlyBills.filter(bill => !bill.paid).slice(0, 2).map(bill => (
+              <div key={bill.id} className="flex justify-between items-center p-3 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+                <div>
+                  <div className="font-medium text-white">{bill.name}</div>
+                  <div className="text-sm text-white/70">{t('due')} {bill.dueDate}</div>
+                </div>
+                <div className="font-bold text-yellow-300">€{bill.amount}</div>
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
     </div>
