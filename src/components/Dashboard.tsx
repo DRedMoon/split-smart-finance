@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, EyeOff, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -99,8 +99,18 @@ const Dashboard = () => {
       color: 'bg-[#294D73]',
       content: (
         <div className="space-y-3">
-          <div className="text-2xl font-bold text-red-300">
-            €{totalLoansCredits.toLocaleString('fi-FI', { minimumFractionDigits: 2 })}
+          <div className="flex items-center justify-between">
+            <div className="text-2xl font-bold text-red-300">
+              €{totalLoansCredits.toLocaleString('fi-FI', { minimumFractionDigits: 2 })}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/loans-credits')}
+              className="p-1 h-auto text-white hover:bg-white/10"
+            >
+              <Plus size={16} />
+            </Button>
           </div>
           {financialData.loans.length === 0 ? (
             <div className="text-white/70 text-center py-4">

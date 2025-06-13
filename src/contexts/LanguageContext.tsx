@@ -99,6 +99,15 @@ const translations: Translation = {
     financial_overview: 'Taloudellinen katsaus',
     manage_expenses: 'Hallinnoi kuluja',
     this_month: 'Tämä kuukausi',
+    create_edit_category: 'Luo/Muokkaa kategoriaa',
+    current_balance: 'Nykyinen saldo',
+    due: 'Erääntyy',
+    view_all_payments: 'Näytä kaikki maksut',
+    home: 'Koti',
+    upcoming: 'Tulevat',
+    add: 'Lisää',
+    history: 'Historia',
+    transactions: 'Tapahtumat',
   },
   en: {
     balance: 'Balance',
@@ -179,6 +188,15 @@ const translations: Translation = {
     financial_overview: 'Financial Overview',
     manage_expenses: 'Manage Expenses',
     this_month: 'This Month',
+    create_edit_category: 'Create/Edit Category',
+    current_balance: 'Current Balance',
+    due: 'Due',
+    view_all_payments: 'View All Payments',
+    home: 'Home',
+    upcoming: 'Upcoming',
+    add: 'Add',
+    history: 'History',
+    transactions: 'Transactions',
   }
 };
 
