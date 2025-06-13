@@ -22,7 +22,11 @@ const ProfileSettings = () => {
   useEffect(() => {
     const data = loadFinancialData();
     if (data?.profile) {
-      setProfile(data.profile);
+      setProfile({
+        name: data.profile.name || '',
+        email: data.profile.email || '',
+        profilePicture: data.profile.profilePicture || ''
+      });
     }
   }, []);
 
