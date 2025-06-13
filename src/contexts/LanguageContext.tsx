@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface Translation {
@@ -97,7 +98,6 @@ const translations: Translation = {
     upcoming_week: 'Tuleva viikko',
     financial_overview: 'Taloudellinen katsaus',
     manage_expenses: 'Hallinnoi kuluja',
-    this_month: 'Tämä kuukausi',
     create_edit_category: 'Luo/Muokkaa kategoriaa',
     current_balance: 'Nykyinen saldo',
     due: 'Erääntyy',
@@ -126,7 +126,6 @@ const translations: Translation = {
     total_interest: 'Korot yhteensä',
     existing_categories: 'Olemassa olevat kategoriat',
     no_categories: 'Ei kategorioita',
-    create_edit_category: 'Luo/Muokkaa kategoria',
     create_new_category: 'Luo uusi kategoria',
     category_name_required: 'Kategorian nimi vaaditaan',
     category_created: 'Kategoria luotu',
@@ -140,6 +139,18 @@ const translations: Translation = {
     total_bills: 'Laskuja yhteensä',
     this_month: 'Tässä kuussa',
     bills: 'laskua',
+    save_changes: 'Tallenna muutokset',
+    category_name: 'Kategorian nimi',
+    enter_category_name: 'Syötä kategorian nimi',
+    description: 'Kuvaus',
+    category_description_placeholder: 'Kategorian kuvaus...',
+    category_color: 'Kategorian väri',
+    maintenance_charge: 'Yhtiövastike',
+    housing_company_expenditure: 'Taloyhtiön meno',
+    create_category: 'Luo kategoria',
+    category: 'Kategoria',
+    category_deleted: 'Kategoria poistettu',
+    deleted_successfully: 'poistettu onnistuneesti',
     
     // Category descriptions
     maintenance_charge_description: 'Merkitse jos kyseessä on yhtiövastike',
@@ -224,7 +235,6 @@ const translations: Translation = {
     upcoming_week: 'Upcoming Week',
     financial_overview: 'Financial Overview',
     manage_expenses: 'Manage Expenses',
-    this_month: 'This Month',
     create_edit_category: 'Create/Edit Category',
     current_balance: 'Current Balance',
     due: 'Due',
@@ -253,7 +263,6 @@ const translations: Translation = {
     total_interest: 'Total Interest',
     existing_categories: 'Existing Categories',
     no_categories: 'No categories',
-    create_edit_category: 'Create/Edit Category',
     create_new_category: 'Create New Category',
     category_name_required: 'Category name is required',
     category_created: 'Category Created',
@@ -267,6 +276,18 @@ const translations: Translation = {
     total_bills: 'Total Bills',
     this_month: 'This Month',
     bills: 'bills',
+    save_changes: 'Save Changes',
+    category_name: 'Category Name',
+    enter_category_name: 'Enter category name',
+    description: 'Description',
+    category_description_placeholder: 'Category description...',
+    category_color: 'Category Color',
+    maintenance_charge: 'Maintenance Charge',
+    housing_company_expenditure: 'Housing Company Expenditure',
+    create_category: 'Create Category',
+    category: 'Category',
+    category_deleted: 'Category Deleted',
+    deleted_successfully: 'deleted successfully',
     
     // Category descriptions
     maintenance_charge_description: 'Mark if this is a maintenance charge',

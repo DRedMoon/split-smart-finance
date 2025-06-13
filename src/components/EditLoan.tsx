@@ -48,7 +48,7 @@ const EditLoan = () => {
       if (data?.loans) {
         const existingLoan = data.loans.find(loan => loan.id === parseFloat(loanId));
         if (existingLoan) {
-          // Ensure all required properties are present
+          // Ensure all required properties are present, including minimumPercent
           const fullLoanData = {
             id: existingLoan.id,
             name: existingLoan.name,
