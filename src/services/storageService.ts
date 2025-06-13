@@ -688,3 +688,46 @@ export const markBillAsUnpaid = (billId: number): void => {
     saveFinancialData(data);
   }
 };
+
+// Add new function to handle bill payments with balance and loan reductions
+export const payBill = (billId: number, amount: number, billType: string): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  
+  // Reduce balance
+  data.balance -= amount;
+  
+  // If it's a loan or credit payment, also reduce the loan amount
+  if (billType === 'loan_payment' || billType === 'credit_payment' || billType === 'laina' || billType === 'luottokortti') {
+    const bill = data.monthlyBills.find(b => b.id === billId);
+    if (bill) {
+      const loanIndex = data.loans.findIndex(loan => 
+        loan.name.toLowerCase().includes(bill.name.toLowerCase().split(' - ')[0].toLowerCase()) ||
+        loan.name.toLowerCase() === bill.name.toLowerCase()
+      );
+      
+      if (loanIndex !== -1) {
+        data.loans[loanIndex].currentAmount = Math.max(0, data.loans[loanIndex].currentAmount - amount);
+        data.loans[loanIndex].lastPayment = new Date().toISOString().split('T')[0];
+      }
+    }
+  }
+  
+  // Add transaction record
+  const bill = data.monthlyBills.find(b => b.id === billId);
+  if (bill) {
+    const transaction = {
+      id: Date.now() + Math.random(),
+      name: `${bill.name} - Maksu`,
+      amount: -amount,
+      date: new Date().toISOString().split('T')[0],
+      type: 'expense',
+      category: billType === 'loan_payment' || billType === 'laina' ? 'loan_repayment' : 
+                billType === 'credit_payment' || billType === 'luottokortti' ? 'credit_repayment' : 
+                'bill'
+    };
+    
+    data.transactions.unshift(transaction);
+  }
+  
+  saveFinancialData(data);
+};

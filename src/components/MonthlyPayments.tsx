@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { loadFinancialData, saveFinancialData, type FinancialData } from '@/services/storageService';
+import { loadFinancialData, saveFinancialData, payBill, type FinancialData } from '@/services/storageService';
 import { useToast } from '@/hooks/use-toast';
 
 const MonthlyPayments = () => {
@@ -27,15 +27,48 @@ const MonthlyPayments = () => {
     const billIndex = updatedData.monthlyBills.findIndex(bill => bill.id === id);
     
     if (billIndex !== -1) {
-      updatedData.monthlyBills[billIndex].paid = !updatedData.monthlyBills[billIndex].paid;
+      const bill = updatedData.monthlyBills[billIndex];
+      const wasPaid = bill.paid;
+      
+      // Toggle payment status
+      updatedData.monthlyBills[billIndex].paid = !bill.paid;
+      
+      // Handle balance changes and loan reductions
+      if (!wasPaid) {
+        // Bill is being marked as paid
+        payBill(bill.id, bill.amount, bill.type);
+        toast({
+          title: "Merkitty maksetuksi",
+          description: `${bill.name} maksettu - Saldo päivitetty`,
+        });
+      } else {
+        // Bill is being marked as unpaid - reverse the payment
+        updatedData.balance += bill.amount;
+        
+        // If it was a loan/credit payment, restore the loan amount
+        if (bill.type === 'loan_payment' || bill.type === 'credit_payment') {
+          const loanIndex = updatedData.loans.findIndex(loan => 
+            loan.name.toLowerCase().includes(bill.name.toLowerCase().split(' - ')[0].toLowerCase())
+          );
+          if (loanIndex !== -1) {
+            updatedData.loans[loanIndex].currentAmount += bill.amount;
+          }
+        }
+        
+        toast({
+          title: "Merkitty maksamattomaksi",
+          description: `${bill.name} peruttu - Saldo palautettu`,
+        });
+      }
+      
       saveFinancialData(updatedData);
       setFinancialData(updatedData);
-      
-      toast({
-        title: updatedData.monthlyBills[billIndex].paid ? "Merkitty maksetuksi" : "Merkitty maksamattomaksi",
-        description: `${updatedData.monthlyBills[billIndex].name} tila päivitetty`,
-      });
     }
+  };
+
+  const handleBackNavigation = () => {
+    // Navigate back to dashboard and set it to monthly payments view
+    navigate('/?view=monthly-payments');
   };
 
   if (!financialData) {
@@ -55,7 +88,7 @@ const MonthlyPayments = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-white hover:bg-white/10">
+          <Button variant="ghost" size="sm" onClick={handleBackNavigation} className="text-white hover:bg-white/10">
             <ArrowLeft size={20} />
           </Button>
           <h1 className="text-2xl font-bold text-white">{t('monthly_payments')}</h1>
@@ -97,7 +130,7 @@ const MonthlyPayments = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => togglePaymentStatus(bill.id)}
-                      className={`p-2 ${bill.paid ? 'text-green-400 hover:bg-green-400/10' : 'text-white/70 hover:bg-white/10'}`}
+                      className={`p-2 ${bill.paid ? 'text-green-400 hover:bg-green-400/10' : 'text-red-400 hover:bg-red-400/10'}`}
                     >
                       {bill.paid ? <Check size={16} /> : <X size={16} />}
                     </Button>

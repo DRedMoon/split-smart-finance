@@ -52,6 +52,12 @@ const Dashboard = () => {
     })
   }, [api])
 
+  const handleDotClick = (index: number) => {
+    if (api) {
+      api.scrollTo(index);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">
       {/* Title */}
@@ -210,12 +216,13 @@ const Dashboard = () => {
           </CarouselContent>
         </Carousel>
 
-        {/* Carousel Indicators */}
+        {/* Carousel Indicators - Clickable */}
         <div className="flex justify-center space-x-2 mt-4">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div
+            <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-colors ${
+              onClick={() => handleDotClick(index)}
+              className={`w-3 h-3 rounded-full transition-colors cursor-pointer ${
                 index === current ? 'bg-white' : 'bg-white/30'
               }`}
             />
