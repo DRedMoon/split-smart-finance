@@ -20,7 +20,7 @@ const AddExpense = () => {
     name: '',
     amount: 0,
     category: '',
-    type: 'expense' as const
+    type: 'expense' as 'income' | 'expense'
   });
 
   // Loan states
