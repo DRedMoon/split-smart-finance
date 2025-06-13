@@ -18,7 +18,7 @@ const Navigation = () => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-200 px-4 py-2">
+    <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-[#294D73] border-t border-[#192E45] px-4 py-2">
       <div className="flex justify-around items-center">
         {navItems.map(({ path, icon: Icon, label, special }) => {
           const isActive = location.pathname === path;
@@ -29,10 +29,10 @@ const Navigation = () => {
               onClick={() => navigate(path)}
               className={`flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors ${
                 special 
-                  ? 'bg-primary text-white' 
+                  ? 'bg-[#192E45] text-white' 
                   : isActive 
-                    ? 'bg-primary/10 text-primary' 
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-[#192E45] text-white' 
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
               }`}
             >
               <Icon size={20} />

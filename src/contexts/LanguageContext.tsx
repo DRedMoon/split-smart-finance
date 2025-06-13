@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Language = 'en' | 'es' | 'fr' | 'de';
+type Language = 'fi' | 'en' | 'es' | 'fr' | 'de';
 
 interface LanguageContextType {
   language: Language;
@@ -10,6 +10,40 @@ interface LanguageContextType {
 }
 
 const translations = {
+  fi: {
+    'financial_overview': 'Taloudellinen Yleiskatsaus',
+    'manage_expenses': 'Hallitse kuluja ja velkoja',
+    'balance': 'Saldo',
+    'current_balance': 'Nykyinen Saldo',
+    'this_month': 'Tässä Kuussa',
+    'loans_credits': 'Lainat ja Luotot',
+    'monthly_payments': 'Kuukausimaksut',
+    'upcoming_week': 'Tuleva Viikko',
+    'due': 'Eräpäivä',
+    'home': 'Koti',
+    'expenses': 'Kulut',
+    'add': 'Lisää',
+    'history': 'Historia',
+    'settings': 'Asetukset',
+    'car_loan': 'Autolaina',
+    'student_loan': 'Opintolaina',
+    'rent': 'Vuokra',
+    'car_payment': 'Automaksu',
+    'credit_card': 'Luottokortti',
+    'phone': 'Puhelin',
+    'view_all_payments': 'Näytä kaikki maksut',
+    'transactions': 'Tapahtumat',
+    'remaining': 'jäljellä',
+    'notifications': 'Ilmoitukset',
+    'backup_settings': 'Varmuuskopiointi',
+    'export_data': 'Vie Tiedot',
+    'profile': 'Profiili',
+    'privacy_security': 'Yksityisyys ja Turvallisuus',
+    'sign_out': 'Kirjaudu Ulos',
+    'account': 'Tili',
+    'data': 'Tiedot',
+    'support': 'Tuki'
+  },
   en: {
     'financial_overview': 'Financial Overview',
     'manage_expenses': 'Manage your expenses and debts',
@@ -33,7 +67,16 @@ const translations = {
     'phone': 'Phone',
     'view_all_payments': 'View all payments',
     'transactions': 'Transactions',
-    'remaining': 'left'
+    'remaining': 'left',
+    'notifications': 'Notifications',
+    'backup_settings': 'Backup Settings',
+    'export_data': 'Export Data',
+    'profile': 'Profile',
+    'privacy_security': 'Privacy & Security',
+    'sign_out': 'Sign Out',
+    'account': 'Account',
+    'data': 'Data',
+    'support': 'Support'
   },
   es: {
     'financial_overview': 'Resumen Financiero',
@@ -58,7 +101,16 @@ const translations = {
     'phone': 'Teléfono',
     'view_all_payments': 'Ver todos los pagos',
     'transactions': 'Transacciones',
-    'remaining': 'restantes'
+    'remaining': 'restantes',
+    'notifications': 'Notificaciones',
+    'backup_settings': 'Configuración de Respaldo',
+    'export_data': 'Exportar Datos',
+    'profile': 'Perfil',
+    'privacy_security': 'Privacidad y Seguridad',
+    'sign_out': 'Cerrar Sesión',
+    'account': 'Cuenta',
+    'data': 'Datos',
+    'support': 'Soporte'
   },
   fr: {
     'financial_overview': 'Aperçu Financier',
@@ -83,7 +135,16 @@ const translations = {
     'phone': 'Téléphone',
     'view_all_payments': 'Voir tous les paiements',
     'transactions': 'Transactions',
-    'remaining': 'restants'
+    'remaining': 'restants',
+    'notifications': 'Notifications',
+    'backup_settings': 'Paramètres de Sauvegarde',
+    'export_data': 'Exporter les Données',
+    'profile': 'Profil',
+    'privacy_security': 'Confidentialité et Sécurité',
+    'sign_out': 'Se Déconnecter',
+    'account': 'Compte',
+    'data': 'Données',
+    'support': 'Support'
   },
   de: {
     'financial_overview': 'Finanzübersicht',
@@ -108,7 +169,16 @@ const translations = {
     'phone': 'Telefon',
     'view_all_payments': 'Alle Zahlungen anzeigen',
     'transactions': 'Transaktionen',
-    'remaining': 'verbleibend'
+    'remaining': 'verbleibend',
+    'notifications': 'Benachrichtigungen',
+    'backup_settings': 'Backup-Einstellungen',
+    'export_data': 'Daten Exportieren',
+    'profile': 'Profil',
+    'privacy_security': 'Datenschutz und Sicherheit',
+    'sign_out': 'Abmelden',
+    'account': 'Konto',
+    'data': 'Daten',
+    'support': 'Support'
   }
 };
 
@@ -117,7 +187,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('app-language');
-    return (saved as Language) || 'en';
+    return (saved as Language) || 'fi';
   });
 
   useEffect(() => {

@@ -10,8 +10,8 @@ import Navigation from '@/components/Navigation';
 
 const Index = () => {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#192E45' }}>
-      <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl">
+    <div className="min-h-screen bg-[#192E45]">
+      <div className="max-w-md mx-auto bg-[#192E45] min-h-screen shadow-xl">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/expenses/:type" element={<ExpenseDetails />} />

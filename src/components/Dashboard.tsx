@@ -6,73 +6,88 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { loadFinancialData, saveFinancialData, getDefaultFinancialData, type FinancialData } from '@/services/storageService';
+import { schedulePaymentNotifications } from '@/services/notificationService';
 
 const Dashboard = () => {
   const [currentCard, setCurrentCard] = useState(0);
   const [showBalance, setShowBalance] = useState(true);
+  const [financialData, setFinancialData] = useState<FinancialData>(getDefaultFinancialData());
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  // Mock data - in real app this would come from state management/API
-  const balance = 2450.75;
-  const totalLoansCredits = 12500.00;
-  const monthlyPayments = 1875.50;
+  useEffect(() => {
+    const savedData = loadFinancialData();
+    if (savedData) {
+      setFinancialData(savedData);
+    } else {
+      const defaultData = getDefaultFinancialData();
+      setFinancialData(defaultData);
+      saveFinancialData(defaultData);
+    }
+  }, []);
 
-  const loans = [
-    { id: 1, name: t('car_loan'), amount: 8500, monthly: 425, rate: 3.5, remaining: "24 months" },
-    { id: 2, name: t('student_loan'), amount: 4000, monthly: 180, rate: 4.2, remaining: "18 months" }
-  ];
+  useEffect(() => {
+    // Schedule notifications for upcoming payments
+    const upcomingPayments = financialData.monthlyBills
+      .filter(bill => !bill.paid)
+      .map(bill => ({
+        name: bill.name,
+        amount: bill.amount,
+        dueDate: bill.dueDate
+      }));
+    
+    schedulePaymentNotifications(upcomingPayments);
+  }, [financialData.monthlyBills]);
 
-  const monthlyBills = [
-    { id: 1, name: t('rent'), amount: 800, dueDate: "1st", type: "housing" },
-    { id: 2, name: t('car_payment'), amount: 425, dueDate: "15th", type: "loan" },
-    { id: 3, name: t('credit_card'), amount: 250, dueDate: "20th", type: "credit" },
-    { id: 4, name: t('phone'), amount: 65, dueDate: "28th", type: "utility" }
-  ];
+  const totalLoansCredits = financialData.loans.reduce((sum, loan) => sum + loan.currentAmount, 0);
+  const monthlyPayments = financialData.monthlyBills.reduce((sum, bill) => sum + bill.amount, 0);
 
   const cards = [
     {
       title: t('balance'),
+      color: 'bg-[#294D73]',
       content: (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">{t('current_balance')}</span>
+            <span className="text-sm text-white/70">{t('current_balance')}</span>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowBalance(!showBalance)}
-              className="p-1 h-auto"
+              className="p-1 h-auto text-white hover:bg-white/10"
             >
               {showBalance ? <EyeOff size={16} /> : <Eye size={16} />}
             </Button>
           </div>
-          <div className="text-3xl font-bold text-green-600">
-            {showBalance ? `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••••'}
+          <div className="text-3xl font-bold text-white">
+            {showBalance ? `€${financialData.balance.toLocaleString('fi-FI', { minimumFractionDigits: 2 })}` : '••••••'}
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{t('this_month')}</span>
-            <span className="text-green-600">+$340.25</span>
+            <span className="text-white/70">{t('this_month')}</span>
+            <span className="text-green-300">+€340,25</span>
           </div>
         </div>
       )
     },
     {
       title: t('loans_credits'),
+      color: 'bg-[#294D73]',
       content: (
         <div className="space-y-3">
-          <div className="text-2xl font-bold text-red-600">
-            ${totalLoansCredits.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          <div className="text-2xl font-bold text-red-300">
+            €{totalLoansCredits.toLocaleString('fi-FI', { minimumFractionDigits: 2 })}
           </div>
           <div className="space-y-2">
-            {loans.map(loan => (
-              <div key={loan.id} className="flex justify-between items-center p-2 bg-slate-50 rounded">
+            {financialData.loans.map(loan => (
+              <div key={loan.id} className="flex justify-between items-center p-2 bg-white/10 rounded">
                 <div>
-                  <div className="font-medium text-sm">{loan.name}</div>
-                  <div className="text-xs text-muted-foreground">{loan.remaining} {t('remaining')}</div>
+                  <div className="font-medium text-sm text-white">{loan.name}</div>
+                  <div className="text-xs text-white/70">{loan.remaining} {t('remaining')}</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-semibold">${loan.amount.toLocaleString()}</div>
-                  <div className="text-xs text-muted-foreground">${loan.monthly}/mo</div>
+                  <div className="font-semibold text-white">€{loan.currentAmount.toLocaleString('fi-FI')}</div>
+                  <div className="text-xs text-white/70">€{loan.monthly}/kk</div>
                 </div>
               </div>
             ))}
@@ -82,26 +97,27 @@ const Dashboard = () => {
     },
     {
       title: t('monthly_payments'),
+      color: 'bg-[#294D73]',
       content: (
         <div className="space-y-3">
-          <div className="text-2xl font-bold text-orange-600">
-            ${monthlyPayments.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          <div className="text-2xl font-bold text-orange-300">
+            €{monthlyPayments.toLocaleString('fi-FI', { minimumFractionDigits: 2 })}
           </div>
           <div className="space-y-2">
-            {monthlyBills.slice(0, 3).map(bill => (
+            {financialData.monthlyBills.slice(0, 3).map(bill => (
               <div key={bill.id} className="flex justify-between items-center">
                 <div className="flex items-center space-x-2">
-                  <Badge variant="outline" className="text-xs">{bill.dueDate}</Badge>
-                  <span className="text-sm">{bill.name}</span>
+                  <Badge variant="outline" className="text-xs border-white/30 text-white">{bill.dueDate}</Badge>
+                  <span className="text-sm text-white">{bill.name}</span>
                 </div>
-                <span className="font-semibold">${bill.amount}</span>
+                <span className="font-semibold text-white">€{bill.amount}</span>
               </div>
             ))}
             <button 
-              className="text-xs text-blue-600 hover:underline"
+              className="text-xs text-blue-300 hover:underline"
               onClick={() => navigate('/expenses/monthly')}
             >
-              {t('view_all_payments')} {monthlyBills.length}
+              {t('view_all_payments')} ({financialData.monthlyBills.length})
             </button>
           </div>
         </div>
@@ -139,12 +155,12 @@ const Dashboard = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">{t('financial_overview')}</h1>
-          <p className="text-muted-foreground">{t('manage_expenses')}</p>
+          <h1 className="text-2xl font-bold text-white">{t('financial_overview')}</h1>
+          <p className="text-white/70">{t('manage_expenses')}</p>
         </div>
         <Button
           onClick={() => navigate('/add')}
-          className="rounded-full w-12 h-12 p-0"
+          className="rounded-full w-12 h-12 p-0 bg-[#294D73] hover:bg-[#1f3a5f]"
         >
           <Plus size={24} />
         </Button>
@@ -153,7 +169,7 @@ const Dashboard = () => {
       {/* Swipeable Cards */}
       <div className="relative">
         <Card 
-          className="min-h-[200px] touch-pan-y"
+          className={`min-h-[200px] touch-pan-y ${cards[currentCard].color} border-none text-white`}
           onTouchStart={(e) => {
             const target = e.currentTarget as HTMLElement;
             target.dataset.touchStart = e.touches[0].clientX.toString();
@@ -161,7 +177,7 @@ const Dashboard = () => {
           onTouchEnd={handleSwipe}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-medium">
+            <CardTitle className="text-lg font-medium text-white">
               {cards[currentCard].title}
             </CardTitle>
             <div className="flex space-x-1">
@@ -169,7 +185,7 @@ const Dashboard = () => {
                 variant="ghost"
                 size="sm"
                 onClick={prevCard}
-                className="p-1 h-auto"
+                className="p-1 h-auto text-white hover:bg-white/10"
               >
                 <ChevronLeft size={16} />
               </Button>
@@ -177,7 +193,7 @@ const Dashboard = () => {
                 variant="ghost"
                 size="sm"
                 onClick={nextCard}
-                className="p-1 h-auto"
+                className="p-1 h-auto text-white hover:bg-white/10"
               >
                 <ChevronRight size={16} />
               </Button>
@@ -195,7 +211,7 @@ const Dashboard = () => {
               key={index}
               onClick={() => setCurrentCard(index)}
               className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentCard ? 'bg-primary' : 'bg-muted'
+                index === currentCard ? 'bg-white' : 'bg-white/30'
               }`}
             />
           ))}
@@ -207,7 +223,7 @@ const Dashboard = () => {
         <Button
           variant="outline"
           onClick={() => navigate('/expenses/loans')}
-          className="h-20 flex flex-col items-center justify-center space-y-1"
+          className="h-20 flex flex-col items-center justify-center space-y-1 bg-[#294D73] border-[#294D73] text-white hover:bg-[#1f3a5f]"
         >
           <span className="text-lg">🏦</span>
           <span className="text-sm">{t('loans_credits')}</span>
@@ -215,7 +231,7 @@ const Dashboard = () => {
         <Button
           variant="outline"
           onClick={() => navigate('/transactions')}
-          className="h-20 flex flex-col items-center justify-center space-y-1"
+          className="h-20 flex flex-col items-center justify-center space-y-1 bg-[#294D73] border-[#294D73] text-white hover:bg-[#1f3a5f]"
         >
           <span className="text-lg">📊</span>
           <span className="text-sm">{t('transactions')}</span>
@@ -223,18 +239,18 @@ const Dashboard = () => {
       </div>
 
       {/* Upcoming Payments */}
-      <Card>
+      <Card className="bg-[#294D73] border-none">
         <CardHeader>
-          <CardTitle className="text-lg">{t('upcoming_week')}</CardTitle>
+          <CardTitle className="text-lg text-white">{t('upcoming_week')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {monthlyBills.slice(0, 2).map(bill => (
-            <div key={bill.id} className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+          {financialData.monthlyBills.filter(bill => !bill.paid).slice(0, 2).map(bill => (
+            <div key={bill.id} className="flex justify-between items-center p-3 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
               <div>
-                <div className="font-medium">{bill.name}</div>
-                <div className="text-sm text-muted-foreground">{t('due')} {bill.dueDate}</div>
+                <div className="font-medium text-white">{bill.name}</div>
+                <div className="text-sm text-white/70">{t('due')} {bill.dueDate}</div>
               </div>
-              <div className="font-bold text-yellow-700">${bill.amount}</div>
+              <div className="font-bold text-yellow-300">€{bill.amount}</div>
             </div>
           ))}
         </CardContent>

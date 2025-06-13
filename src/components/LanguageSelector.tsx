@@ -8,6 +8,7 @@ const LanguageSelector = () => {
   const { language, setLanguage } = useLanguage();
 
   const languages = [
+    { code: 'fi', name: 'Suomi', flag: '🇫🇮' },
     { code: 'en', name: 'English', flag: '🇺🇸' },
     { code: 'es', name: 'Español', flag: '🇪🇸' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
@@ -17,7 +18,7 @@ const LanguageSelector = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Language / Idioma / Langue / Sprache</CardTitle>
+        <CardTitle>Kieli / Language / Idioma / Langue / Sprache</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {languages.map((lang) => (
