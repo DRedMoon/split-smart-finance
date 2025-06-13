@@ -10,6 +10,7 @@ export interface FinancialData {
     euriborRate?: number;
     personalMargin?: number;
     managementFee?: number;
+    minimumPercent?: number;
     remaining: string;
     dueDate: string;
     lastPayment: string;

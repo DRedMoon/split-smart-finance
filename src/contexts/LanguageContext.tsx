@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface Translation {
@@ -117,7 +116,6 @@ const translations: Translation = {
     minimum_monthly_payment: 'Kuukausittainen vähimmäismaksu',
     estimated_total_with_interest: 'Arvioitu kokonaissumma korkojen kanssa',
     yearly_interest: 'Vuosikorko',
-    minimum_payment_percent: 'Vähimmäismaksu',
     edit_loan: 'Muokkaa lainaa',
     edit_credit_card: 'Muokkaa luottokorttia',
     loan_updated: 'Laina päivitetty',
@@ -148,11 +146,8 @@ const translations: Translation = {
     maintenance_charge: 'Yhtiövastike',
     housing_company_expenditure: 'Taloyhtiön meno',
     create_category: 'Luo kategoria',
-    category: 'Kategoria',
     category_deleted: 'Kategoria poistettu',
     deleted_successfully: 'poistettu onnistuneesti',
-    
-    // Category descriptions
     maintenance_charge_description: 'Merkitse jos kyseessä on yhtiövastike',
     housing_company_expenditure_description: 'Merkitse jos kyseessä on taloyhtiön meno',
     monthly_payment_description: 'Merkitse jos kyseessä on kuukausittainen maksu'
@@ -254,7 +249,6 @@ const translations: Translation = {
     minimum_monthly_payment: 'Minimum Monthly Payment',
     estimated_total_with_interest: 'Estimated Total with Interest',
     yearly_interest: 'Yearly Interest',
-    minimum_payment_percent: 'Minimum Payment %',
     edit_loan: 'Edit Loan',
     edit_credit_card: 'Edit Credit Card',
     loan_updated: 'Loan Updated',
@@ -285,11 +279,8 @@ const translations: Translation = {
     maintenance_charge: 'Maintenance Charge',
     housing_company_expenditure: 'Housing Company Expenditure',
     create_category: 'Create Category',
-    category: 'Category',
     category_deleted: 'Category Deleted',
     deleted_successfully: 'deleted successfully',
-    
-    // Category descriptions
     maintenance_charge_description: 'Mark if this is a maintenance charge',
     housing_company_expenditure_description: 'Mark if this is a housing company expenditure',
     monthly_payment_description: 'Mark if this is a monthly payment'
