@@ -19,6 +19,7 @@ import LoansCredits from '@/components/LoansCredits';
 import AddLoan from '@/components/AddLoan';
 import AddCredit from '@/components/AddCredit';
 import ManageLoansCredits from '@/components/ManageLoansCredits';
+import EditLoan from '@/components/EditLoan';
 import Navigation from '@/components/Navigation';
 
 const Index = () => {
@@ -44,6 +45,7 @@ const Index = () => {
         <Route path="/add-loan" element={<AddLoan />} />
         <Route path="/add-credit" element={<AddCredit />} />
         <Route path="/manage-loans-credits" element={<ManageLoansCredits />} />
+        <Route path="/edit-loan/:loanId" element={<EditLoan />} />
       </Routes>
       <Navigation />
     </div>

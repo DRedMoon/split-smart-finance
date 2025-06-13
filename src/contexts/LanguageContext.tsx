@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface Translation {
@@ -108,6 +107,31 @@ const translations: Translation = {
     add: 'Lisää',
     history: 'Historia',
     transactions: 'Tapahtumat',
+    total_debt: 'Velkaa yhteensä',
+    monthly_payments: 'Kuukausimaksut',
+    recent_transactions: 'Viimeisimmät tapahtumat',
+    no_transactions: 'Ei tapahtumia',
+    calculated_values: 'Lasketut arvot',
+    yearly_rate: 'Vuosikorko',
+    leave_empty_for_auto_calculation: 'Jätä tyhjäksi automaattista laskentaa varten',
+    minimum_monthly_payment: 'Kuukausittainen vähimmäismaksu',
+    estimated_total_with_interest: 'Arvioitu kokonaissumma korkojen kanssa',
+    yearly_interest: 'Vuosikorko',
+    minimum_payment_percent: 'Vähimmäismaksu',
+    edit_loan: 'Muokkaa lainaa',
+    edit_credit_card: 'Muokkaa luottokorttia',
+    loan_updated: 'Laina päivitetty',
+    updated_successfully: 'päivitetty onnistuneesti',
+    total_payback: 'Takaisinmaksu yhteensä',
+    total_interest: 'Korot yhteensä',
+    existing_categories: 'Olemassa olevat kategoriat',
+    no_categories: 'Ei kategorioita',
+    create_edit_category: 'Luo/Muokkaa kategoria',
+    create_new_category: 'Luo uusi kategoria',
+    category_name_required: 'Kategorian nimi vaaditaan',
+    category_created: 'Kategoria luotu',
+    created_successfully: 'luotu onnistuneesti',
+    optional: 'valinnainen'
   },
   en: {
     balance: 'Balance',
@@ -197,6 +221,31 @@ const translations: Translation = {
     add: 'Add',
     history: 'History',
     transactions: 'Transactions',
+    total_debt: 'Total Debt',
+    monthly_payments: 'Monthly Payments',
+    recent_transactions: 'Recent Transactions',
+    no_transactions: 'No transactions',
+    calculated_values: 'Calculated Values',
+    yearly_rate: 'Yearly Rate',
+    leave_empty_for_auto_calculation: 'Leave empty for auto calculation',
+    minimum_monthly_payment: 'Minimum Monthly Payment',
+    estimated_total_with_interest: 'Estimated Total with Interest',
+    yearly_interest: 'Yearly Interest',
+    minimum_payment_percent: 'Minimum Payment %',
+    edit_loan: 'Edit Loan',
+    edit_credit_card: 'Edit Credit Card',
+    loan_updated: 'Loan Updated',
+    updated_successfully: 'updated successfully',
+    total_payback: 'Total Payback',
+    total_interest: 'Total Interest',
+    existing_categories: 'Existing Categories',
+    no_categories: 'No categories',
+    create_edit_category: 'Create/Edit Category',
+    create_new_category: 'Create New Category',
+    category_name_required: 'Category name is required',
+    category_created: 'Category Created',
+    created_successfully: 'created successfully',
+    optional: 'optional'
   }
 };
 

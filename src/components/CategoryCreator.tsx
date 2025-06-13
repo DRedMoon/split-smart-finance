@@ -1,7 +1,6 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Tag, Home } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,14 +9,15 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { loadFinancialData, saveFinancialData } from '@/services/storageService';
+import { loadFinancialData, saveFinancialData, deleteCategory } from '@/services/storageService';
 
 const CategoryCreator = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { toast } = useToast();
   
-  const [category, setCategory] = useState({
+  const [categories, setCategories] = useState([]);
+  const [newCategory, setNewCategory] = useState({
     name: '',
     description: '',
     isMaintenanceCharge: false,
@@ -26,8 +26,13 @@ const CategoryCreator = () => {
     color: '#294D73'
   });
 
-  const handleSave = () => {
-    if (!category.name.trim()) {
+  useEffect(() => {
+    const data = loadFinancialData();
+    setCategories(data?.categories || []);
+  }, []);
+
+  const handleCreateCategory = () => {
+    if (!newCategory.name.trim()) {
       toast({
         title: t('error'),
         description: t('category_name_required'),
@@ -36,27 +41,44 @@ const CategoryCreator = () => {
       return;
     }
 
-    const data = loadFinancialData();
-    if (data) {
-      if (!data.categories) {
-        data.categories = [];
-      }
-      
-      const newCategory = {
-        id: Date.now(),
-        ...category,
-        createdAt: new Date().toISOString()
-      };
-      
-      data.categories.push(newCategory);
-      saveFinancialData(data);
+    const data = loadFinancialData() || { categories: [] };
+    if (!data.categories) data.categories = [];
+
+    const categoryToAdd = {
+      ...newCategory,
+      id: Date.now() + Math.random(),
+      createdAt: new Date().toISOString()
+    };
+
+    data.categories.push(categoryToAdd);
+    saveFinancialData(data);
+    setCategories(data.categories);
+    
+    setNewCategory({
+      name: '',
+      description: '',
+      isMaintenanceCharge: false,
+      isHousingCompanyExpenditure: false,
+      isMonthlyPayment: false,
+      color: '#294D73'
+    });
+
+    toast({
+      title: t('category_created'),
+      description: `${t('category')} "${categoryToAdd.name}" ${t('created_successfully')}`,
+    });
+  };
+
+  const handleDeleteCategory = (categoryId, categoryName) => {
+    if (confirm(`Haluatko varmasti poistaa kategorian "${categoryName}"?`)) {
+      deleteCategory(categoryId);
+      const data = loadFinancialData();
+      setCategories(data?.categories || []);
       
       toast({
-        title: t('category_created'),
-        description: `${t('category')} "${category.name}" ${t('created_successfully')}`,
+        title: t('category_deleted'),
+        description: `${t('category')} "${categoryName}" ${t('deleted_successfully')}`,
       });
-      
-      navigate('/settings');
     }
   };
 
@@ -66,28 +88,73 @@ const CategoryCreator = () => {
   ];
 
   return (
-    <div className="p-4 pb-20 bg-[#192E45] min-h-screen">
+    <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">
       <div className="flex items-center space-x-3 mb-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/settings')} className="text-white hover:bg-white/10">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/add')} className="text-white hover:bg-white/10">
           <ArrowLeft size={20} />
         </Button>
-        <h1 className="text-2xl font-bold text-white">{t('create_category')}</h1>
+        <h1 className="text-2xl font-bold text-white">{t('create_edit_category')}</h1>
       </div>
 
+      {/* Existing Categories */}
       <Card className="mb-6 bg-[#294D73] border-none">
         <CardHeader>
-          <CardTitle className="text-white flex items-center space-x-2">
-            <Tag size={20} />
-            <span>{t('category_details')}</span>
-          </CardTitle>
+          <CardTitle className="text-white">{t('existing_categories')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {categories.length === 0 ? (
+            <p className="text-white/70 text-center py-4">{t('no_categories')}</p>
+          ) : (
+            categories.map((category) => (
+              <div key={category.id} className="flex items-center justify-between p-3 bg-white/10 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div 
+                    className="w-4 h-4 rounded-full" 
+                    style={{ backgroundColor: category.color }}
+                  />
+                  <div>
+                    <p className="text-white font-medium">{category.name}</p>
+                    {category.description && (
+                      <p className="text-white/70 text-sm">{category.description}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/edit-category/${category.id}`)}
+                    className="text-white hover:bg-white/10"
+                  >
+                    <Edit size={16} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteCategory(category.id, category.name)}
+                    className="text-red-300 hover:bg-red-500/20"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Create New Category */}
+      <Card className="bg-[#294D73] border-none">
+        <CardHeader>
+          <CardTitle className="text-white">{t('create_new_category')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <Label htmlFor="name" className="text-white">{t('category_name')}</Label>
             <Input
               id="name"
-              value={category.name}
-              onChange={(e) => setCategory(prev => ({ ...prev, name: e.target.value }))}
+              value={newCategory.name}
+              onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
               className="bg-white/10 border-white/20 text-white mt-2"
               placeholder={t('enter_category_name')}
             />
@@ -97,8 +164,8 @@ const CategoryCreator = () => {
             <Label htmlFor="description" className="text-white">{t('description')} ({t('optional')})</Label>
             <Textarea
               id="description"
-              value={category.description}
-              onChange={(e) => setCategory(prev => ({ ...prev, description: e.target.value }))}
+              value={newCategory.description}
+              onChange={(e) => setNewCategory(prev => ({ ...prev, description: e.target.value }))}
               className="bg-white/10 border-white/20 text-white mt-2"
               placeholder={t('category_description_placeholder')}
             />
@@ -111,70 +178,62 @@ const CategoryCreator = () => {
                 <button
                   key={color}
                   className={`w-8 h-8 rounded-full border-2 ${
-                    category.color === color ? 'border-white' : 'border-white/30'
+                    newCategory.color === color ? 'border-white' : 'border-white/30'
                   }`}
                   style={{ backgroundColor: color }}
-                  onClick={() => setCategory(prev => ({ ...prev, color }))}
+                  onClick={() => setNewCategory(prev => ({ ...prev, color }))}
                 />
               ))}
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card className="mb-6 bg-[#294D73] border-none">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center space-x-2">
-            <Home size={20} />
-            <span>{t('category_type')}</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="text-white">
-              <div className="font-medium">{t('maintenance_charge')}</div>
-              <div className="text-sm text-white/70">{t('maintenance_charge_description')}</div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="text-white">
+                <div className="font-medium">{t('maintenance_charge')}</div>
+                <div className="text-sm text-white/70">{t('maintenance_charge_description')}</div>
+              </div>
+              <Switch 
+                checked={newCategory.isMaintenanceCharge}
+                onCheckedChange={(checked) => 
+                  setNewCategory(prev => ({ ...prev, isMaintenanceCharge: checked }))
+                }
+              />
             </div>
-            <Switch 
-              checked={category.isMaintenanceCharge}
-              onCheckedChange={(checked) => 
-                setCategory(prev => ({ ...prev, isMaintenanceCharge: checked }))
-              }
-            />
+            
+            <div className="flex items-center justify-between">
+              <div className="text-white">
+                <div className="font-medium">{t('housing_company_expenditure')}</div>
+                <div className="text-sm text-white/70">{t('housing_company_expenditure_description')}</div>
+              </div>
+              <Switch 
+                checked={newCategory.isHousingCompanyExpenditure}
+                onCheckedChange={(checked) => 
+                  setNewCategory(prev => ({ ...prev, isHousingCompanyExpenditure: checked }))
+                }
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="text-white">
+                <div className="font-medium">{t('monthly_payment')}</div>
+                <div className="text-sm text-white/70">{t('monthly_payment_description')}</div>
+              </div>
+              <Switch 
+                checked={newCategory.isMonthlyPayment}
+                onCheckedChange={(checked) => 
+                  setNewCategory(prev => ({ ...prev, isMonthlyPayment: checked }))
+                }
+              />
+            </div>
           </div>
           
-          <div className="flex items-center justify-between">
-            <div className="text-white">
-              <div className="font-medium">{t('housing_company_expenditure')}</div>
-              <div className="text-sm text-white/70">{t('housing_company_expenditure_description')}</div>
-            </div>
-            <Switch 
-              checked={category.isHousingCompanyExpenditure}
-              onCheckedChange={(checked) => 
-                setCategory(prev => ({ ...prev, isHousingCompanyExpenditure: checked }))
-              }
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="text-white">
-              <div className="font-medium">{t('monthly_payment')}</div>
-              <div className="text-sm text-white/70">{t('monthly_payment_description')}</div>
-            </div>
-            <Switch 
-              checked={category.isMonthlyPayment}
-              onCheckedChange={(checked) => 
-                setCategory(prev => ({ ...prev, isMonthlyPayment: checked }))
-              }
-            />
-          </div>
+          <Button onClick={handleCreateCategory} className="w-full bg-white text-[#294D73]">
+            <Plus size={16} className="mr-2" />
+            {t('create_category')}
+          </Button>
         </CardContent>
       </Card>
-
-      <Button onClick={handleSave} className="w-full bg-white text-[#294D73]">
-        <Plus size={16} className="mr-2" />
-        {t('create_category')}
-      </Button>
     </div>
   );
 };
