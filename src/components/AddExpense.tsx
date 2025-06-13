@@ -1,14 +1,16 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Calculator } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { addTransaction, addLoan, addMonthlyBill, addLoanRepaymentTransaction, addCreditPaymentTransaction, calculateLoanFromPaymentDetails } from '@/services/storageService';
+import { addTransaction, addLoan } from '@/services/storageService';
 
 const AddExpense = () => {
   const navigate = useNavigate();
@@ -21,6 +23,35 @@ const AddExpense = () => {
     amount: 0,
     category: '',
     type: 'expense' as 'income' | 'expense'
+  });
+
+  // Category-specific data
+  const [loanBillData, setLoanBillData] = useState({
+    loanName: '',
+    abbreviation: 0,
+    interest: 0,
+    managementFee: 0
+  });
+
+  const [creditCardData, setCreditCardData] = useState({
+    loanName: '',
+    abbreviation: 0,
+    interest: 0,
+    managementFee: 0
+  });
+
+  const [creditPurchaseData, setCreditPurchaseData] = useState({
+    totalCredit: 0,
+    creditsUsed: 0,
+    minimumPaymentPercent: 0,
+    selfPayment: 0,
+    usePercentage: true,
+    interest: 0,
+    managementFee: 0
+  });
+
+  const [recurringPayment, setRecurringPayment] = useState({
+    isMonthly: false
   });
 
   // Loan states
@@ -37,59 +68,6 @@ const AddExpense = () => {
     dueDate: ''
   });
 
-  // Loan repayment states
-  const [repaymentData, setRepaymentData] = useState({
-    loanName: '',
-    loanRepayment: 0,
-    interest: 0,
-    managementFee: 0
-  });
-
-  // Credit payment states
-  const [creditData, setCreditData] = useState({
-    creditName: '',
-    paymentAmount: 0,
-    creditLimit: 0
-  });
-
-  // Calculation results
-  const [calculationResults, setCalculationResults] = useState(null);
-
-  const quickAddOptions = [
-    { label: t('grocery'), category: 'grocery', amount: 50 },
-    { label: t('transport'), category: 'transport', amount: 25 },
-    { label: t('entertainment'), category: 'entertainment', amount: 30 },
-    { label: t('loan_payment'), category: 'loan_payment', amount: 500 },
-    { label: t('credit_payment'), category: 'credit_payment', amount: 100 },
-    { label: t('bills'), category: 'bills', amount: 100 },
-    { label: t('other'), category: 'other', amount: 0 }
-  ];
-
-  const handleQuickAdd = (option: typeof quickAddOptions[0]) => {
-    if (option.category === 'loan_payment') {
-      setActiveTab('loan-repayment');
-      return;
-    }
-    if (option.category === 'credit_payment') {
-      setActiveTab('credit-payment');
-      return;
-    }
-
-    const transaction = {
-      name: option.label,
-      amount: -Math.abs(option.amount || 0),
-      date: new Date().toISOString().split('T')[0],
-      type: 'expense' as const,
-      category: option.category
-    };
-
-    addTransaction(transaction);
-    toast({
-      title: t('expense_added'),
-      description: `${option.label}: -€${Math.abs(option.amount || 0).toFixed(2)}`
-    });
-  };
-
   const handleAddExpense = () => {
     if (!expense.name || expense.amount === 0) {
       toast({
@@ -100,22 +78,45 @@ const AddExpense = () => {
       return;
     }
 
+    let totalAmount = expense.amount;
+    let transactionName = expense.name;
+    
+    // Handle category-specific calculations
+    if (expense.category === 'loan_bill_payment') {
+      totalAmount = loanBillData.abbreviation + loanBillData.interest + loanBillData.managementFee;
+      transactionName = `${loanBillData.loanName} - ${t('loan_bill_payment')}`;
+    } else if (expense.category === 'credit_card_payment') {
+      totalAmount = creditCardData.abbreviation + creditCardData.interest + creditCardData.managementFee;
+      transactionName = `${creditCardData.loanName} - ${t('credit_card_payment')}`;
+    } else if (expense.category === 'credit_purchase') {
+      totalAmount = creditPurchaseData.usePercentage 
+        ? (creditPurchaseData.creditsUsed * creditPurchaseData.minimumPaymentPercent / 100) + creditPurchaseData.interest + creditPurchaseData.managementFee
+        : creditPurchaseData.selfPayment + creditPurchaseData.interest + creditPurchaseData.managementFee;
+      transactionName = `${t('credit_purchase')} - ${expense.name}`;
+    }
+
     const transaction = {
-      name: expense.name,
-      amount: expense.type === 'income' ? Math.abs(expense.amount) : -Math.abs(expense.amount),
+      name: transactionName,
+      amount: expense.type === 'income' ? Math.abs(totalAmount) : -Math.abs(totalAmount),
       date: new Date().toISOString().split('T')[0],
       type: expense.type,
-      category: expense.category || 'other'
+      category: expense.category || 'other',
+      isRecurring: recurringPayment.isMonthly
     };
 
     addTransaction(transaction);
     
     toast({
       title: expense.type === 'income' ? t('income_added') : t('expense_added'),
-      description: `${expense.name}: ${expense.type === 'income' ? '+' : '-'}€${Math.abs(expense.amount).toFixed(2)}`
+      description: `${transactionName}: ${expense.type === 'income' ? '+' : '-'}€${Math.abs(totalAmount).toFixed(2)}`
     });
 
+    // Reset form
     setExpense({ name: '', amount: 0, category: '', type: 'expense' });
+    setLoanBillData({ loanName: '', abbreviation: 0, interest: 0, managementFee: 0 });
+    setCreditCardData({ loanName: '', abbreviation: 0, interest: 0, managementFee: 0 });
+    setCreditPurchaseData({ totalCredit: 0, creditsUsed: 0, minimumPaymentPercent: 0, selfPayment: 0, usePercentage: true, interest: 0, managementFee: 0 });
+    setRecurringPayment({ isMonthly: false });
   };
 
   const handleAddLoan = () => {
@@ -163,97 +164,218 @@ const AddExpense = () => {
     });
   };
 
-  const handleCalculateFromPayment = () => {
-    if (repaymentData.loanRepayment === 0 || repaymentData.interest === 0) {
-      toast({
-        title: t('error'),
-        description: 'Anna lainan lyhennys ja korko',
-        variant: "destructive"
-      });
-      return;
+  const renderCategorySpecificFields = () => {
+    switch (expense.category) {
+      case 'loan_bill_payment':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="loan-name" className="text-white">{t('loan_name')}</Label>
+              <Input
+                id="loan-name"
+                value={loanBillData.loanName}
+                onChange={(e) => setLoanBillData(prev => ({ ...prev, loanName: e.target.value }))}
+                className="bg-white/10 border-white/20 text-white mt-2"
+                placeholder={t('loan_name')}
+              />
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="abbreviation" className="text-white">{t('abbreviation')}</Label>
+                <Input
+                  id="abbreviation"
+                  type="number"
+                  value={loanBillData.abbreviation || ''}
+                  onChange={(e) => setLoanBillData(prev => ({ ...prev, abbreviation: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="interest" className="text-white">{t('interest')}</Label>
+                <Input
+                  id="interest"
+                  type="number"
+                  value={loanBillData.interest || ''}
+                  onChange={(e) => setLoanBillData(prev => ({ ...prev, interest: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="mgmt-fee" className="text-white">{t('management_fee')}</Label>
+                <Input
+                  id="mgmt-fee"
+                  type="number"
+                  value={loanBillData.managementFee || ''}
+                  onChange={(e) => setLoanBillData(prev => ({ ...prev, managementFee: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'credit_card_payment':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="credit-name" className="text-white">{t('loan_name')}</Label>
+              <Input
+                id="credit-name"
+                value={creditCardData.loanName}
+                onChange={(e) => setCreditCardData(prev => ({ ...prev, loanName: e.target.value }))}
+                className="bg-white/10 border-white/20 text-white mt-2"
+                placeholder={t('loan_name')}
+              />
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="credit-abbreviation" className="text-white">{t('abbreviation')}</Label>
+                <Input
+                  id="credit-abbreviation"
+                  type="number"
+                  value={creditCardData.abbreviation || ''}
+                  onChange={(e) => setCreditCardData(prev => ({ ...prev, abbreviation: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="credit-interest" className="text-white">{t('interest')}</Label>
+                <Input
+                  id="credit-interest"
+                  type="number"
+                  value={creditCardData.interest || ''}
+                  onChange={(e) => setCreditCardData(prev => ({ ...prev, interest: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="credit-mgmt-fee" className="text-white">{t('management_fee')}</Label>
+                <Input
+                  id="credit-mgmt-fee"
+                  type="number"
+                  value={creditCardData.managementFee || ''}
+                  onChange={(e) => setCreditCardData(prev => ({ ...prev, managementFee: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'credit_purchase':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="total-credit" className="text-white">{t('total_credit')}</Label>
+                <Input
+                  id="total-credit"
+                  type="number"
+                  value={creditPurchaseData.totalCredit || ''}
+                  onChange={(e) => setCreditPurchaseData(prev => ({ ...prev, totalCredit: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="credits-used" className="text-white">{t('credits_used')}</Label>
+                <Input
+                  id="credits-used"
+                  type="number"
+                  value={creditPurchaseData.creditsUsed || ''}
+                  onChange={(e) => setCreditPurchaseData(prev => ({ ...prev, creditsUsed: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="use-percentage"
+                checked={creditPurchaseData.usePercentage}
+                onCheckedChange={(checked) => setCreditPurchaseData(prev => ({ ...prev, usePercentage: !!checked }))}
+              />
+              <Label htmlFor="use-percentage" className="text-white">{t('minimum_payment_percent')}</Label>
+            </div>
+            
+            {creditPurchaseData.usePercentage ? (
+              <div>
+                <Label htmlFor="min-payment-percent" className="text-white">{t('minimum_payment_percent')}</Label>
+                <Input
+                  id="min-payment-percent"
+                  type="number"
+                  value={creditPurchaseData.minimumPaymentPercent || ''}
+                  onChange={(e) => setCreditPurchaseData(prev => ({ ...prev, minimumPaymentPercent: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="%"
+                />
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="self-payment" className="text-white">{t('self_payment')}</Label>
+                <Input
+                  id="self-payment"
+                  type="number"
+                  value={creditPurchaseData.selfPayment || ''}
+                  onChange={(e) => setCreditPurchaseData(prev => ({ ...prev, selfPayment: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+            )}
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="credit-purchase-interest" className="text-white">{t('interest')}</Label>
+                <Input
+                  id="credit-purchase-interest"
+                  type="number"
+                  value={creditPurchaseData.interest || ''}
+                  onChange={(e) => setCreditPurchaseData(prev => ({ ...prev, interest: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="credit-purchase-mgmt" className="text-white">{t('management_fee')}</Label>
+                <Input
+                  id="credit-purchase-mgmt"
+                  type="number"
+                  value={creditPurchaseData.managementFee || ''}
+                  onChange={(e) => setCreditPurchaseData(prev => ({ ...prev, managementFee: parseFloat(e.target.value) || 0 }))}
+                  className="bg-white/10 border-white/20 text-white mt-2"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
     }
-
-    // Estimate remaining loan amount based on interest
-    const estimatedLoanAmount = (repaymentData.interest * 12) / (loanData.rate / 100);
-    
-    const results = calculateLoanFromPaymentDetails(
-      repaymentData.loanRepayment,
-      repaymentData.interest,
-      repaymentData.managementFee,
-      estimatedLoanAmount
-    );
-
-    setCalculationResults(results);
   };
 
-  const handleAddLoanRepayment = () => {
-    if (!repaymentData.loanName || repaymentData.loanRepayment === 0) {
-      toast({
-        title: t('error'),
-        description: t('fill_required_fields'),
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // For now, we'll add this as a transaction since we need loan ID to properly reduce loan amount
-    const transaction = {
-      name: `${repaymentData.loanName} - Lainan maksu`,
-      amount: -(repaymentData.loanRepayment + repaymentData.interest + repaymentData.managementFee),
-      date: new Date().toISOString().split('T')[0],
-      type: 'expense' as const,
-      category: 'loan_payment'
-    };
-
-    addTransaction(transaction);
-    
-    toast({
-      title: 'Lainanmaksu lisätty',
-      description: `${repaymentData.loanName}: -€${(repaymentData.loanRepayment + repaymentData.interest + repaymentData.managementFee).toFixed(2)}`
-    });
-
-    setRepaymentData({
-      loanName: '',
-      loanRepayment: 0,
-      interest: 0,
-      managementFee: 0
-    });
-  };
-
-  const handleAddCreditPayment = () => {
-    if (!creditData.creditName || creditData.paymentAmount === 0) {
-      toast({
-        title: t('error'),
-        description: t('fill_required_fields'),
-        variant: "destructive"
-      });
-      return;
-    }
-
-    addCreditPaymentTransaction(
-      creditData.creditName,
-      creditData.paymentAmount,
-      creditData.creditLimit
-    );
-    
-    toast({
-      title: 'Luottokorttimaksu lisätty',
-      description: `${creditData.creditName}: -€${creditData.paymentAmount.toFixed(2)}`
-    });
-
-    setCreditData({
-      creditName: '',
-      paymentAmount: 0,
-      creditLimit: 0
-    });
-  };
+  const showRecurringCheckbox = ['insurance', 'subscription'].includes(expense.category);
 
   const tabs = [
     { id: 'quick', label: t('quick_add') },
-    { id: 'manual', label: t('manual_entry') },
-    { id: 'loan', label: t('add_loan') },
-    { id: 'loan-repayment', label: 'Lainanmaksu' },
-    { id: 'credit-payment', label: 'Luottokorttimaksu' }
+    { id: 'loan', label: t('add_loan') }
   ];
 
   return (
@@ -282,30 +404,11 @@ const AddExpense = () => {
         ))}
       </div>
 
-      {/* Quick Add */}
+      {/* Quick Add Form */}
       {activeTab === 'quick' && (
-        <div className="grid grid-cols-2 gap-3">
-          {quickAddOptions.map((option, index) => (
-            <Card key={index} className="bg-[#294D73] border-none cursor-pointer hover:bg-[#3A5A7A] transition-colors">
-              <CardContent 
-                className="p-4 text-center"
-                onClick={() => handleQuickAdd(option)}
-              >
-                <div className="text-white font-medium mb-1">{option.label}</div>
-                {option.amount > 0 && (
-                  <div className="text-white/70 text-sm">€{option.amount}</div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Manual Entry */}
-      {activeTab === 'manual' && (
         <Card className="bg-[#294D73] border-none">
           <CardHeader>
-            <CardTitle className="text-white">{t('manual_entry')}</CardTitle>
+            <CardTitle className="text-white">{t('quick_add')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -320,7 +423,7 @@ const AddExpense = () => {
             </div>
             
             <div>
-              <Label htmlFor="amount" className="text-white">{t('amount')}</Label>
+              <Label htmlFor="amount" className="text-white">{t('sum')}</Label>
               <Input
                 id="amount"
                 type="number"
@@ -338,10 +441,16 @@ const AddExpense = () => {
                   <SelectValue placeholder={t('select_category')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="grocery">{t('grocery')}</SelectItem>
+                  <SelectItem value="food">{t('food')}</SelectItem>
                   <SelectItem value="transport">{t('transport')}</SelectItem>
                   <SelectItem value="entertainment">{t('entertainment')}</SelectItem>
-                  <SelectItem value="bills">{t('bills')}</SelectItem>
+                  <SelectItem value="bill">{t('bill')}</SelectItem>
+                  <SelectItem value="insurance">{t('insurance')}</SelectItem>
+                  <SelectItem value="subscription">{t('subscription')}</SelectItem>
+                  <SelectItem value="loan_bill_payment">{t('loan_bill_payment')}</SelectItem>
+                  <SelectItem value="credit_card_payment">{t('credit_card_payment')}</SelectItem>
+                  <SelectItem value="credit_purchase">{t('credit_purchase')}</SelectItem>
+                  <SelectItem value="paycheck">{t('paycheck')}</SelectItem>
                   <SelectItem value="other">{t('other')}</SelectItem>
                 </SelectContent>
               </Select>
@@ -359,6 +468,21 @@ const AddExpense = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Category-specific fields */}
+            {renderCategorySpecificFields()}
+
+            {/* Monthly payment checkbox for Insurance and Subscription */}
+            {showRecurringCheckbox && (
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="monthly-payment"
+                  checked={recurringPayment.isMonthly}
+                  onCheckedChange={(checked) => setRecurringPayment(prev => ({ ...prev, isMonthly: !!checked }))}
+                />
+                <Label htmlFor="monthly-payment" className="text-white">{t('monthly_payment_checkbox')}</Label>
+              </div>
+            )}
             
             <Button onClick={handleAddExpense} className="w-full bg-white text-[#294D73]">
               <Plus size={16} className="mr-2" />
@@ -415,138 +539,6 @@ const AddExpense = () => {
             <Button onClick={handleAddLoan} className="w-full bg-white text-[#294D73]">
               <Plus size={16} className="mr-2" />
               {t('add_loan')}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Loan Repayment */}
-      {activeTab === 'loan-repayment' && (
-        <Card className="bg-[#294D73] border-none">
-          <CardHeader>
-            <CardTitle className="text-white">Lainanmaksu</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="loan-name-repay" className="text-white">Lainan nimi</Label>
-              <Input
-                id="loan-name-repay"
-                value={repaymentData.loanName}
-                onChange={(e) => setRepaymentData(prev => ({ ...prev, loanName: e.target.value }))}
-                className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="Lainan nimi"
-              />
-            </div>
-            
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="loan-repayment" className="text-white">Lyhennys</Label>
-                <Input
-                  id="loan-repayment"
-                  type="number"
-                  value={repaymentData.loanRepayment || ''}
-                  onChange={(e) => setRepaymentData(prev => ({ ...prev, loanRepayment: parseFloat(e.target.value) || 0 }))}
-                  className="bg-white/10 border-white/20 text-white mt-2"
-                  placeholder="0.00"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="interest" className="text-white">Korko</Label>
-                <Input
-                  id="interest"
-                  type="number"
-                  value={repaymentData.interest || ''}
-                  onChange={(e) => setRepaymentData(prev => ({ ...prev, interest: parseFloat(e.target.value) || 0 }))}
-                  className="bg-white/10 border-white/20 text-white mt-2"
-                  placeholder="0.00"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="mgmt-fee" className="text-white">Hallintamaksu</Label>
-                <Input
-                  id="mgmt-fee"
-                  type="number"
-                  value={repaymentData.managementFee || ''}
-                  onChange={(e) => setRepaymentData(prev => ({ ...prev, managementFee: parseFloat(e.target.value) || 0 }))}
-                  className="bg-white/10 border-white/20 text-white mt-2"
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-            
-            <div className="flex space-x-2">
-              <Button onClick={handleCalculateFromPayment} variant="outline" className="flex-1">
-                <Calculator size={16} className="mr-2" />
-                Laske
-              </Button>
-              <Button onClick={handleAddLoanRepayment} className="flex-1 bg-white text-[#294D73]">
-                <Plus size={16} className="mr-2" />
-                Lisää maksu
-              </Button>
-            </div>
-            
-            {calculationResults && (
-              <div className="bg-white/10 p-4 rounded-lg text-white">
-                <h4 className="font-medium mb-2">Laskentatulokset:</h4>
-                <p>Kuukausimaksu yhteensä: €{calculationResults.monthlyTotal}</p>
-                <p>Arvioitu korkoprosentti: {calculationResults.interestRate}%</p>
-                <p>Arvioitu kuukausia jäljellä: {calculationResults.estimatedMonthsLeft}</p>
-                <p>Arvioitu kokonaismaksu: €{calculationResults.totalPaybackEstimate}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Credit Payment */}
-      {activeTab === 'credit-payment' && (
-        <Card className="bg-[#294D73] border-none">
-          <CardHeader>
-            <CardTitle className="text-white">Luottokorttimaksu</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="credit-name" className="text-white">Luottokortin nimi</Label>
-              <Input
-                id="credit-name"
-                value={creditData.creditName}
-                onChange={(e) => setCreditData(prev => ({ ...prev, creditName: e.target.value }))}
-                className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="Esim. Nordea Visa"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="payment-amount" className="text-white">Maksun määrä</Label>
-                <Input
-                  id="payment-amount"
-                  type="number"
-                  value={creditData.paymentAmount || ''}
-                  onChange={(e) => setCreditData(prev => ({ ...prev, paymentAmount: parseFloat(e.target.value) || 0 }))}
-                  className="bg-white/10 border-white/20 text-white mt-2"
-                  placeholder="0.00"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="credit-limit" className="text-white">Luottoraja</Label>
-                <Input
-                  id="credit-limit"
-                  type="number"
-                  value={creditData.creditLimit || ''}
-                  onChange={(e) => setCreditData(prev => ({ ...prev, creditLimit: parseFloat(e.target.value) || 0 }))}
-                  className="bg-white/10 border-white/20 text-white mt-2"
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-            
-            <Button onClick={handleAddCreditPayment} className="w-full bg-white text-[#294D73]">
-              <Plus size={16} className="mr-2" />
-              Lisää luottokorttimaksu
             </Button>
           </CardContent>
         </Card>

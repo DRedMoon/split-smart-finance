@@ -28,6 +28,12 @@ const translations = {
     recent_transactions: 'Viimeisimmät tapahtumat',
     view_all: 'Näytä kaikki',
     
+    // Upcoming page
+    upcoming_week: 'Tuleva viikko',
+    financial_overview: 'Taloudellinen yleiskatsaus',
+    manage_expenses: 'Hallitse kuluja',
+    this_month: 'Tämä kuukausi',
+    
     // Transaction types
     income: 'Tulo',
     expense: 'Kulu',
@@ -39,32 +45,52 @@ const translations = {
     category: 'Kategoria',
     categories: 'Kategoriat',
     grocery: 'Ruoka',
+    food: 'Ruoka',
     transport: 'Liikenne',
     entertainment: 'Viihde',
     bills: 'Laskut',
+    bill: 'Lasku',
+    insurance: 'Vakuutus',
+    subscription: 'Tilaus',
+    loan_bill_payment: 'Lainan laskumaksu',
+    credit_card_payment: 'Luottokorttimaksu',
+    credit_purchase: 'Luotto-osto',
+    paycheck: 'Palkka',
     other: 'Muu',
     
     // Add expense
     add_expense: 'Lisää kulu',
     add_income: 'Lisää tulo',
     add_loan: 'Lisää laina',
-    quick_add: 'Pikalisäys',
+    quick_add: 'Nopea lisäys',
     manual_entry: 'Käsin syöttö',
     name: 'Nimi',
     amount: 'Määrä',
+    sum: 'Summa',
+    total: 'Yhteensä',
     type: 'Tyyppi',
     select_category: 'Valitse kategoria',
     expense_name: 'Kulun nimi',
     
-    // Loan fields
+    // Loan/Credit specific fields
     loan_name: 'Lainan nimi',
+    abbreviation: 'Lyhennys',
+    interest: 'Korko',
+    management_fee: 'Hallintamaksu',
+    total_credit: 'Luottoraja',
+    credits_used: 'Käytetty luotto',
+    minimum_payment: 'Vähimmäismaksu',
+    minimum_payment_percent: 'Vähimmäismaksu %',
+    self_payment: 'Oma maksu',
+    monthly_payment_checkbox: 'Kuukausimaksu',
+    
+    // Loan fields
     total_amount: 'Kokonaismäärä',
     current_amount: 'Nykyinen määrä',
     monthly_payment: 'Kuukausimaksu',
     interest_rate: 'Korko-%',
     euribor_rate: 'Euribor',
     personal_margin: 'Oma marginaali',
-    management_fee: 'Hallintamaksu',
     remaining_months: 'Kuukausia jäljellä',
     due_date: 'Eräpäivä',
     
@@ -154,7 +180,7 @@ const translations = {
     
     // Backup settings
     backup_location: 'Varmuuskopion sijainti',
-    choose_backup_folder: 'Val itse varmuuskopiokansio',
+    choose_backup_folder: 'Valitse varmuuskopiokansio',
     
     // Notification settings specific
     notification_settings: 'Ilmoitusasetukset',
@@ -192,6 +218,12 @@ const translations = {
     recent_transactions: 'Recent transactions',
     view_all: 'View all',
     
+    // Upcoming page
+    upcoming_week: 'Upcoming week',
+    financial_overview: 'Financial overview',
+    manage_expenses: 'Manage expenses',
+    this_month: 'This month',
+    
     // Transaction types
     income: 'Income',
     expense: 'Expense',
@@ -203,9 +235,17 @@ const translations = {
     category: 'Category',
     categories: 'Categories',
     grocery: 'Grocery',
+    food: 'Food',
     transport: 'Transport',
     entertainment: 'Entertainment',
     bills: 'Bills',
+    bill: 'Bill',
+    insurance: 'Insurance',
+    subscription: 'Subscription',
+    loan_bill_payment: 'Loan bill payment',
+    credit_card_payment: 'Credit card payment',
+    credit_purchase: 'Credit purchase',
+    paycheck: 'Paycheck',
     other: 'Other',
     
     // Add expense
@@ -216,19 +256,31 @@ const translations = {
     manual_entry: 'Manual entry',
     name: 'Name',
     amount: 'Amount',
+    sum: 'Sum',
+    total: 'Total',
     type: 'Type',
     select_category: 'Select category',
     expense_name: 'Expense name',
     
-    // Loan fields
+    // Loan/Credit specific fields
     loan_name: 'Loan name',
+    abbreviation: 'Abbreviation',
+    interest: 'Interest',
+    management_fee: 'Management fee',
+    total_credit: 'Total credit',
+    credits_used: 'Credits used',
+    minimum_payment: 'Minimum payment',
+    minimum_payment_percent: 'Minimum payment %',
+    self_payment: 'Self payment',
+    monthly_payment_checkbox: 'Monthly payment',
+    
+    // Loan fields
     total_amount: 'Total amount',
     current_amount: 'Current amount',
     monthly_payment: 'Monthly payment',
     interest_rate: 'Interest rate',
     euribor_rate: 'Euribor rate',
     personal_margin: 'Personal margin',
-    management_fee: 'Management fee',
     remaining_months: 'Remaining months',
     due_date: 'Due date',
     
