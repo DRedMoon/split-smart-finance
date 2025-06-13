@@ -13,6 +13,7 @@ import SecuritySettings from '@/components/SecuritySettings';
 import AppearanceSettings from '@/components/AppearanceSettings';
 import DataManagement from '@/components/DataManagement';
 import CategoryCreator from '@/components/CategoryCreator';
+import CategoryManager from '@/components/CategoryManager';
 import CategoryEditor from '@/components/CategoryEditor';
 import MonthlyPayments from '@/components/MonthlyPayments';
 import LoansCredits from '@/components/LoansCredits';
@@ -38,7 +39,8 @@ const Index = () => {
         <Route path="/security" element={<SecuritySettings />} />
         <Route path="/appearance" element={<AppearanceSettings />} />
         <Route path="/data-management" element={<DataManagement />} />
-        <Route path="/create-category" element={<CategoryCreator />} />
+        <Route path="/create-category" element={<CategoryManager />} />
+        <Route path="/manage-categories" element={<CategoryManager />} />
         <Route path="/edit-category/:id" element={<CategoryEditor />} />
         <Route path="/monthly-payments" element={<MonthlyPayments />} />
         <Route path="/loans-credits" element={<LoansCredits />} />

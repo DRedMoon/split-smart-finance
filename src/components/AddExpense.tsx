@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { addTransaction, addIncome } from '@/services/storageService';
+import { addTransaction, addIncome, loadFinancialData } from '@/services/storageService';
 
 const AddExpense = () => {
   const navigate = useNavigate();
@@ -23,6 +23,15 @@ const AddExpense = () => {
     category: '',
     type: 'expense'
   });
+
+  const [availableCategories, setAvailableCategories] = useState([]);
+
+  useEffect(() => {
+    // Load existing categories from financial data
+    const data = loadFinancialData();
+    const customCategories = data?.categories || [];
+    setAvailableCategories(customCategories);
+  }, []);
 
   const handleQuickAdd = () => {
     if (!quickData.name || quickData.amount === 0 || !quickData.category) {
@@ -70,7 +79,7 @@ const AddExpense = () => {
     });
   };
 
-  const categories = [
+  const defaultCategories = [
     { value: 'food', label: t('food') },
     { value: 'transport', label: t('transport') },
     { value: 'entertainment', label: t('entertainment') },
@@ -82,6 +91,15 @@ const AddExpense = () => {
     { value: 'loan_bill_payment', label: t('loan_bill_payment') },
     { value: 'credit_card_payment', label: t('credit_card_payment') },
     { value: 'credit_purchase', label: t('credit_purchase') }
+  ];
+
+  // Combine default categories with custom categories
+  const allCategories = [
+    ...defaultCategories,
+    ...availableCategories.map(cat => ({
+      value: cat.name.toLowerCase().replace(/\s+/g, '_'),
+      label: cat.name
+    }))
   ];
 
   return (
@@ -154,7 +172,7 @@ const AddExpense = () => {
                 <SelectValue placeholder={t('select_category')} />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category) => (
+                {allCategories.map((category) => (
                   <SelectItem key={category.value} value={category.value}>
                     {category.label}
                   </SelectItem>
