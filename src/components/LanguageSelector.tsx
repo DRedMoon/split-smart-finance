@@ -12,13 +12,14 @@ const LanguageSelector = () => {
     { code: 'en', name: 'English', flag: '🇺🇸' },
     { code: 'es', name: 'Español', flag: '🇪🇸' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' }
+    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'sv', name: 'Svenska', flag: '🇸🇪' }
   ];
 
   return (
-    <Card>
+    <Card className="bg-[#294D73] border-none">
       <CardHeader>
-        <CardTitle>Kieli / Language / Idioma / Langue / Sprache</CardTitle>
+        <CardTitle className="text-white">Kieli / Language / Idioma / Langue / Sprache / Språk</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {languages.map((lang) => (
@@ -26,7 +27,11 @@ const LanguageSelector = () => {
             key={lang.code}
             variant={language === lang.code ? "default" : "outline"}
             onClick={() => setLanguage(lang.code as any)}
-            className="w-full justify-start"
+            className={`w-full justify-start ${
+              language === lang.code 
+                ? "bg-white text-[#192E45] hover:bg-white/90" 
+                : "bg-transparent border-white/30 text-white hover:bg-white/10"
+            }`}
           >
             <span className="mr-2">{lang.flag}</span>
             {lang.name}
