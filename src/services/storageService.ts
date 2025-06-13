@@ -207,6 +207,21 @@ export const addTransaction = (transaction: Omit<FinancialData['transactions'][0
   saveFinancialData(data);
 };
 
+export const addIncome = (income: Omit<FinancialData['transactions'][0], 'id'>): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  const newIncome = {
+    ...income,
+    id: Date.now() + Math.random(),
+    type: 'income'
+  };
+  data.transactions.unshift(newIncome);
+  
+  // Update balance
+  data.balance += income.amount;
+  
+  saveFinancialData(data);
+};
+
 export const addLoan = (loan: Omit<FinancialData['loans'][0], 'id' | 'totalPayback' | 'yearlyInterestRate'>): void => {
   const data = loadFinancialData() || getDefaultFinancialData();
   

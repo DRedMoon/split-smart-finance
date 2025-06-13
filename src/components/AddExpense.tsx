@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { addTransaction, addIncome, loadFinancialData } from '@/services/storageService';
+import { addTransaction, addIncome } from '@/services/storageService';
 
 const AddExpense = () => {
   const navigate = useNavigate();
@@ -24,9 +24,6 @@ const AddExpense = () => {
     type: 'expense'
   });
 
-  const data = loadFinancialData();
-  const loans = data?.loans || [];
-
   const handleQuickAdd = () => {
     if (!quickData.name || quickData.amount === 0 || !quickData.category) {
       toast({
@@ -40,9 +37,10 @@ const AddExpense = () => {
     if (quickData.type === 'expense') {
       addTransaction({
         name: quickData.name,
-        amount: quickData.amount,
+        amount: -quickData.amount, // Expenses are negative
         category: quickData.category,
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        type: 'expense'
       });
       
       toast({
@@ -54,7 +52,8 @@ const AddExpense = () => {
         name: quickData.name,
         amount: quickData.amount,
         category: quickData.category,
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        type: 'income'
       });
       
       toast({

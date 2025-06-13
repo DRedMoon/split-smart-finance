@@ -16,6 +16,9 @@ import CategoryCreator from '@/components/CategoryCreator';
 import CategoryEditor from '@/components/CategoryEditor';
 import MonthlyPayments from '@/components/MonthlyPayments';
 import LoansCredits from '@/components/LoansCredits';
+import AddLoan from '@/components/AddLoan';
+import AddCredit from '@/components/AddCredit';
+import ManageLoansCredits from '@/components/ManageLoansCredits';
 import Navigation from '@/components/Navigation';
 
 const Index = () => {
@@ -38,6 +41,9 @@ const Index = () => {
         <Route path="/edit-category/:id" element={<CategoryEditor />} />
         <Route path="/monthly-payments" element={<MonthlyPayments />} />
         <Route path="/loans-credits" element={<LoansCredits />} />
+        <Route path="/add-loan" element={<AddLoan />} />
+        <Route path="/add-credit" element={<AddCredit />} />
+        <Route path="/manage-loans-credits" element={<ManageLoansCredits />} />
       </Routes>
       <Navigation />
     </div>
