@@ -213,7 +213,18 @@ const translations = {
     // Theme
     'theme': 'Teema',
     'light_theme': 'Vaalea teema',
-    'dark_theme': 'Tumma teema'
+    'dark_theme': 'Tumma teema',
+    'transactions': 'Tapahtumat',
+    'transaction_history': 'Tapahtumahistoria',
+    'edit_category': 'Muokkaa kategoriaa',
+    'category_updated': 'Kategoria päivitetty',
+    'updated_successfully': 'päivitettiin onnistuneesti',
+    'category_deleted': 'Kategoria poistettu',
+    'deleted_successfully': 'poistettiin onnistuneesti',
+    'save_changes': 'Tallenna muutokset',
+    'delete_category': 'Poista kategoria',
+    'category_name_required': 'Kategorian nimi vaaditaan',
+    'upcoming_week': 'Tuleva viikko'
   },
   
   en: {
@@ -288,14 +299,6 @@ const translations = {
     'interest_rate': 'Interest rate',
     'due_date': 'Due date',
     'payment_term': 'Payment term',
-    'euribor_rate': 'EURIBOR rate',
-    'personal_margin': 'Personal margin',
-    'management_fee': 'Management fee',
-    'credit_limit': 'Credit limit',
-    'minimum_payment_percent': 'Minimum payment percent',
-    'yearly_rate': 'Yearly rate',
-    'total_payback': 'Total payback',
-    'remaining_months': 'Remaining months',
     'financial_overview': 'Financial Overview',
     'manage_expenses': 'Manage your expenses',
     'current_balance': 'Current Balance',
@@ -420,7 +423,18 @@ const translations = {
     // Theme
     'theme': 'Theme',
     'light_theme': 'Light theme',
-    'dark_theme': 'Dark theme'
+    'dark_theme': 'Dark theme',
+    'transactions': 'Tapahtumat',
+    'transaction_history': 'Tapahtumahistoria',
+    'edit_category': 'Muokkaa kategoriaa',
+    'category_updated': 'Kategoria päivitetty',
+    'updated_successfully': 'päivitettiin onnistuneesti',
+    'category_deleted': 'Kategoria poistettu',
+    'deleted_successfully': 'poistettiin onnistuneesti',
+    'save_changes': 'Tallenna muutokset',
+    'delete_category': 'Poista kategoria',
+    'category_name_required': 'Kategorian nimi vaaditaan',
+    'upcoming_week': 'Tuleva viikko'
   },
   
   es: {
@@ -669,7 +683,7 @@ const translations = {
     'monthly_payment': 'Monatliche Zahlung',
     'interest_rate': 'Zinssatz',
     'due_date': 'Fälligkeitsdatum',
-    'payment_term': 'Zahlungsbedingung',
+    'payment_term': 'Betalungsbedingung',
     'financial_overview': 'Finanzübersicht',
     'manage_expenses': 'Verwalten Sie Ihre Ausgaben',
     'current_balance': 'Aktueller Saldo',

@@ -1,4 +1,3 @@
-
 export interface FinancialData {
   balance: number;
   loans: Array<{
@@ -447,5 +446,175 @@ export const performAutomaticBackup = (): void => {
     
     localStorage.setItem('auto-backup', JSON.stringify(backupData));
     localStorage.setItem('last-backup', now.toISOString());
+  }
+};
+
+// Enhanced loan calculation with alternative input methods
+export const calculateLoanFromPaymentDetails = (
+  loanRepayment: number,
+  interest: number,
+  managementFee: number,
+  remainingLoanAmount: number
+): { 
+  monthlyTotal: number; 
+  interestRate: number; 
+  estimatedMonthsLeft: number;
+  totalPaybackEstimate: number;
+} => {
+  const monthlyTotal = loanRepayment + interest + managementFee;
+  
+  // Calculate interest rate from payment details
+  const monthlyInterestRate = interest / remainingLoanAmount;
+  const yearlyInterestRate = monthlyInterestRate * 12 * 100;
+  
+  // Estimate months left (simplified calculation)
+  const estimatedMonthsLeft = Math.ceil(remainingLoanAmount / loanRepayment);
+  
+  // Estimate total payback
+  const totalPaybackEstimate = monthlyTotal * estimatedMonthsLeft;
+  
+  return {
+    monthlyTotal: Math.round(monthlyTotal * 100) / 100,
+    interestRate: Math.round(yearlyInterestRate * 100) / 100,
+    estimatedMonthsLeft,
+    totalPaybackEstimate: Math.round(totalPaybackEstimate * 100) / 100
+  };
+};
+
+// Improved precise loan calculation
+export const calculateLoanPayment2 = (
+  principal: number,
+  euriborRate: number,
+  personalMargin: number,
+  managementFee: number,
+  termMonths: number
+): { monthlyPayment: number; totalPayback: number; yearlyRate: number; monthlyPrincipalAndInterest: number } => {
+  const yearlyRate = euriborRate + personalMargin;
+  const monthlyRate = yearlyRate / 100 / 12;
+  
+  // Use the standard amortization formula
+  let monthlyPrincipalInterest;
+  
+  if (monthlyRate === 0) {
+    monthlyPrincipalInterest = principal / termMonths;
+  } else {
+    monthlyPrincipalInterest = principal * 
+      (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / 
+      (Math.pow(1 + monthlyRate, termMonths) - 1);
+  }
+  
+  const monthlyPayment = monthlyPrincipalInterest + managementFee;
+  const totalPayback = monthlyPayment * termMonths;
+  
+  return {
+    monthlyPayment: Math.round(monthlyPayment * 100) / 100,
+    totalPayback: Math.round(totalPayback * 100) / 100,
+    yearlyRate: Math.round(yearlyRate * 100) / 100,
+    monthlyPrincipalAndInterest: Math.round(monthlyPrincipalInterest * 100) / 100
+  };
+};
+
+// Add function to process loan repayment with detailed breakdown
+export const addLoanRepaymentTransaction = (
+  loanId: number, 
+  loanRepayment: number, 
+  interest: number, 
+  managementFee: number
+): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  const loanIndex = data.loans.findIndex(l => l.id === loanId);
+  
+  if (loanIndex !== -1) {
+    const totalPayment = loanRepayment + interest + managementFee;
+    
+    // Reduce the current loan amount by the principal payment
+    data.loans[loanIndex].currentAmount = Math.max(0, data.loans[loanIndex].currentAmount - loanRepayment);
+    
+    // Update last payment date
+    data.loans[loanIndex].lastPayment = new Date().toISOString().split('T')[0];
+    
+    // Add transaction for the payment with breakdown
+    const transaction = {
+      id: Date.now() + Math.random(),
+      name: `${data.loans[loanIndex].name} - Lainan lyhennys (${loanRepayment.toFixed(2)}€) + Korko (${interest.toFixed(2)}€) + Hallintamaksu (${managementFee.toFixed(2)}€)`,
+      amount: -totalPayment,
+      date: new Date().toISOString().split('T')[0],
+      type: 'expense',
+      category: 'loan_payment'
+    };
+    
+    data.transactions.unshift(transaction);
+    data.balance -= totalPayment;
+    
+    saveFinancialData(data);
+  }
+};
+
+// Add function to handle credit card payments
+export const addCreditPaymentTransaction = (
+  creditName: string,
+  paymentAmount: number,
+  creditLimit: number
+): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  
+  // Find existing credit or create new entry
+  let creditIndex = data.loans.findIndex(l => l.name === creditName && l.totalAmount === creditLimit);
+  
+  if (creditIndex === -1) {
+    // Create new credit entry
+    const newCredit = {
+      id: Date.now() + Math.random(),
+      name: creditName,
+      totalAmount: creditLimit,
+      currentAmount: creditLimit - paymentAmount,
+      monthly: paymentAmount,
+      rate: 0, // Will be updated if known
+      remaining: 'N/A',
+      dueDate: '20.',
+      lastPayment: new Date().toISOString().split('T')[0],
+      totalPayback: creditLimit,
+      yearlyInterestRate: 0
+    };
+    data.loans.push(newCredit);
+  } else {
+    // Update existing credit
+    data.loans[creditIndex].currentAmount = Math.max(0, data.loans[creditIndex].currentAmount - paymentAmount);
+    data.loans[creditIndex].lastPayment = new Date().toISOString().split('T')[0];
+  }
+  
+  // Add transaction
+  const transaction = {
+    id: Date.now() + Math.random(),
+    name: `${creditName} - Luottokorttilasku`,
+    amount: -paymentAmount,
+    date: new Date().toISOString().split('T')[0],
+    type: 'expense',
+    category: 'credit_payment'
+  };
+  
+  data.transactions.unshift(transaction);
+  data.balance -= paymentAmount;
+  
+  saveFinancialData(data);
+};
+
+// Add function to update/edit categories
+export const updateCategory = (categoryId: number, updates: Partial<FinancialData['categories'][0]>): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  if (data.categories) {
+    const categoryIndex = data.categories.findIndex(cat => cat.id === categoryId);
+    if (categoryIndex !== -1) {
+      data.categories[categoryIndex] = { ...data.categories[categoryIndex], ...updates };
+      saveFinancialData(data);
+    }
+  }
+};
+
+export const deleteCategory = (categoryId: number): void => {
+  const data = loadFinancialData() || getDefaultFinancialData();
+  if (data.categories) {
+    data.categories = data.categories.filter(cat => cat.id !== categoryId);
+    saveFinancialData(data);
   }
 };

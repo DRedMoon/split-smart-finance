@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, Receipt, Calendar } from 'lucide-react';
@@ -12,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { addTransaction, addLoan, addMonthlyBill, calculateLoanPayment, calculateCreditPayment, loadFinancialData } from '@/services/storageService';
+import { addTransaction, addLoan, addMonthlyBill, calculateLoanPayment, calculateCreditPayment, loadFinancialData, addCreditPaymentTransaction, addLoanRepaymentTransaction, calculateLoanFromPaymentDetails } from '@/services/storageService';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -34,12 +33,16 @@ const AddExpense = () => {
     personalMargin: '',
     managementFee: '',
     creditLimit: '',
-    minimumPaymentPercent: '3'
+    minimumPaymentPercent: '3',
+    // New fields for loan repayment
+    loanRepayment: '',
+    interestPayment: '',
+    remainingLoanAmount: ''
   });
   
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [activeTab, setActiveTab] = useState('quick');
-  const [loanType, setLoanType] = useState('simple'); // 'simple', 'precise', 'credit'
+  const [loanType, setLoanType] = useState('simple'); // 'simple', 'precise', 'credit', 'repayment'
   const [calculationResult, setCalculationResult] = useState<any>(null);
 
   // Calculate loan details when inputs change
@@ -63,6 +66,15 @@ const AddExpense = () => {
       const result = calculateCreditPayment(principal, yearlyRate, managementFee, minimumPercent);
       setCalculationResult(result);
       setExpenseData(prev => ({ ...prev, amount: result.monthlyMinimum.toString() }));
+    } else if (loanType === 'repayment' && expenseData.loanRepayment && expenseData.interestPayment && expenseData.remainingLoanAmount) {
+      const loanRepayment = parseFloat(expenseData.loanRepayment);
+      const interest = parseFloat(expenseData.interestPayment);
+      const managementFee = parseFloat(expenseData.managementFee) || 0;
+      const remainingAmount = parseFloat(expenseData.remainingLoanAmount);
+      
+      const result = calculateLoanFromPaymentDetails(loanRepayment, interest, managementFee, remainingAmount);
+      setCalculationResult(result);
+      setExpenseData(prev => ({ ...prev, amount: result.monthlyTotal.toString() }));
     }
   };
 
@@ -70,7 +82,7 @@ const AddExpense = () => {
     if (activeTab === 'loan') {
       calculateLoanDetails();
     }
-  }, [expenseData.totalAmount, expenseData.euriborRate, expenseData.personalMargin, expenseData.managementFee, expenseData.paymentTerm, expenseData.creditLimit, expenseData.interestRate, expenseData.minimumPaymentPercent, loanType]);
+  }, [expenseData.totalAmount, expenseData.euriborRate, expenseData.personalMargin, expenseData.managementFee, expenseData.paymentTerm, expenseData.creditLimit, expenseData.interestRate, expenseData.minimumPaymentPercent, expenseData.loanRepayment, expenseData.interestPayment, expenseData.remainingLoanAmount, loanType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,15 +91,32 @@ const AddExpense = () => {
       const amount = parseFloat(expenseData.amount);
       if (isNaN(amount)) return;
       
-      const transaction = {
-        name: expenseData.name,
-        amount: activeTab === 'income' ? amount : -amount,
-        date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-        type: activeTab === 'income' ? 'income' : 'expense',
-        category: expenseData.type || 'other'
-      };
-      
-      addTransaction(transaction);
+      // Handle special loan and credit payment categories
+      if (expenseData.type === 'loan_payment') {
+        // This is a loan payment - we need loan selection logic here
+        // For now, we'll add it as a regular transaction
+        const transaction = {
+          name: expenseData.name,
+          amount: -Math.abs(amount),
+          date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+          type: 'expense',
+          category: 'loan_payment'
+        };
+        addTransaction(transaction);
+      } else if (expenseData.type === 'credit_payment') {
+        // Handle credit card payment
+        addCreditPaymentTransaction(expenseData.name, Math.abs(amount), 0); // Credit limit would need to be specified
+      } else {
+        const transaction = {
+          name: expenseData.name,
+          amount: activeTab === 'income' ? amount : -amount,
+          date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+          type: activeTab === 'income' ? 'income' : 'expense',
+          category: expenseData.type || 'other'
+        };
+        
+        addTransaction(transaction);
+      }
       
       // If it's a subscription, also add to monthly bills
       if (expenseData.type === 'subscriptions') {
@@ -105,27 +134,55 @@ const AddExpense = () => {
         description: activeTab === 'income' ? t('income_added_desc') : t('expense_added_desc'),
       });
     } else if (activeTab === 'loan') {
-      const totalAmount = loanType === 'credit' ? parseFloat(expenseData.creditLimit) : parseFloat(expenseData.totalAmount);
-      const monthlyAmount = parseFloat(expenseData.amount);
-      const rate = parseFloat(expenseData.interestRate) || 0;
-      
-      if (isNaN(totalAmount) || isNaN(monthlyAmount)) return;
-      
-      const loan = {
-        name: expenseData.name,
-        totalAmount: totalAmount,
-        currentAmount: totalAmount,
-        monthly: monthlyAmount,
-        rate: rate,
-        euriborRate: loanType === 'precise' ? parseFloat(expenseData.euriborRate) : undefined,
-        personalMargin: loanType === 'precise' ? parseFloat(expenseData.personalMargin) : undefined,
-        managementFee: parseFloat(expenseData.managementFee) || 0,
-        remaining: expenseData.paymentTerm,
-        dueDate: expenseData.dueDate,
-        lastPayment: format(new Date(), 'yyyy-MM-dd')
-      };
-      
-      addLoan(loan);
+      if (loanType === 'repayment') {
+        // Handle loan repayment with breakdown
+        const loanRepayment = parseFloat(expenseData.loanRepayment);
+        const interest = parseFloat(expenseData.interestPayment);
+        const managementFee = parseFloat(expenseData.managementFee) || 0;
+        
+        if (!isNaN(loanRepayment) && !isNaN(interest)) {
+          // For now, create a new loan entry - in a real app, user would select existing loan
+          const remainingAmount = parseFloat(expenseData.remainingLoanAmount) || loanRepayment * 100; // Estimate if not provided
+          
+          const loan = {
+            name: expenseData.name,
+            totalAmount: remainingAmount + loanRepayment, // Original amount estimate
+            currentAmount: remainingAmount,
+            monthly: loanRepayment + interest + managementFee,
+            rate: calculationResult?.interestRate || 0,
+            remaining: `${calculationResult?.estimatedMonthsLeft || 'N/A'} kuukautta`,
+            dueDate: expenseData.dueDate,
+            lastPayment: format(new Date(), 'yyyy-MM-dd')
+          };
+          
+          addLoan(loan);
+          
+          // Add the repayment transaction
+          addLoanRepaymentTransaction(loan.id, loanRepayment, interest, managementFee);
+        }
+      } else {
+        const totalAmount = loanType === 'credit' ? parseFloat(expenseData.creditLimit) : parseFloat(expenseData.totalAmount);
+        const monthlyAmount = parseFloat(expenseData.amount);
+        const rate = parseFloat(expenseData.interestRate) || 0;
+        
+        if (isNaN(totalAmount) || isNaN(monthlyAmount)) return;
+        
+        const loan = {
+          name: expenseData.name,
+          totalAmount: totalAmount,
+          currentAmount: totalAmount,
+          monthly: monthlyAmount,
+          rate: rate,
+          euriborRate: loanType === 'precise' ? parseFloat(expenseData.euriborRate) : undefined,
+          personalMargin: loanType === 'precise' ? parseFloat(expenseData.personalMargin) : undefined,
+          managementFee: parseFloat(expenseData.managementFee) || 0,
+          remaining: expenseData.paymentTerm,
+          dueDate: expenseData.dueDate,
+          lastPayment: format(new Date(), 'yyyy-MM-dd')
+        };
+        
+        addLoan(loan);
+      }
       
       toast({
         title: t('loan_added'),
@@ -155,6 +212,8 @@ const AddExpense = () => {
     { value: 'housing', label: t('housing') },
     { value: 'healthcare', label: t('healthcare') },
     { value: 'education', label: t('education') },
+    { value: 'loan_payment', label: 'Lainan maksu / Loan Payment' },
+    { value: 'credit_payment', label: 'Luottokorttilasku / Credit Card Payment' },
     { value: 'other', label: t('other') }
   ];
 
@@ -393,6 +452,7 @@ const AddExpense = () => {
                     <SelectItem value="simple">Yksinkertainen laina / Simple Loan</SelectItem>
                     <SelectItem value="precise">Tarkka laina (EURIBOR) / Precise Loan</SelectItem>
                     <SelectItem value="credit">Luottokortti / Credit Card</SelectItem>
+                    <SelectItem value="repayment">Lainan lyhennys / Loan Repayment</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -410,7 +470,50 @@ const AddExpense = () => {
                   />
                 </div>
 
-                {loanType === 'credit' ? (
+                {loanType === 'repayment' ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="loanRepayment" className="text-white">Lainan lyhennys / Loan Repayment (€)</Label>
+                        <Input
+                          id="loanRepayment"
+                          type="number"
+                          step="0.01"
+                          value={expenseData.loanRepayment}
+                          onChange={(e) => handleInputChange('loanRepayment', e.target.value)}
+                          placeholder="453.17"
+                          required
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="interestPayment" className="text-white">Korko / Interest (€)</Label>
+                        <Input
+                          id="interestPayment"
+                          type="number"
+                          step="0.01"
+                          value={expenseData.interestPayment}
+                          onChange={(e) => handleInputChange('interestPayment', e.target.value)}
+                          placeholder="425.48"
+                          required
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="remainingLoanAmount" className="text-white">Lainaa jäljellä / Remaining Loan Amount (€)</Label>
+                      <Input
+                        id="remainingLoanAmount"
+                        type="number"
+                        step="0.01"
+                        value={expenseData.remainingLoanAmount}
+                        onChange={(e) => handleInputChange('remainingLoanAmount', e.target.value)}
+                        placeholder="190346.63"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      />
+                    </div>
+                  </>
+                ) : loanType === 'credit' ? (
                   <>
                     <div>
                       <Label htmlFor="creditLimit" className="text-white">{t('credit_limit')}</Label>
@@ -574,17 +677,23 @@ const AddExpense = () => {
                   <div className="bg-white/10 p-4 rounded-lg">
                     <h4 className="text-white font-semibold mb-2">Laskutoimituksen tulos / Calculation Result:</h4>
                     <div className="text-white/80 space-y-1">
-                      <p>Kuukausierä / Monthly Payment: €{calculationResult.monthlyPayment || calculationResult.monthlyMinimum}</p>
-                      <p>Kokonaistakaisinmaksu / Total Payback: €{calculationResult.totalPayback || calculationResult.totalWithInterest}</p>
+                      <p>Kuukausierä / Monthly Payment: €{calculationResult.monthlyPayment || calculationResult.monthlyMinimum || calculationResult.monthlyTotal}</p>
+                      <p>Kokonaistakaisinmaksu / Total Payback: €{calculationResult.totalPayback || calculationResult.totalWithInterest || calculationResult.totalPaybackEstimate}</p>
                       {calculationResult.yearlyRate && (
                         <p>Vuosikorko / Yearly Rate: {calculationResult.yearlyRate}%</p>
+                      )}
+                      {calculationResult.interestRate && (
+                        <p>Laskettu korko / Calculated Rate: {calculationResult.interestRate}%</p>
+                      )}
+                      {calculationResult.estimatedMonthsLeft && (
+                        <p>Arvioitu kuukausia jäljellä / Estimated Months Left: {calculationResult.estimatedMonthsLeft}</p>
                       )}
                     </div>
                   </div>
                 )}
 
                 <Button type="submit" className="w-full bg-white text-[#294D73] hover:bg-white/90">
-                  {t('add_loan_credit')}
+                  {loanType === 'repayment' ? 'Lisää lainan lyhennys / Add Loan Repayment' : t('add_loan_credit')}
                 </Button>
               </form>
             </CardContent>
