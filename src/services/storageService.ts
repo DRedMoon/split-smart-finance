@@ -1,3 +1,4 @@
+
 export interface FinancialData {
   balance: number;
   loans: Array<{
@@ -13,7 +14,7 @@ export interface FinancialData {
     remaining: string;
     dueDate: string;
     lastPayment: string;
-    totalPayback: number; // Total amount to pay back including interest
+    totalPayback: number;
     yearlyInterestRate: number;
   }>;
   monthlyBills: Array<{
@@ -32,6 +33,16 @@ export interface FinancialData {
     type: string;
     category: string;
   }>;
+  categories?: Array<{
+    id: number;
+    name: string;
+    description: string;
+    isMaintenanceCharge: boolean;
+    isHousingCompanyExpenditure: boolean;
+    isMonthlyPayment: boolean;
+    color: string;
+    createdAt: string;
+  }>;
   profile: {
     name: string;
     email: string;
@@ -44,6 +55,16 @@ export interface FinancialData {
     analytics: boolean;
     theme: 'light' | 'dark';
     fontSize: 'small' | 'medium' | 'large';
+    highContrast?: boolean;
+    notifications?: {
+      upcomingPayments: boolean;
+      backupReminders: boolean;
+      lowBalance: boolean;
+      monthlyReport: boolean;
+      paymentDays: number;
+      backupDays: number;
+      balanceThreshold: number;
+    };
   };
 }
 
@@ -125,6 +146,7 @@ export const getDefaultFinancialData = (): FinancialData => ({
   loans: [],
   monthlyBills: [],
   transactions: [],
+  categories: [],
   profile: {
     name: 'Käyttäjä',
     email: 'user@example.com'
@@ -134,7 +156,17 @@ export const getDefaultFinancialData = (): FinancialData => ({
     errorReporting: false,
     analytics: false,
     theme: 'dark',
-    fontSize: 'medium'
+    fontSize: 'medium',
+    highContrast: false,
+    notifications: {
+      upcomingPayments: true,
+      backupReminders: true,
+      lowBalance: false,
+      monthlyReport: false,
+      paymentDays: 3,
+      backupDays: 7,
+      balanceThreshold: 100
+    }
   }
 });
 

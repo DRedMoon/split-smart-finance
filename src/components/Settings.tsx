@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Bell, Shield, Download, LogOut, Upload, Database, Palette, Settings as SettingsIcon } from 'lucide-react';
+import { ArrowLeft, User, Bell, Shield, Download, LogOut, Upload, Database, Palette, Settings as SettingsIcon, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -40,7 +39,7 @@ const Settings = () => {
     exportFinancialData();
     toast({
       title: t('backup_created'),
-      description: "Taloudelliset tiedot on viety onnistuneesti",
+      description: t('backup_created'),
     });
   };
 
@@ -51,13 +50,13 @@ const Settings = () => {
         .then(() => {
           toast({
             title: t('data_imported'),
-            description: "Tiedot on tuotu onnistuneesti",
+            description: t('data_imported'),
           });
         })
         .catch(() => {
           toast({
-            title: "Virhe",
-            description: "Tietojen tuonti epäonnistui",
+            title: t('error'),
+            description: t('error'),
             variant: "destructive"
           });
         });
@@ -65,11 +64,11 @@ const Settings = () => {
   };
 
   const handleClearAllData = () => {
-    if (confirm("Haluatko varmasti tyhjentää kaikki tiedot? Tätä toimintoa ei voi peruuttaa.")) {
+    if (confirm(t('confirm_clear_all_data'))) {
       clearAllData();
       toast({
-        title: "Tiedot tyhjennetty",
-        description: "Kaikki tiedot on poistettu",
+        title: t('data_cleared'),
+        description: t('data_cleared'),
       });
     }
   };
@@ -79,15 +78,15 @@ const Settings = () => {
       const hasPermission = await initializeNotifications();
       if (hasPermission) {
         setNotificationsEnabled(true);
-        await showNotification("Ilmoitukset käytössä", "Saat nyt ilmoituksia tulevista maksuista");
+        await showNotification(t('notifications_enabled'), t('will_receive_payment_notifications'));
         toast({
-          title: "Ilmoitukset käytössä",
-          description: "Saat ilmoituksia tulevista maksuista",
+          title: t('notifications_enabled'),
+          description: t('will_receive_payment_notifications'),
         });
       } else {
         toast({
-          title: "Lupa evätty",
-          description: "Ilmoitusten käyttö vaatii luvan",
+          title: t('permission_denied'),
+          description: t('notifications_require_permission'),
           variant: "destructive"
         });
       }
@@ -108,8 +107,8 @@ const Settings = () => {
       }
       
       toast({
-        title: enabled ? "Virheraportit käytössä" : "Virheraportit pois käytöstä",
-        description: enabled ? "Virheet tallennetaan paikallisesti" : "Virheraportit poistettu käytöstä",
+        title: enabled ? t('error_reports_enabled') : t('error_reports_disabled'),
+        description: enabled ? t('error_reports_saved') : t('error_reports_cleared'),
       });
     }
   };
@@ -126,8 +125,8 @@ const Settings = () => {
       }
       
       toast({
-        title: enabled ? "Analytiikka käytössä" : "Analytiikka pois käytöstä",
-        description: enabled ? "Käyttötiedot tallennetaan paikallisesti" : "Analytiikka poistettu käytöstä",
+        title: enabled ? t('analytics_enabled') : t('analytics_disabled'),
+        description: enabled ? t('analytics_saved') : t('analytics_cleared'),
       });
     }
   };
@@ -137,30 +136,31 @@ const Settings = () => {
       title: t('account'),
       items: [
         { icon: User, label: t('profile'), action: () => navigate('/profile') },
-        { icon: Bell, label: t('notifications'), hasSwitch: true, switchValue: notificationsEnabled, onSwitchChange: handleNotificationToggle },
+        { icon: Bell, label: t('notifications'), action: () => navigate('/notification-settings') },
         { icon: Shield, label: t('privacy_security'), action: () => navigate('/privacy') }
       ]
     },
     {
-      title: 'Ulkoasu ja toiminnot',
+      title: t('appearance_and_features'),
       items: [
-        { icon: Palette, label: 'Ulkoasuasetukset', action: () => navigate('/appearance') },
-        { icon: SettingsIcon, label: 'Varmuuskopiot', action: () => navigate('/backup-settings') }
+        { icon: Palette, label: t('appearance'), action: () => navigate('/appearance') },
+        { icon: SettingsIcon, label: t('backup'), action: () => navigate('/backup-settings') },
+        { icon: Plus, label: t('create_category'), action: () => navigate('/create-category') }
       ]
     },
     {
       title: t('data'),
       items: [
-        { icon: Database, label: 'Tiedonhallinta', action: () => navigate('/data-management') },
+        { icon: Database, label: t('data_management'), action: () => navigate('/data-management') },
         { icon: Download, label: t('export_data'), action: handleExportData },
         { icon: Upload, label: t('import_data'), action: () => document.getElementById('import-input')?.click() }
       ]
     },
     {
-      title: 'Yksityisyys ja virheet',
+      title: t('privacy_and_errors'),
       items: [
-        { label: 'Automaattiset virheraportit', hasSwitch: true, switchValue: errorReporting, onSwitchChange: handleErrorReportingToggle },
-        { label: 'Analytiikka', hasSwitch: true, switchValue: analytics, onSwitchChange: handleAnalyticsToggle }
+        { label: t('automatic_error_reports'), hasSwitch: true, switchValue: errorReporting, onSwitchChange: handleErrorReportingToggle },
+        { label: t('analytics'), hasSwitch: true, switchValue: analytics, onSwitchChange: handleAnalyticsToggle }
       ]
     }
   ];
@@ -184,12 +184,12 @@ const Settings = () => {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-lg text-white">
-                {loadFinancialData()?.profile?.name || 'Käyttäjä'}
+                {loadFinancialData()?.profile?.name || t('user')}
               </h3>
               <p className="text-white/70">{loadFinancialData()?.profile?.email || 'user@example.com'}</p>
               <div className="flex space-x-4 mt-2 text-sm">
-                <span className="text-green-300">Saldo: €{loadFinancialData()?.balance?.toFixed(2) || '0.00'}</span>
-                <span className="text-red-300">Velat: €{loadFinancialData()?.loans?.reduce((sum, loan) => sum + loan.currentAmount, 0)?.toFixed(2) || '0.00'}</span>
+                <span className="text-green-300">{t('balance')}: €{loadFinancialData()?.balance?.toFixed(2) || '0.00'}</span>
+                <span className="text-red-300">{t('debts')}: €{loadFinancialData()?.loans?.reduce((sum, loan) => sum + loan.currentAmount, 0)?.toFixed(2) || '0.00'}</span>
               </div>
             </div>
           </div>
@@ -256,7 +256,7 @@ const Settings = () => {
             className="w-full justify-start text-white hover:bg-white/10"
           >
             <Shield size={20} className="mr-3" />
-            Turvallisuusasetukset
+            {t('security_settings')}
           </Button>
         </CardContent>
       </Card>
@@ -269,7 +269,7 @@ const Settings = () => {
             onClick={handleClearAllData}
             className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10"
           >
-            Tyhjennä kaikki tiedot
+            {t('clear_all_data')}
           </Button>
         </CardContent>
       </Card>
@@ -298,8 +298,8 @@ const Settings = () => {
 
       {/* App Info */}
       <div className="text-center mt-6 text-sm text-white/50">
-        <p>Taloushallinnan Sovellus</p>
-        <p>Versio 1.0.0</p>
+        <p>{t('financial_management_app')}</p>
+        <p>{t('version')} 1.0.0</p>
       </div>
     </div>
   );
