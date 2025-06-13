@@ -16,7 +16,7 @@ const ManageLoansCredits = () => {
   const data = loadFinancialData();
   const loans = data?.loans || [];
 
-  const handleDelete = (loanId, loanName) => {
+  const handleDelete = (loanId: number, loanName: string) => {
     if (data) {
       data.loans = data.loans.filter(loan => loan.id !== loanId);
       data.monthlyBills = data.monthlyBills.filter(bill => bill.name !== loanName);
@@ -32,7 +32,7 @@ const ManageLoansCredits = () => {
     }
   };
 
-  const calculateTotalPayback = (loan) => {
+  const calculateTotalPayback = (loan: any) => {
     if (loan.remaining === 'Credit Card') {
       // Credit card calculation
       if (loan.currentAmount > 0 && loan.rate > 0) {

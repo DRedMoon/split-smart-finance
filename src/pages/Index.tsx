@@ -9,6 +9,9 @@ import LoansCredits from '@/components/LoansCredits';
 import TransactionHistory from '@/components/TransactionHistory';
 import Settings from '@/components/Settings';
 import CategoryManager from '@/components/CategoryManager';
+import ManageLoansCredits from '@/components/ManageLoansCredits';
+import AddLoan from '@/components/AddLoan';
+import EditLoan from '@/components/EditLoan';
 import Navigation from '@/components/Navigation';
 
 const Index = () => {
@@ -22,7 +25,7 @@ const Index = () => {
     
     if (view && location.pathname === '/') {
       // Set the dashboard to the correct view based on the parameter
-      const dashboard = document.querySelector('[data-dashboard]');
+      const dashboard = document.querySelector('[data-dashboard-carousel]');
       if (dashboard) {
         const viewIndex = view === 'balance' ? 0 : 
                          view === 'loans-credits' ? 1 : 
@@ -51,10 +54,10 @@ const Index = () => {
         <Route path="/transactions" element={<TransactionHistory />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/create-category" element={<CategoryManager />} />
-        <Route path="/manage-loans-credits" element={<div>Manage Loans Credits</div>} />
-        <Route path="/add-loan" element={<div>Add Loan</div>} />
+        <Route path="/manage-loans-credits" element={<ManageLoansCredits />} />
+        <Route path="/add-loan" element={<AddLoan />} />
         <Route path="/add-credit" element={<div>Add Credit</div>} />
-        <Route path="/edit-loan/:id" element={<div>Edit Loan</div>} />
+        <Route path="/edit-loan/:loanId" element={<EditLoan />} />
       </Routes>
       <Navigation />
     </div>

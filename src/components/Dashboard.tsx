@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, ArrowRight, CreditCard, Wallet, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { loadFinancialData, getThisWeekUpcomingPayments } from '@/services/storageService';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselApi } from '@/components/ui/carousel';
+import { Carousel, CarouselContent, CarouselItem, CarouselApi } from '@/components/ui/carousel';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ const Dashboard = () => {
     bill.type !== 'credit_payment'
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!api) {
       return
     }
@@ -51,6 +51,23 @@ const Dashboard = () => {
       setCurrent(api.selectedScrollSnap())
     })
   }, [api])
+
+  // Listen for custom navigation events
+  useEffect(() => {
+    const handleNavigation = (event: CustomEvent) => {
+      if (api && event.detail?.index !== undefined) {
+        api.scrollTo(event.detail.index);
+      }
+    };
+
+    const carousel = document.querySelector('[data-dashboard-carousel]');
+    if (carousel) {
+      carousel.addEventListener('navigate-dashboard', handleNavigation as EventListener);
+      return () => {
+        carousel.removeEventListener('navigate-dashboard', handleNavigation as EventListener);
+      };
+    }
+  }, [api]);
 
   const handleDotClick = (index: number) => {
     if (api) {
@@ -66,7 +83,7 @@ const Dashboard = () => {
       </div>
 
       {/* Main Carousel - Balance, Loans & Credits, Monthly Payments */}
-      <div className="mb-6">
+      <div className="mb-6" data-dashboard-carousel>
         <Carousel 
           className="w-full"
           setApi={setApi}
@@ -114,7 +131,7 @@ const Dashboard = () => {
                     onClick={() => navigate('/loans-credits')}
                     className="text-white hover:bg-white/10 p-2"
                   >
-                    <Plus size={20} />
+                    <ArrowRight size={20} />
                   </Button>
                 </CardHeader>
                 <CardContent>
@@ -171,7 +188,7 @@ const Dashboard = () => {
                     onClick={() => navigate('/monthly-payments')}
                     className="text-white hover:bg-white/10 p-2"
                   >
-                    <Calendar size={20} />
+                    <ArrowRight size={20} />
                   </Button>
                 </CardHeader>
                 <CardContent>
@@ -285,7 +302,7 @@ const Dashboard = () => {
       </Card>
 
       {/* Recent Transactions - Extended */}
-      <Card className="bg-[#294D73] border-none min-h-[300px]">
+      <Card className="bg-[#294D73] border-none min-h-[200px]">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-white text-lg">{t('recent_transactions')}</CardTitle>
           <Button

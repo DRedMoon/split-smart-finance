@@ -20,11 +20,11 @@ const MonthlyPayments = () => {
     setFinancialData(data);
   }, []);
 
-  const togglePaymentStatus = (id: number) => {
+  const togglePaymentStatus = (billId: number) => {
     if (!financialData) return;
     
     const updatedData = { ...financialData };
-    const billIndex = updatedData.monthlyBills.findIndex(bill => bill.id === id);
+    const billIndex = updatedData.monthlyBills.findIndex(bill => bill.id === billId);
     
     if (billIndex !== -1) {
       const bill = updatedData.monthlyBills[billIndex];
