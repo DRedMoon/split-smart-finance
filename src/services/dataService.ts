@@ -60,3 +60,56 @@ export const clearAllData = (): void => {
     console.error('Error clearing data:', error);
   }
 };
+
+export const exportFinancialData = (password?: string): void => {
+  const data = loadFinancialData();
+  if (data) {
+    let dataToExport = data;
+    
+    if (password) {
+      // Simple encryption for demo - in production use proper encryption
+      dataToExport = {
+        ...data,
+        encrypted: true,
+        password: btoa(password) // Base64 encoding for demo
+      } as any;
+    }
+    
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `financial-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+};
+
+export const importFinancialData = (file: File, password?: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        let data = JSON.parse(e.target?.result as string);
+        
+        if (data.encrypted && password) {
+          if (data.password !== btoa(password)) {
+            reject(new Error('Invalid password'));
+            return;
+          }
+          delete data.encrypted;
+          delete data.password;
+        }
+        
+        saveFinancialData(data);
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.readAsText(file);
+  });
+};
