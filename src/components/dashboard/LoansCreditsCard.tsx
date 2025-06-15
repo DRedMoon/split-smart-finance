@@ -16,6 +16,11 @@ const LoansCreditsCard = ({ loans, totalLoanAmount, totalMonthlyPayments }: Loan
   const { t } = useLanguage();
   const navigate = useNavigate();
 
+  const handleNavigateToLoans = () => {
+    localStorage.setItem('dashboardLastView', 'loans-credits');
+    navigate('/loans-credits');
+  };
+
   return (
     <Card className="bg-[#294D73] border-none">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -26,7 +31,7 @@ const LoansCreditsCard = ({ loans, totalLoanAmount, totalMonthlyPayments }: Loan
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/loans-credits')}
+          onClick={handleNavigateToLoans}
           className="text-white hover:bg-white/10 p-2"
         >
           <ArrowRight size={20} />
@@ -62,7 +67,7 @@ const LoansCreditsCard = ({ loans, totalLoanAmount, totalMonthlyPayments }: Loan
         
         <Button
           variant="ghost"
-          onClick={() => navigate('/loans-credits')}
+          onClick={handleNavigateToLoans}
           className="w-full text-white hover:bg-white/10"
         >
           {t('manage_loans_credits')}

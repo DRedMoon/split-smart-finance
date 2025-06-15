@@ -64,3 +64,92 @@ export const calculateCreditPayment = (
     estimatedMonths: months
   };
 };
+
+// Calculate interest rate from payment schedule (reverse engineering)
+export const calculateInterestFromPayments = (
+  principal: number,
+  monthlyPayment: number,
+  managementFee: number,
+  termMonths: number
+): { yearlyRate: number; euriborEstimate: number; marginEstimate: number } => {
+  const actualPayment = monthlyPayment - managementFee;
+  
+  // Use Newton-Raphson method to find the monthly interest rate
+  let monthlyRate = 0.005; // Initial guess (6% annual)
+  const tolerance = 0.0001;
+  const maxIterations = 100;
+  
+  for (let i = 0; i < maxIterations; i++) {
+    // Present value of annuity formula
+    const pv = actualPayment * ((1 - Math.pow(1 + monthlyRate, -termMonths)) / monthlyRate);
+    const derivative = actualPayment * (
+      (termMonths * Math.pow(1 + monthlyRate, -termMonths - 1)) / monthlyRate -
+      ((1 - Math.pow(1 + monthlyRate, -termMonths)) / (monthlyRate * monthlyRate))
+    );
+    
+    const newRate = monthlyRate - (pv - principal) / derivative;
+    
+    if (Math.abs(newRate - monthlyRate) < tolerance) {
+      break;
+    }
+    monthlyRate = Math.max(0, newRate); // Ensure positive rate
+  }
+  
+  const yearlyRate = monthlyRate * 12 * 100;
+  
+  // Estimate Euribor (current market rate ~3.5-4%)
+  const currentEuribor = 3.75;
+  const marginEstimate = Math.max(0, yearlyRate - currentEuribor);
+  
+  return {
+    yearlyRate: yearlyRate,
+    euriborEstimate: currentEuribor,
+    marginEstimate: marginEstimate
+  };
+};
+
+// Calculate amortization schedule
+export const calculateAmortizationSchedule = (
+  principal: number,
+  yearlyRate: number,
+  managementFee: number,
+  termMonths: number
+): Array<{
+  month: number;
+  principalPayment: number;
+  interestPayment: number;
+  managementFee: number;
+  totalPayment: number;
+  remainingBalance: number;
+}> => {
+  const monthlyRate = yearlyRate / 12 / 100;
+  const monthlyPayment = (principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / 
+                        (Math.pow(1 + monthlyRate, termMonths) - 1);
+  
+  const schedule = [];
+  let remainingBalance = principal;
+  
+  for (let month = 1; month <= termMonths; month++) {
+    const interestPayment = remainingBalance * monthlyRate;
+    const principalPayment = monthlyPayment - interestPayment;
+    
+    remainingBalance -= principalPayment;
+    
+    // Ensure we don't go negative on the last payment
+    if (remainingBalance < 0) {
+      const adjustment = Math.abs(remainingBalance);
+      remainingBalance = 0;
+    }
+    
+    schedule.push({
+      month,
+      principalPayment: Math.round(principalPayment * 100) / 100,
+      interestPayment: Math.round(interestPayment * 100) / 100,
+      managementFee: managementFee,
+      totalPayment: Math.round((monthlyPayment + managementFee) * 100) / 100,
+      remainingBalance: Math.round(remainingBalance * 100) / 100
+    });
+  }
+  
+  return schedule;
+};
