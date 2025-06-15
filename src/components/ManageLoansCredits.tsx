@@ -30,8 +30,8 @@ const ManageLoansCredits = () => {
       setFinancialData(updatedData);
       
       toast({
-        title: 'Deleted',
-        description: `${loanName} has been removed`
+        title: 'Poistettu',
+        description: `${loanName} on poistettu`
       });
     }
   };
@@ -46,22 +46,19 @@ const ManageLoansCredits = () => {
         <Button variant="ghost" size="sm" onClick={() => navigate('/loans-credits')} className="text-white hover:bg-white/10">
           <ArrowLeft size={20} />
         </Button>
-        <h1 className="text-2xl font-bold text-white">{t('manage_loans_credits')}</h1>
+        <h1 className="text-2xl font-bold text-white">Hallitse lainoja ja luottoja</h1>
       </div>
 
       <div className="space-y-4">
         {loans.length === 0 ? (
           <Card className="bg-[#294D73] border-none">
             <CardContent className="p-8 text-center">
-              <p className="text-white/70">{t('no_loans_credits')}</p>
+              <p className="text-white/70">Ei lainoja tai luottoja</p>
             </CardContent>
           </Card>
         ) : (
           loans.map((loan) => {
             const isCredit = loan.remaining === 'Credit Card';
-            // Use the user's stored values directly - don't recalculate
-            const totalPayback = loan.totalPayback || 0;
-            const totalInterest = totalPayback - loan.currentAmount;
             
             return (
               <Card key={loan.id} className="bg-[#294D73] border-none">
@@ -70,7 +67,7 @@ const ManageLoansCredits = () => {
                     <div className="flex items-center space-x-2">
                       <span>{loan.name}</span>
                       <span className="text-xs bg-white/20 px-2 py-1 rounded">
-                        {isCredit ? t('credit_card') : t('loan')}
+                        {isCredit ? 'Luottokortti' : 'Laina'}
                       </span>
                     </div>
                     <div className="flex space-x-2">
@@ -97,45 +94,45 @@ const ManageLoansCredits = () => {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-white/70">
-                        {isCredit ? t('credit_limit') : t('total_amount')}
+                        {isCredit ? 'Luottoraja' : 'Kokonaissumma'}
                       </p>
                       <p className="text-white font-medium">€{loan.totalAmount.toFixed(2)}</p>
                     </div>
                     <div>
                       <p className="text-white/70">
-                        {isCredit ? t('used_credit') : t('current_amount')}
+                        {isCredit ? 'Käytetty luotto' : 'Nykyinen summa'}
                       </p>
                       <p className="text-white font-medium">€{loan.currentAmount.toFixed(2)}</p>
                     </div>
                     <div>
-                      <p className="text-white/70">{t('monthly_payment')}</p>
+                      <p className="text-white/70">Kuukausimaksu</p>
                       <p className="text-white font-medium">€{loan.monthly.toFixed(2)}</p>
                     </div>
                     <div>
-                      <p className="text-white/70">{t('interest_rate')}</p>
+                      <p className="text-white/70">Korko</p>
                       <p className="text-white font-medium">{loan.rate.toFixed(2)}%</p>
                     </div>
                     <div>
-                      <p className="text-white/70">{t('due_date')}</p>
+                      <p className="text-white/70">Eräpäivä</p>
                       <p className="text-white font-medium">{loan.dueDate}</p>
                     </div>
                     <div>
-                      <p className="text-white/70">{t('remaining')}</p>
+                      <p className="text-white/70">Jäljellä</p>
                       <p className="text-white font-medium">{loan.remaining}</p>
                     </div>
                   </div>
                   
-                  {totalPayback > 0 && (
+                  {loan.totalPayback && loan.totalPayback > 0 && (
                     <div className="border-t border-white/20 pt-3 mt-3">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <p className="text-white/70">{t('total_payback')}</p>
-                          <p className="text-white font-bold">€{totalPayback.toFixed(2)}</p>
+                          <p className="text-white/70">Kokonaismaksu</p>
+                          <p className="text-white font-bold">€{loan.totalPayback.toFixed(2)}</p>
                         </div>
                         <div>
-                          <p className="text-white/70">{t('total_interest')}</p>
+                          <p className="text-white/70">Kokonaiskorko</p>
                           <p className="text-white font-medium text-red-300">
-                            €{totalInterest.toFixed(2)}
+                            €{(loan.totalPayback - loan.currentAmount).toFixed(2)}
                           </p>
                         </div>
                       </div>

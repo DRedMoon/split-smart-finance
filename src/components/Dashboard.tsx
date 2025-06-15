@@ -27,13 +27,18 @@ const Dashboard = () => {
     };
   }, []);
 
-  // Handle returnTo navigation parameter - fixed to navigate directly
+  // Handle returnTo navigation parameter - FIXED VERSION
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const returnTo = urlParams.get('returnTo');
     
     if (returnTo) {
-      // Navigate carousel to the correct view with proper delay and direct navigation
+      console.log('Dashboard returnTo parameter detected:', returnTo);
+      
+      // Clear URL immediately to prevent re-triggering
+      navigate('/', { replace: true });
+      
+      // Navigate carousel to the correct view with proper delay
       const timer = setTimeout(() => {
         const carousel = document.querySelector('[data-dashboard-carousel]');
         if (carousel) {
@@ -41,22 +46,21 @@ const Dashboard = () => {
                            returnTo === 'loans-credits' ? 1 : 
                            returnTo === 'monthly-payments' ? 2 : 0;
           
-          // Use the carousel API directly instead of custom event
+          console.log('Navigating to carousel index:', viewIndex);
+          
+          // Use the carousel API directly
           const emblaApi = (carousel as any).__emblaApi__;
           if (emblaApi) {
             emblaApi.scrollTo(viewIndex);
           } else {
-            // Fallback to custom event if API not available
+            // Fallback to custom event
             const event = new CustomEvent('navigate-dashboard', {
               detail: { index: viewIndex }
             });
             carousel.dispatchEvent(event);
           }
         }
-      }, 200); // Increased delay to ensure carousel is fully loaded
-      
-      // Clean up URL
-      navigate('/', { replace: true });
+      }, 100); // Reduced delay
       
       return () => clearTimeout(timer);
     }
@@ -68,7 +72,6 @@ const Dashboard = () => {
   const loans = data?.loans || [];
   const recentTransactions = data?.transactions?.slice(0, 3) || [];
   
-  // DON'T filter out loan payments - include ALL monthly bills
   const monthlyBills = data?.monthlyBills || [];
 
   const totalLoanAmount = loans.reduce((sum, loan) => sum + (loan.currentAmount || 0), 0);
@@ -83,7 +86,6 @@ const Dashboard = () => {
     console.error('Error getting upcoming payments:', error);
   }
 
-  // Filter only for the upcoming week card display, not for monthly bills total
   const filteredWeekPayments = thisWeekPayments.filter(bill => 
     bill.type !== 'laina' && 
     bill.type !== 'luottokortti' && 

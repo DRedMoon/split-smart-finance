@@ -37,8 +37,8 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     if (newPaidStatus) {
       if (data.balance < bill.amount) {
         toast({
-          title: t('insufficient_funds'),
-          description: `${t('balance')}: €${data.balance.toFixed(2)}, ${t('required')}: €${bill.amount.toFixed(2)}`,
+          title: 'Riittämätön saldo',
+          description: `Saldo: €${data.balance.toFixed(2)}, Vaaditaan: €${bill.amount.toFixed(2)}`,
           variant: "destructive"
         });
         return;
@@ -48,16 +48,16 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
       data.balance -= bill.amount;
       
       toast({
-        title: t('payment_processed'),
-        description: `${bill.name} ${t('marked_as_paid')}`
+        title: 'Maksu käsitelty',
+        description: `${bill.name} merkitty maksetuksi`
       });
     } else {
       data.monthlyBills[billIndex].paid = false;
       data.balance += bill.amount;
       
       toast({
-        title: t('payment_reversed'),
-        description: `${bill.name} ${t('marked_as_unpaid')}`
+        title: 'Maksu peruutettu',
+        description: `${bill.name} merkitty maksamattomaksi`
       });
     }
     
@@ -114,7 +114,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
             <span className="text-white text-sm font-medium">{bill.name}</span>
             {isLoanPayment && (
               <span className="text-xs bg-red-500/30 px-1 py-0.5 rounded text-red-200">
-                {bill.category === 'Credit Card' ? 'Credit' : 'Loan'}
+                {bill.category === 'Credit Card' ? 'Luotto' : 'Laina'}
               </span>
             )}
           </div>
@@ -129,7 +129,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-white text-lg flex items-center space-x-2">
           <Calendar size={20} />
-          <span>{t('monthly_payments')}</span>
+          <span>Kuukausimaksut</span>
         </CardTitle>
         <Button
           variant="ghost"
@@ -145,11 +145,11 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
         <div className="mb-4">
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <p className="text-white/70 text-sm">{t('total_bills')}</p>
+              <p className="text-white/70 text-sm">Laskut yhteensä</p>
               <p className="text-white font-semibold">€{totalRegularAmount.toFixed(2)}</p>
             </div>
             <div>
-              <p className="text-white/70 text-sm">{t('paid')}</p>
+              <p className="text-white/70 text-sm">Maksettu</p>
               <p className="text-green-400 font-semibold">€{paidRegularAmount.toFixed(2)}</p>
             </div>
           </div>
@@ -163,7 +163,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
                   onClick={() => setShowAllRegular(!showAllRegular)}
                   className="w-full text-white/70 hover:text-white hover:bg-white/10 text-sm"
                 >
-                  {showAllRegular ? t('show_less') : `+${regularBills.length - 2} ${t('more')}`}
+                  {showAllRegular ? 'Näytä vähemmän' : `+${regularBills.length - 2} lisää`}
                 </Button>
               )}
             </div>
@@ -176,11 +176,11 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
             <h3 className="text-white font-medium mb-3">Lainat ja luotot</h3>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <p className="text-white/70 text-sm">{t('total_bills')}</p>
+                <p className="text-white/70 text-sm">Laskut yhteensä</p>
                 <p className="text-white font-semibold">€{totalLoanCreditAmount.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-white/70 text-sm">{t('paid')}</p>
+                <p className="text-white/70 text-sm">Maksettu</p>
                 <p className="text-green-400 font-semibold">€{paidLoanCreditAmount.toFixed(2)}</p>
               </div>
             </div>
@@ -193,7 +193,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
                   onClick={() => setShowAllLoanCredit(!showAllLoanCredit)}
                   className="w-full text-white/70 hover:text-white hover:bg-white/10 text-sm"
                 >
-                  {showAllLoanCredit ? t('show_less') : `+${loanCreditPayments.length - 2} ${t('more')}`}
+                  {showAllLoanCredit ? 'Näytä vähemmän' : `+${loanCreditPayments.length - 2} lisää`}
                 </Button>
               )}
             </div>
@@ -205,7 +205,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
           onClick={handleNavigateToMonthlyPayments}
           className="w-full text-white hover:bg-white/10"
         >
-          {t('view_all_payments')}
+          Näytä kaikki maksut
           <ArrowRight size={16} className="ml-2" />
         </Button>
       </CardContent>

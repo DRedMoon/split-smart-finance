@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,80 +15,86 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
   const { t } = useLanguage();
 
   const handleNumberInput = (field: string, value: string) => {
-    // Allow empty string, numbers with decimals starting with dot
-    if (value === '' || /^\.?\d*\.?\d*$/.test(value)) {
-      const numValue = value === '' || value === '.' ? 0 : parseFloat(value) || 0;
+    // Allow empty string, numbers with decimals, commas, and dots
+    if (value === '' || /^[0-9]*[.,]?[0-9]*$/.test(value)) {
+      // Convert comma to dot for calculation but keep original display
+      const normalizedValue = value.replace(',', '.');
+      const numValue = value === '' || value === '.' || value === ',' ? 0 : parseFloat(normalizedValue) || 0;
       setLoanData(prev => ({ ...prev, [field]: numValue }));
     }
+  };
+
+  const formatDisplayValue = (value: number) => {
+    return value === 0 ? '' : value.toString();
   };
 
   return (
     <>
       <div>
         <Label htmlFor="loan-name" className="text-white">
-          {isCredit ? t('credit_card_name') : t('loan_name')}
+          {isCredit ? 'Luottokortin nimi' : 'Lainan nimi'}
         </Label>
         <Input
           id="loan-name"
           value={loanData.name}
           onChange={(e) => setLoanData(prev => ({ ...prev, name: e.target.value }))}
           className="bg-white/10 border-white/20 text-white mt-2"
-          placeholder={isCredit ? t('credit_card_name') : t('loan_name')}
+          placeholder={isCredit ? 'Luottokortin nimi' : 'Lainan nimi'}
         />
       </div>
       
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="total-amount" className="text-white">
-            {isCredit ? t('credit_limit') : t('total_loan_amount')}
+            {isCredit ? 'Luottoraja' : 'Lainan kokonaissumma'}
           </Label>
           <Input
             id="total-amount"
             type="text"
-            value={loanData.totalAmount === 0 ? '' : loanData.totalAmount.toString()}
+            value={formatDisplayValue(loanData.totalAmount)}
             onChange={(e) => handleNumberInput('totalAmount', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
-            placeholder="15000.00"
+            placeholder="15000,00"
           />
         </div>
         
         <div>
           <Label htmlFor="current-amount" className="text-white">
-            {isCredit ? t('used_credit') : t('amount_left_to_pay')}
+            {isCredit ? 'Käytetty luotto' : 'Jäljellä maksettava summa'}
           </Label>
           <Input
             id="current-amount"
             type="text"
-            value={loanData.currentAmount === 0 ? '' : loanData.currentAmount.toString()}
+            value={formatDisplayValue(loanData.currentAmount)}
             onChange={(e) => handleNumberInput('currentAmount', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
-            placeholder="12000.00"
+            placeholder="12000,00"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="monthly-payment" className="text-white">{t('monthly_payment')} (€)</Label>
+          <Label htmlFor="monthly-payment" className="text-white">Kuukausimaksu (€)</Label>
           <Input
             id="monthly-payment"
             type="text"
-            value={loanData.monthly === 0 ? '' : loanData.monthly.toString()}
+            value={formatDisplayValue(loanData.monthly)}
             onChange={(e) => handleNumberInput('monthly', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
-            placeholder="881.15"
+            placeholder="881,15"
           />
         </div>
         
         <div>
-          <Label htmlFor="management-fee" className="text-white">{t('management_fee')} (€)</Label>
+          <Label htmlFor="management-fee" className="text-white">Hoitokulu (€)</Label>
           <Input
             id="management-fee"
             type="text"
-            value={loanData.managementFee === 0 ? '' : loanData.managementFee.toString()}
+            value={formatDisplayValue(loanData.managementFee)}
             onChange={(e) => handleNumberInput('managementFee', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
-            placeholder="2.50"
+            placeholder="2,50"
           />
         </div>
       </div>
@@ -98,38 +103,38 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
         <>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="euribor-rate" className="text-white">Euribor Rate (%)</Label>
+              <Label htmlFor="euribor-rate" className="text-white">Euribor-korko (%)</Label>
               <Input
                 id="euribor-rate"
                 type="text"
-                value={loanData.euriborRate === 0 ? '' : loanData.euriborRate.toString()}
+                value={formatDisplayValue(loanData.euriborRate)}
                 onChange={(e) => handleNumberInput('euriborRate', e.target.value)}
                 className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="3.75"
+                placeholder="3,75"
               />
             </div>
             
             <div>
-              <Label htmlFor="personal-margin" className="text-white">Personal Margin (%)</Label>
+              <Label htmlFor="personal-margin" className="text-white">Henkilökohtainen marginaali (%)</Label>
               <Input
                 id="personal-margin"
                 type="text"
-                value={loanData.personalMargin === 0 ? '' : loanData.personalMargin.toString()}
+                value={formatDisplayValue(loanData.personalMargin)}
                 onChange={(e) => handleNumberInput('personalMargin', e.target.value)}
                 className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="0.50"
+                placeholder="0,50"
               />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="remaining-months" className="text-white">{t('months_left')}</Label>
+            <Label htmlFor="remaining-months" className="text-white">Kuukausia jäljellä</Label>
             <Input
               id="remaining-months"
               value={loanData.remaining}
               onChange={(e) => setLoanData(prev => ({ ...prev, remaining: e.target.value }))}
               className="bg-white/10 border-white/20 text-white mt-2"
-              placeholder="60 months"
+              placeholder="60 kuukautta"
             />
           </div>
         </>
@@ -138,52 +143,52 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
       {isCredit && (
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="credit-interest" className="text-white">{t('yearly_interest')} (%)</Label>
+            <Label htmlFor="credit-interest" className="text-white">Vuosikorko (%)</Label>
             <Input
               id="credit-interest"
               type="text"
-              value={loanData.rate === 0 ? '' : loanData.rate.toString()}
+              value={formatDisplayValue(loanData.rate)}
               onChange={(e) => handleNumberInput('rate', e.target.value)}
               className="bg-white/10 border-white/20 text-white mt-2"
-              placeholder="15.50"
+              placeholder="15,50"
             />
           </div>
           
           <div>
-            <Label htmlFor="minimum-percent" className="text-white">{t('minimum_payment_percent')} (%)</Label>
+            <Label htmlFor="minimum-percent" className="text-white">Vähimmäismaksuprosentti (%)</Label>
             <Input
               id="minimum-percent"
               type="text"
-              value={loanData.minimumPercent === 0 ? '' : loanData.minimumPercent.toString()}
+              value={formatDisplayValue(loanData.minimumPercent)}
               onChange={(e) => handleNumberInput('minimumPercent', e.target.value)}
               className="bg-white/10 border-white/20 text-white mt-2"
-              placeholder="3.0"
+              placeholder="3,0"
             />
           </div>
         </div>
       )}
 
       <div>
-        <Label htmlFor="due-date" className="text-white">{t('due_date')}</Label>
+        <Label htmlFor="due-date" className="text-white">Eräpäivä</Label>
         <Input
           id="due-date"
           value={loanData.dueDate}
           onChange={(e) => setLoanData(prev => ({ ...prev, dueDate: e.target.value }))}
           className="bg-white/10 border-white/20 text-white mt-2"
-          placeholder="15th"
+          placeholder="15."
         />
       </div>
 
       {calculatedValues.estimatedEuribor > 0 && calculatedValues.estimatedMargin > 0.1 && (
         <div className="bg-blue-500/20 p-3 rounded border border-blue-500/30">
-          <p className="text-white text-sm font-medium mb-2">Calculated from your payment data:</p>
+          <p className="text-white text-sm font-medium mb-2">Laskettu maksutiedoistasi:</p>
           <div className="grid grid-cols-2 gap-2 text-xs text-white/80">
             <div>
-              <span>Estimated Euribor: </span>
+              <span>Arvioitu Euribor: </span>
               <span className="font-medium">{calculatedValues.estimatedEuribor.toFixed(2)}%</span>
             </div>
             <div>
-              <span>Estimated Margin: </span>
+              <span>Arvioitu marginaali: </span>
               <span className="font-medium">{calculatedValues.estimatedMargin.toFixed(2)}%</span>
             </div>
           </div>
