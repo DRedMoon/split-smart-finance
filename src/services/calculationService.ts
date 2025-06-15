@@ -75,31 +75,36 @@ export const calculateInterestFromPayments = (
   const actualPayment = monthlyPayment - managementFee;
   
   // Use Newton-Raphson method to find the monthly interest rate
-  let monthlyRate = 0.005; // Initial guess (6% annual)
-  const tolerance = 0.0001;
-  const maxIterations = 100;
+  let monthlyRate = 0.003; // Initial guess (3.6% annual)
+  const tolerance = 0.000001; // Higher precision
+  const maxIterations = 200; // More iterations for better accuracy
   
   for (let i = 0; i < maxIterations; i++) {
-    // Present value of annuity formula
-    const pv = actualPayment * ((1 - Math.pow(1 + monthlyRate, -termMonths)) / monthlyRate);
+    // Present value of annuity formula: PV = PMT * [(1 - (1 + r)^-n) / r]
+    const factor = Math.pow(1 + monthlyRate, -termMonths);
+    const pv = actualPayment * ((1 - factor) / monthlyRate);
+    
+    // Derivative of the present value formula
     const derivative = actualPayment * (
-      (termMonths * Math.pow(1 + monthlyRate, -termMonths - 1)) / monthlyRate -
-      ((1 - Math.pow(1 + monthlyRate, -termMonths)) / (monthlyRate * monthlyRate))
+      (termMonths * factor) / (monthlyRate * (1 + monthlyRate)) -
+      ((1 - factor) / (monthlyRate * monthlyRate))
     );
     
-    const newRate = monthlyRate - (pv - principal) / derivative;
+    const error = pv - principal;
+    const newRate = monthlyRate - error / derivative;
     
     if (Math.abs(newRate - monthlyRate) < tolerance) {
+      monthlyRate = newRate;
       break;
     }
-    monthlyRate = Math.max(0, newRate); // Ensure positive rate
+    monthlyRate = Math.max(0.0001, newRate); // Ensure positive rate with minimum
   }
   
   const yearlyRate = monthlyRate * 12 * 100;
   
-  // Estimate Euribor (current market rate ~3.5-4%)
+  // Current Euribor is around 3.5-3.8%
   const currentEuribor = 3.75;
-  const marginEstimate = Math.max(0, yearlyRate - currentEuribor);
+  const marginEstimate = Math.max(0.1, yearlyRate - currentEuribor); // Minimum 0.1% margin
   
   return {
     yearlyRate: yearlyRate,
