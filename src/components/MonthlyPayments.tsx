@@ -1,20 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Settings } from 'lucide-react';
+import { ArrowLeft, Plus, Settings, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
 import PaymentItem from './payments/PaymentItem';
-import PaymentSummary from './payments/PaymentSummary';
 
 const MonthlyPayments = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { toast } = useToast();
   const [financialData, setFinancialData] = useState(null);
+  const [showAllPayments, setShowAllPayments] = useState(false);
 
   useEffect(() => {
     const data = loadFinancialData();
@@ -108,7 +108,20 @@ const MonthlyPayments = () => {
     return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
   }
 
-  const sortedBills = [...(financialData.monthlyBills || [])].sort((a, b) => {
+  // Separate loan/credit payments from regular bills
+  const loanCreditPayments = (financialData.monthlyBills || []).filter(bill => 
+    bill.category === 'Loan' || bill.category === 'Credit Card' || 
+    bill.type === 'laina' || bill.type === 'luottokortti' ||
+    bill.type === 'loan_payment' || bill.type === 'credit_payment'
+  );
+
+  const regularBills = (financialData.monthlyBills || []).filter(bill => 
+    bill.category !== 'Loan' && bill.category !== 'Credit Card' && 
+    bill.type !== 'laina' && bill.type !== 'luottokortti' &&
+    bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
+  );
+
+  const sortBills = (bills) => bills.sort((a, b) => {
     // Paid bills go to bottom
     if (a.isPaid !== b.isPaid) {
       return a.isPaid ? 1 : -1;
@@ -116,6 +129,21 @@ const MonthlyPayments = () => {
     // Sort by due date
     return parseInt(a.dueDate) - parseInt(b.dueDate);
   });
+
+  const sortedLoanCredit = sortBills([...loanCreditPayments]);
+  const sortedRegular = sortBills([...regularBills]);
+
+  // Calculate totals
+  const totalRegular = regularBills.reduce((sum, bill) => sum + bill.amount, 0);
+  const paidRegular = regularBills.filter(bill => bill.isPaid).reduce((sum, bill) => sum + bill.amount, 0);
+  const remainingRegular = totalRegular - paidRegular;
+
+  const totalLoanCredit = loanCreditPayments.reduce((sum, bill) => sum + bill.amount, 0);
+  const paidLoanCredit = loanCreditPayments.filter(bill => bill.isPaid).reduce((sum, bill) => sum + bill.amount, 0);
+  const remainingLoanCredit = totalLoanCredit - paidLoanCredit;
+
+  const displayedRegular = showAllPayments ? sortedRegular : sortedRegular.slice(0, 2);
+  const hasMoreRegular = sortedRegular.length > 2;
 
   return (
     <div className="p-4 pb-20 bg-[#192E45] min-h-screen max-w-md mx-auto">
@@ -142,26 +170,113 @@ const MonthlyPayments = () => {
         </div>
       </div>
 
-      <PaymentSummary bills={financialData.monthlyBills || []} />
+      {/* Summary Cards */}
+      <div className="space-y-4 mb-6">
+        {/* Regular Bills Summary */}
+        <Card className="bg-[#1a4a6b] border-none">
+          <CardContent className="p-4">
+            <h3 className="text-white font-medium mb-3">{t('monthly_summary')}</h3>
+            <div className="space-y-2 text-white text-sm">
+              <div className="flex justify-between">
+                <span>{t('total_monthly')}:</span>
+                <span className="font-bold">€{totalRegular.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{t('paid')}:</span>
+                <span className="font-bold text-green-400">€{paidRegular.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{t('remaining')}:</span>
+                <span className="font-bold text-red-300">€{remainingRegular.toFixed(2)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Bills List */}
-      <div className="space-y-4">
-        {sortedBills.length === 0 ? (
-          <Card className="bg-[#294D73] border-none">
-            <CardContent className="p-6 text-center text-white/70">
-              {t('no_monthly_payments')}
+        {/* Loan/Credit Summary */}
+        {totalLoanCredit > 0 && (
+          <Card className="bg-[#1a4a6b] border-none">
+            <CardContent className="p-4">
+              <h3 className="text-white font-medium mb-3">Lainat ja luotot</h3>
+              <div className="space-y-2 text-white text-sm">
+                <div className="flex justify-between">
+                  <span>Yhteensä kuukausittain:</span>
+                  <span className="font-bold">€{totalLoanCredit.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{t('paid')}:</span>
+                  <span className="font-bold text-green-400">€{paidLoanCredit.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{t('remaining')}:</span>
+                  <span className="font-bold text-red-300">€{remainingLoanCredit.toFixed(2)}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
-        ) : (
-          sortedBills.map((bill) => (
-            <PaymentItem
-              key={bill.id}
-              bill={bill}
-              onTogglePaid={handleTogglePaid}
-              getDaysUntilDue={getDaysUntilDue}
-            />
-          ))
         )}
+      </div>
+
+      {/* Loan/Credit Payments */}
+      {sortedLoanCredit.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-white text-lg font-semibold mb-4">Lainat ja luotot</h2>
+          <div className="space-y-4">
+            {sortedLoanCredit.map((bill) => (
+              <PaymentItem
+                key={bill.id}
+                bill={bill}
+                onTogglePaid={handleTogglePaid}
+                getDaysUntilDue={getDaysUntilDue}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Regular Monthly Payments */}
+      <div>
+        <h2 className="text-white text-lg font-semibold mb-4">{t('monthly_payments')}</h2>
+        <div className="space-y-4">
+          {displayedRegular.length === 0 ? (
+            <Card className="bg-[#294D73] border-none">
+              <CardContent className="p-6 text-center text-white/70">
+                {t('no_monthly_payments')}
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {displayedRegular.map((bill) => (
+                <PaymentItem
+                  key={bill.id}
+                  bill={bill}
+                  onTogglePaid={handleTogglePaid}
+                  getDaysUntilDue={getDaysUntilDue}
+                />
+              ))}
+              
+              {hasMoreRegular && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowAllPayments(!showAllPayments)}
+                  className="w-full text-white/70 hover:text-white hover:bg-white/10"
+                >
+                  {showAllPayments ? (
+                    <>
+                      <ChevronUp size={16} className="mr-2" />
+                      {t('show_less')}
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown size={16} className="mr-2" />
+                      +{sortedRegular.length - 2} {t('more')}
+                    </>
+                  )}
+                </Button>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
