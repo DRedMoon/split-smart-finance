@@ -40,21 +40,35 @@ const AddLoan = () => {
 
   const [isCredit, setIsCredit] = useState(false);
 
+  // Helper function to convert string values to numbers
+  const getNumericValue = (value: number | string): number => {
+    if (typeof value === 'string') {
+      if (value === '' || value === '.' || value === ',') return 0;
+      const normalizedValue = value.replace(',', '.');
+      return parseFloat(normalizedValue) || 0;
+    }
+    return value || 0;
+  };
+
   // Calculate rates from payment data when monthly payment is provided
   useEffect(() => {
-    if (loanData.totalAmount > 0 && loanData.monthly > 0 && loanData.remaining && !isCredit) {
+    const totalAmount = getNumericValue(loanData.totalAmount);
+    const monthly = getNumericValue(loanData.monthly);
+    const managementFee = getNumericValue(loanData.managementFee);
+    
+    if (totalAmount > 0 && monthly > 0 && loanData.remaining && !isCredit) {
       const termMonths = parseInt(loanData.remaining.match(/\d+/)?.[0] || '0');
       if (termMonths > 0) {
         const calculation = calculateInterestFromPayments(
-          loanData.totalAmount,
-          loanData.monthly,
-          loanData.managementFee || 0,
+          totalAmount,
+          monthly,
+          managementFee,
           termMonths
         );
         
         setCalculatedValues({
-          monthlyPayment: loanData.monthly,
-          totalPayback: loanData.monthly * termMonths,
+          monthlyPayment: monthly,
+          totalPayback: monthly * termMonths,
           yearlyRate: calculation.yearlyRate,
           estimatedEuribor: calculation.euriborEstimate,
           estimatedMargin: calculation.marginEstimate
@@ -64,7 +78,10 @@ const AddLoan = () => {
   }, [loanData.totalAmount, loanData.monthly, loanData.managementFee, loanData.remaining, isCredit]);
 
   const handleAddLoan = () => {
-    if (!loanData.name || loanData.totalAmount === 0 || loanData.monthly === 0) {
+    const totalAmount = getNumericValue(loanData.totalAmount);
+    const monthly = getNumericValue(loanData.monthly);
+    
+    if (!loanData.name || totalAmount === 0 || monthly === 0) {
       toast({
         title: t('error'),
         description: t('fill_required_fields'),
@@ -74,24 +91,24 @@ const AddLoan = () => {
     }
 
     const termMonths = parseInt(loanData.remaining.match(/\d+/)?.[0] || '0');
-    const totalPayback = loanData.monthly * termMonths;
+    const totalPayback = monthly * termMonths;
 
-    // Store exactly what the user entered - don't override with calculated values
+    // Store exactly what the user entered - convert string values to numbers for storage
     const loanToAdd = {
       name: loanData.name,
-      totalAmount: loanData.totalAmount,
-      currentAmount: loanData.currentAmount || loanData.totalAmount,
-      monthly: loanData.monthly,
-      rate: loanData.rate, // Use user's input, not calculated
-      euriborRate: loanData.euriborRate, // Use user's input
-      personalMargin: loanData.personalMargin, // Use user's input
-      managementFee: loanData.managementFee || 0,
-      minimumPercent: loanData.minimumPercent || 3,
+      totalAmount: totalAmount,
+      currentAmount: getNumericValue(loanData.currentAmount) || totalAmount,
+      monthly: monthly,
+      rate: getNumericValue(loanData.rate),
+      euriborRate: getNumericValue(loanData.euriborRate),
+      personalMargin: getNumericValue(loanData.personalMargin),
+      managementFee: getNumericValue(loanData.managementFee),
+      minimumPercent: getNumericValue(loanData.minimumPercent) || 3,
       remaining: isCredit ? 'Credit Card' : loanData.remaining,
       dueDate: loanData.dueDate,
       lastPayment: new Date().toISOString().split('T')[0],
       totalPayback: totalPayback,
-      yearlyInterestRate: loanData.rate // Use user's rate input
+      yearlyInterestRate: getNumericValue(loanData.rate)
     };
 
     console.log('AddLoan - Storing loan data:', loanToAdd);
@@ -99,7 +116,7 @@ const AddLoan = () => {
     
     toast({
       title: t('loan_added'),
-      description: `${loanData.name}: €${loanData.totalAmount.toFixed(2)}`
+      description: `${loanData.name}: €${totalAmount.toFixed(2)}`
     });
 
     navigate('/loans-credits');
