@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -7,6 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { loadFinancialData, getThisWeekUpcomingPayments, type FinancialData } from '@/services/storageService';
+
+// Normalize payment type to have consistent properties
+type NormalizedPayment = {
+  id: string | number;
+  name: string;
+  amount: number;
+  dueDate: string;
+  type: string;
+  category?: string;
+  isPaid: boolean;
+};
 
 const UpcomingPayments = () => {
   const navigate = useNavigate();
@@ -21,7 +31,7 @@ const UpcomingPayments = () => {
     setFinancialData(data);
   }, []);
 
-  const getUpcomingPayments = (view: 'week' | 'month' | 'all') => {
+  const getUpcomingPayments = (view: 'week' | 'month' | 'all'): NormalizedPayment[] => {
     if (!financialData?.monthlyBills) return [];
 
     const today = new Date();
@@ -35,11 +45,20 @@ const UpcomingPayments = () => {
         endDate = new Date(currentYear, currentMonth + 1, 0); // Last day of current month
         break;
       case 'all':
-        return financialData.monthlyBills.filter(bill => !bill.isPaid);
+        return financialData.monthlyBills
+          .filter(bill => !bill.paid)
+          .map(bill => ({
+            id: bill.id,
+            name: bill.name,
+            amount: bill.amount,
+            dueDate: bill.dueDate,
+            type: bill.type,
+            isPaid: bill.paid
+          }));
     }
 
     return financialData.monthlyBills.filter(bill => {
-      if (bill.isPaid) return false;
+      if (bill.paid) return false;
       
       const dayMatch = bill.dueDate.match(/\d+/);
       if (!dayMatch) return false;
@@ -52,17 +71,24 @@ const UpcomingPayments = () => {
       }
       
       return dueDate >= today && dueDate <= endDate;
-    });
+    }).map(bill => ({
+      id: bill.id,
+      name: bill.name,
+      amount: bill.amount,
+      dueDate: bill.dueDate,
+      type: bill.type,
+      isPaid: bill.paid
+    }));
   };
 
-  const getNextMonthPayments = () => {
+  const getNextMonthPayments = (): NormalizedPayment[] => {
     if (!financialData) return [];
     
     const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
     const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
     
     // Include loan/credit payments that still have amounts remaining
-    const loanPayments = (financialData.loans || [])
+    const loanPayments: NormalizedPayment[] = (financialData.loans || [])
       .filter(loan => loan.currentAmount > 0)
       .map(loan => ({
         id: `loan-${loan.id}`,
@@ -75,10 +101,19 @@ const UpcomingPayments = () => {
       }));
 
     // Regular monthly bills
-    const regularBills = (financialData.monthlyBills || []).filter(bill => 
-      bill.type !== 'laina' && bill.type !== 'luottokortti' && 
-      bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
-    );
+    const regularBills: NormalizedPayment[] = (financialData.monthlyBills || [])
+      .filter(bill => 
+        bill.type !== 'laina' && bill.type !== 'luottokortti' && 
+        bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
+      )
+      .map(bill => ({
+        id: bill.id,
+        name: bill.name,
+        amount: bill.amount,
+        dueDate: bill.dueDate,
+        type: bill.type,
+        isPaid: bill.paid
+      }));
 
     return [...loanPayments, ...regularBills];
   };
@@ -203,9 +238,11 @@ const UpcomingPayments = () => {
                 <div>
                   <div className="font-medium text-white">{bill.name}</div>
                   <div className="text-sm text-white/70">{t('due')} {bill.dueDate}</div>
-                  <Badge variant="outline" className="text-xs border-red-300 text-red-300 mt-1">
-                    {bill.category}
-                  </Badge>
+                  {bill.category && (
+                    <Badge variant="outline" className="text-xs border-red-300 text-red-300 mt-1">
+                      {bill.category}
+                    </Badge>
+                  )}
                 </div>
                 <div className="font-bold text-red-300">€{bill.amount.toFixed(2)}</div>
               </div>
