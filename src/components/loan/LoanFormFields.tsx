@@ -15,6 +15,14 @@ interface LoanFormFieldsProps {
 const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: LoanFormFieldsProps) => {
   const { t } = useLanguage();
 
+  const handleNumberInput = (field: string, value: string) => {
+    // Allow empty string, numbers with decimals starting with dot
+    if (value === '' || /^\.?\d*\.?\d*$/.test(value)) {
+      const numValue = value === '' || value === '.' ? 0 : parseFloat(value) || 0;
+      setLoanData(prev => ({ ...prev, [field]: numValue }));
+    }
+  };
+
   return (
     <>
       <div>
@@ -37,10 +45,9 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           </Label>
           <Input
             id="total-amount"
-            type="number"
-            step="0.01"
-            value={loanData.totalAmount || ''}
-            onChange={(e) => setLoanData(prev => ({ ...prev, totalAmount: parseFloat(e.target.value) || 0 }))}
+            type="text"
+            value={loanData.totalAmount === 0 ? '' : loanData.totalAmount.toString()}
+            onChange={(e) => handleNumberInput('totalAmount', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
             placeholder="15000.00"
           />
@@ -52,10 +59,9 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           </Label>
           <Input
             id="current-amount"
-            type="number"
-            step="0.01"
-            value={loanData.currentAmount || ''}
-            onChange={(e) => setLoanData(prev => ({ ...prev, currentAmount: parseFloat(e.target.value) || 0 }))}
+            type="text"
+            value={loanData.currentAmount === 0 ? '' : loanData.currentAmount.toString()}
+            onChange={(e) => handleNumberInput('currentAmount', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
             placeholder="12000.00"
           />
@@ -67,10 +73,9 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           <Label htmlFor="monthly-payment" className="text-white">{t('monthly_payment')} (€)</Label>
           <Input
             id="monthly-payment"
-            type="number"
-            step="0.01"
-            value={loanData.monthly || ''}
-            onChange={(e) => setLoanData(prev => ({ ...prev, monthly: parseFloat(e.target.value) || 0 }))}
+            type="text"
+            value={loanData.monthly === 0 ? '' : loanData.monthly.toString()}
+            onChange={(e) => handleNumberInput('monthly', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
             placeholder="881.15"
           />
@@ -80,10 +85,9 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           <Label htmlFor="management-fee" className="text-white">{t('management_fee')} (€)</Label>
           <Input
             id="management-fee"
-            type="number"
-            step="0.01"
-            value={loanData.managementFee || ''}
-            onChange={(e) => setLoanData(prev => ({ ...prev, managementFee: parseFloat(e.target.value) || 0 }))}
+            type="text"
+            value={loanData.managementFee === 0 ? '' : loanData.managementFee.toString()}
+            onChange={(e) => handleNumberInput('managementFee', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
             placeholder="2.50"
           />
@@ -97,10 +101,9 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
               <Label htmlFor="euribor-rate" className="text-white">Euribor Rate (%)</Label>
               <Input
                 id="euribor-rate"
-                type="number"
-                step="0.01"
-                value={loanData.euriborRate || ''}
-                onChange={(e) => setLoanData(prev => ({ ...prev, euriborRate: parseFloat(e.target.value) || 0 }))}
+                type="text"
+                value={loanData.euriborRate === 0 ? '' : loanData.euriborRate.toString()}
+                onChange={(e) => handleNumberInput('euriborRate', e.target.value)}
                 className="bg-white/10 border-white/20 text-white mt-2"
                 placeholder="3.75"
               />
@@ -110,10 +113,9 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
               <Label htmlFor="personal-margin" className="text-white">Personal Margin (%)</Label>
               <Input
                 id="personal-margin"
-                type="number"
-                step="0.01"
-                value={loanData.personalMargin || ''}
-                onChange={(e) => setLoanData(prev => ({ ...prev, personalMargin: parseFloat(e.target.value) || 0 }))}
+                type="text"
+                value={loanData.personalMargin === 0 ? '' : loanData.personalMargin.toString()}
+                onChange={(e) => handleNumberInput('personalMargin', e.target.value)}
                 className="bg-white/10 border-white/20 text-white mt-2"
                 placeholder="0.50"
               />
@@ -139,10 +141,9 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
             <Label htmlFor="credit-interest" className="text-white">{t('yearly_interest')} (%)</Label>
             <Input
               id="credit-interest"
-              type="number"
-              step="0.01"
-              value={loanData.rate || ''}
-              onChange={(e) => setLoanData(prev => ({ ...prev, rate: parseFloat(e.target.value) || 0 }))}
+              type="text"
+              value={loanData.rate === 0 ? '' : loanData.rate.toString()}
+              onChange={(e) => handleNumberInput('rate', e.target.value)}
               className="bg-white/10 border-white/20 text-white mt-2"
               placeholder="15.50"
             />
@@ -152,10 +153,9 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
             <Label htmlFor="minimum-percent" className="text-white">{t('minimum_payment_percent')} (%)</Label>
             <Input
               id="minimum-percent"
-              type="number"
-              step="0.1"
-              value={loanData.minimumPercent || ''}
-              onChange={(e) => setLoanData(prev => ({ ...prev, minimumPercent: parseFloat(e.target.value) || 3 }))}
+              type="text"
+              value={loanData.minimumPercent === 0 ? '' : loanData.minimumPercent.toString()}
+              onChange={(e) => handleNumberInput('minimumPercent', e.target.value)}
               className="bg-white/10 border-white/20 text-white mt-2"
               placeholder="3.0"
             />
@@ -174,7 +174,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
         />
       </div>
 
-      {calculatedValues.estimatedEuribor > 0 && (
+      {calculatedValues.estimatedEuribor > 0 && calculatedValues.estimatedMargin > 0.1 && (
         <div className="bg-blue-500/20 p-3 rounded border border-blue-500/30">
           <p className="text-white text-sm font-medium mb-2">Calculated from your payment data:</p>
           <div className="grid grid-cols-2 gap-2 text-xs text-white/80">

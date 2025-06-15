@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
-import { calculateLoanPayment2, calculateCreditPayment } from '@/services/calculationService';
+import { calculateCreditPayment } from '@/services/calculationService';
 
 const ManageLoansCredits = () => {
   const navigate = useNavigate();
@@ -46,7 +46,7 @@ const ManageLoansCredits = () => {
         return calculation.totalWithInterest;
       }
     } else {
-      // For loans, use user's monthly payment to calculate total payback
+      // For loans, use user's monthly payment and remaining months to calculate total payback
       const termMonths = parseInt(loan.remaining.match(/\d+/)?.[0] || '12');
       if (termMonths > 0 && loan.monthly > 0) {
         return loan.monthly * termMonths;
@@ -148,7 +148,7 @@ const ManageLoansCredits = () => {
                         <div>
                           <p className="text-white/70">{t('total_interest')}</p>
                           <p className="text-white font-medium text-red-300">
-                            €{(totalPayback - loan.totalAmount).toFixed(2)}
+                            €{(totalPayback - loan.currentAmount).toFixed(2)}
                           </p>
                         </div>
                       </div>
