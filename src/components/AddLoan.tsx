@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Calculator } from 'lucide-react';
@@ -72,7 +71,9 @@ const AddLoan = () => {
       managementFee: loanData.managementFee || 0,
       remaining: loanData.remaining,
       dueDate: loanData.dueDate,
-      lastPayment: new Date().toISOString().split('T')[0]
+      lastPayment: new Date().toISOString().split('T')[0],
+      totalPayback: calculatedValues.totalPayback,
+      yearlyInterestRate: calculatedValues.estimatedEuribor
     };
 
     addLoan(loanToAdd);

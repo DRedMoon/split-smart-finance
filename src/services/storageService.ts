@@ -1,3 +1,4 @@
+
 // Re-export all services from modular files
 export * from './types';
 export * from './dataService';
@@ -6,60 +7,19 @@ export * from './transactionService';
 export * from './loanService';
 export * from './billService';
 
-// Keep legacy functions for backward compatibility
-import { exportFinancialData as exportData, importFinancialData as importData, loadFinancialData, saveFinancialData, getDefaultFinancialData } from './dataService';
+// Import necessary functions
+import { loadFinancialData, saveFinancialData, getDefaultFinancialData } from './dataService';
+import { addTransaction } from './transactionService';
+import { addBill } from './billService';
+import { FinancialData } from './types';
 
-export const exportFinancialData = (password?: string): void => {
-  const data = loadFinancialData();
-  if (data) {
-    let dataToExport = data;
-    
-    if (password) {
-      // Simple encryption for demo - in production use proper encryption
-      dataToExport = {
-        ...data,
-        encrypted: true,
-        password: btoa(password) // Base64 encoding for demo
-      } as any;
-    }
-    
-    const dataStr = JSON.stringify(dataToExport, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `financial-backup-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }
+// Add missing functions
+export const addIncome = (income: Omit<FinancialData['transactions'][0], 'id'>): void => {
+  addTransaction(income);
 };
 
-export const importFinancialData = (file: File, password?: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        let data = JSON.parse(e.target?.result as string);
-        
-        if (data.encrypted && password) {
-          if (data.password !== btoa(password)) {
-            reject(new Error('Invalid password'));
-            return;
-          }
-          delete data.encrypted;
-          delete data.password;
-        }
-        
-        saveFinancialData(data);
-        resolve();
-      } catch (error) {
-        reject(error);
-      }
-    };
-    reader.readAsText(file);
-  });
+export const addMonthlyBill = (bill: Omit<FinancialData['monthlyBills'][0], 'id'>): void => {
+  addBill(bill);
 };
 
 // Store error reports locally
@@ -129,9 +89,6 @@ export const performAutomaticBackup = (): void => {
   }
 };
 
-// Import necessary functions
-import { loadFinancialData, saveFinancialData, getDefaultFinancialData } from './dataService';
-
 // Add function to update/edit categories
 export const updateCategory = (categoryId: number, updates: Partial<FinancialData['categories'][0]>): void => {
   const data = loadFinancialData() || getDefaultFinancialData();
@@ -150,4 +107,35 @@ export const deleteCategory = (categoryId: number): void => {
     data.categories = data.categories.filter(cat => cat.id !== categoryId);
     saveFinancialData(data);
   }
+};
+
+// Get this week's upcoming payments
+export const getThisWeekUpcomingPayments = () => {
+  const data = loadFinancialData();
+  if (!data?.monthlyBills) return [];
+
+  const today = new Date();
+  const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+  
+  return data.monthlyBills.filter(bill => {
+    if (bill.paid) return false;
+    
+    // Parse due date (assuming format like "15th", "1st", etc.)
+    const dayMatch = bill.dueDate.match(/\d+/);
+    if (!dayMatch) return false;
+    
+    const dueDay = parseInt(dayMatch[0]);
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // Create due date for current month
+    const dueDate = new Date(currentYear, currentMonth, dueDay);
+    
+    // If due date has passed this month, check next month
+    if (dueDate < today) {
+      dueDate.setMonth(currentMonth + 1);
+    }
+    
+    return dueDate >= today && dueDate <= nextWeek;
+  });
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Calculator } from 'lucide-react';
@@ -63,7 +62,9 @@ const AddCredit = () => {
       minimumPercent: creditData.minimumPercent,
       remaining: 'Credit Card',
       dueDate: creditData.dueDate,
-      lastPayment: new Date().toISOString().split('T')[0]
+      lastPayment: new Date().toISOString().split('T')[0],
+      totalPayback: calculatedValues.totalWithInterest,
+      yearlyInterestRate: creditData.interest
     };
 
     addLoan(creditToAdd);
