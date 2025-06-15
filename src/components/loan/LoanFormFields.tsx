@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,17 +19,25 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
     console.log('LoanFormFields - Input received:', field, value);
     
     // Allow empty string, numbers, and decimal separators (comma or dot)
+    // More permissive regex that allows partial decimal inputs
     if (value === '' || /^[0-9]*[.,]?[0-9]*$/.test(value)) {
-      // Convert comma to dot for internal calculation
-      const normalizedValue = value.replace(',', '.');
-      const numValue = value === '' || value === '.' || value === ',' ? 0 : parseFloat(normalizedValue) || 0;
-      
-      console.log('LoanFormFields - Setting field:', field, 'value:', numValue);
-      setLoanData(prev => ({ ...prev, [field]: numValue }));
+      // Don't convert to number immediately if it's a partial decimal (ends with . or ,)
+      if (value === '' || value === '.' || value === ',') {
+        console.log('LoanFormFields - Setting field:', field, 'display value:', value);
+        setLoanData(prev => ({ ...prev, [field]: value }));
+      } else {
+        // Convert comma to dot for internal calculation, but keep original for display
+        const normalizedValue = value.replace(',', '.');
+        const numValue = parseFloat(normalizedValue) || 0;
+        
+        console.log('LoanFormFields - Setting field:', field, 'value:', numValue);
+        setLoanData(prev => ({ ...prev, [field]: numValue }));
+      }
     }
   };
 
-  const formatDisplayValue = (value: number) => {
+  const formatDisplayValue = (value: number | string) => {
+    if (typeof value === 'string') return value;
     return value === 0 ? '' : value.toString();
   };
 
