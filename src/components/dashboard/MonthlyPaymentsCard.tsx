@@ -27,7 +27,9 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     if (billIndex === -1) return;
 
     const bill = data.monthlyBills[billIndex];
-    const newPaidStatus = !bill.paid;
+    // Check both 'paid' and 'isPaid' properties for compatibility
+    const currentPaidStatus = bill.paid || bill.isPaid || false;
+    const newPaidStatus = !currentPaidStatus;
 
     if (newPaidStatus) {
       // Check if sufficient balance
@@ -42,6 +44,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
       
       // Mark as paid - deduct from balance
       data.monthlyBills[billIndex].paid = true;
+      data.monthlyBills[billIndex].isPaid = true; // Set both for compatibility
       data.balance -= bill.amount;
       
       toast({
@@ -51,6 +54,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     } else {
       // Mark as unpaid - add back to balance
       data.monthlyBills[billIndex].paid = false;
+      data.monthlyBills[billIndex].isPaid = false; // Set both for compatibility
       data.balance += bill.amount;
       
       toast({
@@ -64,8 +68,10 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
   };
 
   const displayedBills = showAll ? monthlyBills : monthlyBills.slice(0, 2);
-  const paidBills = monthlyBills.filter(bill => bill.paid);
-  const unpaidBills = monthlyBills.filter(bill => !bill.paid);
+  
+  // Calculate paid and unpaid bills using both 'paid' and 'isPaid' properties
+  const paidBills = monthlyBills.filter(bill => bill.paid || bill.isPaid);
+  const unpaidBills = monthlyBills.filter(bill => !(bill.paid || bill.isPaid));
 
   return (
     <Card className="bg-[#294D73] border-none">
@@ -97,24 +103,27 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
         
         {monthlyBills.length > 0 && (
           <div className="space-y-2 mb-4">
-            {displayedBills.map((bill) => (
-              <div key={bill.id} className={`rounded p-2 ${bill.paid ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/10'}`}>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleTogglePaid(bill.id)}
-                      className={`p-1 h-6 w-6 ${bill.paid ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
-                    >
-                      {bill.paid ? <Check size={12} className="text-white" /> : <X size={12} className="text-white" />}
-                    </Button>
-                    <span className="text-white text-sm font-medium">{bill.name}</span>
+            {displayedBills.map((bill) => {
+              const isPaid = bill.paid || bill.isPaid || false;
+              return (
+                <div key={bill.id} className={`rounded p-2 ${isPaid ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/10'}`}>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleTogglePaid(bill.id)}
+                        className={`p-1 h-6 w-6 ${isPaid ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
+                      >
+                        {isPaid ? <Check size={12} className="text-white" /> : <X size={12} className="text-white" />}
+                      </Button>
+                      <span className="text-white text-sm font-medium">{bill.name}</span>
+                    </div>
+                    <span className={`text-sm ${isPaid ? 'text-green-400' : 'text-white/70'}`}>€{bill.amount.toFixed(2)}</span>
                   </div>
-                  <span className={`text-sm ${bill.paid ? 'text-green-400' : 'text-white/70'}`}>€{bill.amount.toFixed(2)}</span>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {monthlyBills.length > 2 && (
               <Button
                 variant="ghost"
