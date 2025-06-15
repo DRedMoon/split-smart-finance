@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
+import DueDatePicker from './DueDatePicker';
 
 interface LoanFormFieldsProps {
   loanData: any;
@@ -26,15 +27,6 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
       // Always store the raw string value to preserve user input during typing
       setLoanData(prev => ({ ...prev, [field]: value }));
     }
-  };
-
-  const getNumericValue = (value: number | string): number => {
-    if (typeof value === 'string') {
-      if (value === '' || value === '.' || value === ',') return 0;
-      const normalizedValue = value.replace(',', '.');
-      return parseFloat(normalizedValue) || 0;
-    }
-    return value || 0;
   };
 
   const formatDisplayValue = (value: number | string) => {
@@ -206,16 +198,12 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
         </div>
       )}
 
-      <div>
-        <Label htmlFor="due-date" className="text-white">Eräpäivä</Label>
-        <Input
-          id="due-date"
-          value={loanData.dueDate}
-          onChange={(e) => setLoanData(prev => ({ ...prev, dueDate: e.target.value }))}
-          className="bg-white/10 border-white/20 text-white mt-2"
-          placeholder="15."
-        />
-      </div>
+      <DueDatePicker
+        value={loanData.dueDate}
+        onChange={(value) => setLoanData(prev => ({ ...prev, dueDate: value }))}
+        label="Eräpäivä"
+        placeholder="Valitse päivä"
+      />
 
       {calculatedValues.estimatedEuribor > 0 && calculatedValues.estimatedMargin > 0.1 && (
         <div className="bg-blue-500/20 p-3 rounded border border-blue-500/30">

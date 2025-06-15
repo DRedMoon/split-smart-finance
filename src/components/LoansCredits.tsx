@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Settings } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { loadFinancialData, calculateLoanPayment2, calculateCreditPayment } from '@/services/storageService';
+import { loadFinancialData } from '@/services/storageService';
 import LoanCard from './loan/LoanCard';
 import LoanSummaryCard from './loan/LoanSummaryCard';
 
@@ -25,47 +26,29 @@ const LoansCredits = () => {
   };
 
   const calculateLoanDetails = (loan) => {
+    // Always use the user's actual monthly payment input, not recalculated values
+    const userMonthlyPayment = loan.monthly || 0;
+    
     if (loan.remaining === 'Credit Card') {
-      if (loan.currentAmount > 0 && loan.rate > 0) {
-        const calculation = calculateCreditPayment(
-          loan.currentAmount,
-          loan.rate,
-          loan.managementFee || 0,
-          loan.minimumPercent || 3
-        );
-        return {
-          monthlyPayment: calculation.monthlyMinimum,
-          totalPayback: calculation.totalWithInterest,
-          interestAmount: calculation.totalWithInterest - loan.currentAmount,
-          remainingMonths: 'N/A'
-        };
-      }
+      // For credit cards, use the user's input
+      return {
+        monthlyPayment: userMonthlyPayment,
+        totalPayback: loan.totalPayback || 0,
+        interestAmount: (loan.totalPayback || 0) - loan.currentAmount,
+        remainingMonths: 'N/A'
+      };
     } else {
-      if (loan.totalAmount > 0 && loan.euriborRate >= 0 && loan.personalMargin >= 0) {
-        const termMonths = parseInt(loan.remaining.match(/\d+/)?.[0] || '12');
-        if (termMonths > 0) {
-          const calculation = calculateLoanPayment2(
-            loan.currentAmount,
-            loan.euriborRate,
-            loan.personalMargin,
-            loan.managementFee || 0,
-            termMonths
-          );
-          return {
-            monthlyPayment: calculation.monthlyPayment,
-            totalPayback: calculation.totalPayback,
-            interestAmount: calculation.totalPayback - loan.currentAmount,
-            remainingMonths: termMonths
-          };
-        }
-      }
+      // For loans, use the user's input and their specified values
+      const termMonths = parseInt(loan.remaining.match(/\d+/)?.[0] || '0');
+      const totalPayback = loan.totalPayback || (userMonthlyPayment * termMonths);
+      
+      return {
+        monthlyPayment: userMonthlyPayment, // Always use user's input
+        totalPayback: totalPayback,
+        interestAmount: totalPayback - loan.currentAmount,
+        remainingMonths: termMonths
+      };
     }
-    return {
-      monthlyPayment: loan.monthly || 0,
-      totalPayback: loan.totalPayback || 0,
-      interestAmount: (loan.totalPayback || 0) - loan.currentAmount,
-      remainingMonths: loan.remaining === 'Credit Card' ? 'N/A' : parseInt(loan.remaining.match(/\d+/)?.[0] || '0')
-    };
   };
 
   if (!financialData) {

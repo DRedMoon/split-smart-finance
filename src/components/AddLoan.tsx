@@ -18,14 +18,14 @@ const AddLoan = () => {
   
   const [loanData, setLoanData] = useState({
     name: '',
-    totalAmount: 0,
-    currentAmount: 0,
-    monthly: 0,
-    rate: 0,
-    euriborRate: 0,
-    personalMargin: 0,
-    managementFee: 0,
-    minimumPercent: 3,
+    totalAmount: '',
+    currentAmount: '',
+    monthly: '',
+    rate: '',
+    euriborRate: '',
+    personalMargin: '',
+    managementFee: '',
+    minimumPercent: '3',
     remaining: '',
     dueDate: ''
   });
@@ -93,25 +93,33 @@ const AddLoan = () => {
     const termMonths = parseInt(loanData.remaining.match(/\d+/)?.[0] || '0');
     const totalPayback = monthly * termMonths;
 
-    // Store exactly what the user entered - convert string values to numbers for storage
+    // Calculate the correct interest rate to store
+    const euriborRate = getNumericValue(loanData.euriborRate);
+    const personalMargin = getNumericValue(loanData.personalMargin);
+    const calculatedRate = euriborRate + personalMargin;
+    const userEnteredRate = getNumericValue(loanData.rate);
+    
+    // Use user's rate if provided, otherwise use calculated rate
+    const finalRate = userEnteredRate > 0 ? userEnteredRate : calculatedRate;
+
     const loanToAdd = {
       name: loanData.name,
       totalAmount: totalAmount,
       currentAmount: getNumericValue(loanData.currentAmount) || totalAmount,
       monthly: monthly,
-      rate: getNumericValue(loanData.rate),
-      euriborRate: getNumericValue(loanData.euriborRate),
-      personalMargin: getNumericValue(loanData.personalMargin),
+      rate: finalRate, // Store the correct rate
+      euriborRate: euriborRate,
+      personalMargin: personalMargin,
       managementFee: getNumericValue(loanData.managementFee),
       minimumPercent: getNumericValue(loanData.minimumPercent) || 3,
       remaining: isCredit ? 'Credit Card' : loanData.remaining,
       dueDate: loanData.dueDate,
       lastPayment: new Date().toISOString().split('T')[0],
       totalPayback: totalPayback,
-      yearlyInterestRate: getNumericValue(loanData.rate)
+      yearlyInterestRate: finalRate // Also store as yearlyInterestRate for compatibility
     };
 
-    console.log('AddLoan - Storing loan data:', loanToAdd);
+    console.log('AddLoan - Storing loan data with correct rate:', loanToAdd);
     addLoan(loanToAdd);
     
     toast({
