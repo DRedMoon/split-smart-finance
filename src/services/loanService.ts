@@ -31,10 +31,43 @@ export const addLoan = (loan: Omit<FinancialData['loans'][0], 'id'>): void => {
   
   addBill(billData);
   
+  // Migrate existing bills to ensure proper categorization
+  migrateBillCategories(data);
+  
   saveFinancialData(data);
   
   // Trigger financial data update event
   window.dispatchEvent(new CustomEvent('financial-data-updated'));
+};
+
+// Migration function to fix existing bills without proper categories
+const migrateBillCategories = (data: FinancialData): void => {
+  if (!data.monthlyBills) return;
+  
+  let migrationNeeded = false;
+  
+  data.monthlyBills.forEach(bill => {
+    // Find matching loan for this bill
+    const matchingLoan = data.loans?.find(loan => loan.name === bill.name);
+    
+    if (matchingLoan) {
+      const isCredit = matchingLoan.remaining === 'Credit Card';
+      const correctType = isCredit ? 'credit_payment' : 'loan_payment';
+      const correctCategory = isCredit ? 'Credit Card' : 'Loan';
+      
+      // Update if categorization is missing or incorrect
+      if (bill.type !== correctType || bill.category !== correctCategory) {
+        bill.type = correctType;
+        bill.category = correctCategory;
+        migrationNeeded = true;
+        console.log('LoanService - Migrated bill:', bill.name, 'to category:', correctCategory);
+      }
+    }
+  });
+  
+  if (migrationNeeded) {
+    console.log('LoanService - Bill categorization migration completed');
+  }
 };
 
 export const updateLoan = (loanId: number, updates: Partial<FinancialData['loans'][0]>): void => {
@@ -59,6 +92,9 @@ export const updateLoan = (loanId: number, updates: Partial<FinancialData['loans
       };
     }
     
+    // Run migration to ensure consistency
+    migrateBillCategories(data);
+    
     saveFinancialData(data);
     window.dispatchEvent(new CustomEvent('financial-data-updated'));
   }
@@ -75,6 +111,16 @@ export const deleteLoan = (loanId: number): void => {
     // Remove corresponding monthly bill
     data.monthlyBills = data.monthlyBills.filter(bill => bill.name !== loan.name);
     
+    saveFinancialData(data);
+    window.dispatchEvent(new CustomEvent('financial-data-updated'));
+  }
+};
+
+// Export migration function for standalone use
+export const migrateExistingBillCategories = (): void => {
+  const data = loadFinancialData();
+  if (data) {
+    migrateBillCategories(data);
     saveFinancialData(data);
     window.dispatchEvent(new CustomEvent('financial-data-updated'));
   }

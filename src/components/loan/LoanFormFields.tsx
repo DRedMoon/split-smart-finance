@@ -10,41 +10,56 @@ interface LoanFormFieldsProps {
   setLoanData: (data: any) => void;
   calculatedValues: any;
   isCredit: boolean;
+  setIsCredit?: (value: boolean) => void;
 }
 
-const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: LoanFormFieldsProps) => {
+const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, setIsCredit }: LoanFormFieldsProps) => {
   const { t } = useLanguage();
 
   const handleNumberInput = (field: string, value: string) => {
     console.log('LoanFormFields - Input received:', field, value);
     
-    // Allow empty string or numbers with comma/dot as decimal separator
+    // Allow empty string, numbers, and decimal separators (comma or dot)
     if (value === '' || /^[0-9]*[.,]?[0-9]*$/.test(value)) {
-      // Convert comma to dot for calculation but keep original display
+      // Convert comma to dot for internal calculation
       const normalizedValue = value.replace(',', '.');
       const numValue = value === '' || value === '.' || value === ',' ? 0 : parseFloat(normalizedValue) || 0;
       
-      console.log('LoanFormFields - Setting field:', field, 'display:', value, 'numeric:', numValue);
-      
-      setLoanData(prev => ({ 
-        ...prev, 
-        [field]: numValue,
-        [`${field}_display`]: value // Store display format separately
-      }));
+      console.log('LoanFormFields - Setting field:', field, 'value:', numValue);
+      setLoanData(prev => ({ ...prev, [field]: numValue }));
     }
   };
 
-  const getDisplayValue = (field: string, value: number) => {
-    const displayField = `${field}_display`;
-    // Use stored display format if available, otherwise convert number to string
-    if (loanData[displayField] !== undefined) {
-      return loanData[displayField];
-    }
+  const formatDisplayValue = (value: number) => {
     return value === 0 ? '' : value.toString();
   };
 
   return (
     <>
+      <div>
+        <Label htmlFor="loan-type" className="text-white">Tyyppi</Label>
+        <Select 
+          value={isCredit ? 'credit' : 'loan'} 
+          onValueChange={(value) => {
+            if (setIsCredit) {
+              setIsCredit(value === 'credit');
+              setLoanData(prev => ({ 
+                ...prev, 
+                remaining: value === 'credit' ? 'Credit Card' : '' 
+              }));
+            }
+          }}
+        >
+          <SelectTrigger className="bg-white/10 border-white/20 text-white mt-2">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="loan">Laina</SelectItem>
+            <SelectItem value="credit">Luottokortti</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div>
         <Label htmlFor="loan-name" className="text-white">
           {isCredit ? 'Luottokortin nimi' : 'Lainan nimi'}
@@ -66,10 +81,10 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           <Input
             id="total-amount"
             type="text"
-            value={getDisplayValue('totalAmount', loanData.totalAmount)}
+            value={formatDisplayValue(loanData.totalAmount)}
             onChange={(e) => handleNumberInput('totalAmount', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
-            placeholder="15000,00"
+            placeholder="15000"
           />
         </div>
         
@@ -80,10 +95,10 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           <Input
             id="current-amount"
             type="text"
-            value={getDisplayValue('currentAmount', loanData.currentAmount)}
+            value={formatDisplayValue(loanData.currentAmount)}
             onChange={(e) => handleNumberInput('currentAmount', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
-            placeholder="12000,00"
+            placeholder="12000"
           />
         </div>
       </div>
@@ -94,10 +109,10 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           <Input
             id="monthly-payment"
             type="text"
-            value={getDisplayValue('monthly', loanData.monthly)}
+            value={formatDisplayValue(loanData.monthly)}
             onChange={(e) => handleNumberInput('monthly', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
-            placeholder="881,15"
+            placeholder="881"
           />
         </div>
         
@@ -106,10 +121,10 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           <Input
             id="management-fee"
             type="text"
-            value={getDisplayValue('managementFee', loanData.managementFee)}
+            value={formatDisplayValue(loanData.managementFee)}
             onChange={(e) => handleNumberInput('managementFee', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
-            placeholder="2,50"
+            placeholder="2.5"
           />
         </div>
       </div>
@@ -122,10 +137,10 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
               <Input
                 id="euribor-rate"
                 type="text"
-                value={getDisplayValue('euriborRate', loanData.euriborRate)}
+                value={formatDisplayValue(loanData.euriborRate)}
                 onChange={(e) => handleNumberInput('euriborRate', e.target.value)}
                 className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="3,75"
+                placeholder="3.75"
               />
             </div>
             
@@ -134,10 +149,10 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
               <Input
                 id="personal-margin"
                 type="text"
-                value={getDisplayValue('personalMargin', loanData.personalMargin)}
+                value={formatDisplayValue(loanData.personalMargin)}
                 onChange={(e) => handleNumberInput('personalMargin', e.target.value)}
                 className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="0,50"
+                placeholder="0.5"
               />
             </div>
           </div>
@@ -162,10 +177,10 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
             <Input
               id="credit-interest"
               type="text"
-              value={getDisplayValue('rate', loanData.rate)}
+              value={formatDisplayValue(loanData.rate)}
               onChange={(e) => handleNumberInput('rate', e.target.value)}
               className="bg-white/10 border-white/20 text-white mt-2"
-              placeholder="15,50"
+              placeholder="15.5"
             />
           </div>
           
@@ -174,10 +189,10 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
             <Input
               id="minimum-percent"
               type="text"
-              value={getDisplayValue('minimumPercent', loanData.minimumPercent)}
+              value={formatDisplayValue(loanData.minimumPercent)}
               onChange={(e) => handleNumberInput('minimumPercent', e.target.value)}
               className="bg-white/10 border-white/20 text-white mt-2"
-              placeholder="3,0"
+              placeholder="3.0"
             />
           </div>
         </div>

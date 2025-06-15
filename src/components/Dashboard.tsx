@@ -15,7 +15,6 @@ const Dashboard = () => {
   const { t } = useLanguage();
   const [refreshKey, setRefreshKey] = useState(0);
   const [carouselApi, setCarouselApi] = useState(null);
-  const [pendingReturnTo, setPendingReturnTo] = useState(null);
   
   // Listen for financial data updates
   useEffect(() => {
@@ -29,37 +28,27 @@ const Dashboard = () => {
     };
   }, []);
 
-  // Store returnTo parameter when component mounts
+  // Handle returnTo navigation with improved timing
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const returnTo = urlParams.get('returnTo');
     
-    if (returnTo) {
-      console.log('Dashboard - Detected returnTo parameter:', returnTo);
-      setPendingReturnTo(returnTo);
-      // Clear URL immediately to prevent re-triggering
-      navigate('/', { replace: true });
-    }
-  }, [location.search, navigate]);
-
-  // Apply navigation when both carousel API and returnTo are ready
-  useEffect(() => {
-    if (pendingReturnTo && carouselApi) {
-      console.log('Dashboard - Applying navigation to:', pendingReturnTo);
+    if (returnTo && carouselApi) {
+      console.log('Dashboard - Processing returnTo navigation:', returnTo);
       
-      const viewIndex = pendingReturnTo === 'balance' ? 0 : 
-                       pendingReturnTo === 'loans-credits' ? 1 : 
-                       pendingReturnTo === 'monthly-payments' ? 2 : 0;
+      const viewIndex = returnTo === 'balance' ? 0 : 
+                       returnTo === 'loans-credits' ? 1 : 
+                       returnTo === 'monthly-payments' ? 2 : 0;
       
       console.log('Dashboard - Navigating to carousel index:', viewIndex);
       
-      // Use setTimeout to ensure carousel is fully rendered
-      setTimeout(() => {
-        carouselApi.scrollTo(viewIndex);
-        setPendingReturnTo(null); // Clear after successful navigation
-      }, 100);
+      // Navigate immediately when carousel API is ready
+      carouselApi.scrollTo(viewIndex);
+      
+      // Clear URL after successful navigation without triggering re-render
+      window.history.replaceState({}, '', '/');
     }
-  }, [pendingReturnTo, carouselApi]);
+  }, [location.search, carouselApi]);
   
   // Safe data loading with fallbacks
   const data = loadFinancialData();

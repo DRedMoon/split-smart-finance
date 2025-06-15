@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
+import { migrateExistingBillCategories } from '@/services/loanService';
 
 const ManageLoansCredits = () => {
   const navigate = useNavigate();
@@ -17,6 +18,10 @@ const ManageLoansCredits = () => {
   useEffect(() => {
     const data = loadFinancialData();
     console.log('ManageLoansCredits - Loaded financial data:', data);
+    
+    // Run migration to ensure proper bill categorization
+    migrateExistingBillCategories();
+    
     setFinancialData(data);
   }, []);
   

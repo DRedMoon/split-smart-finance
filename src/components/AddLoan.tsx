@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { addLoan } from '@/services/storageService';
+import { addLoan } from '@/services/loanService';
 import LoanFormFields from './loan/LoanFormFields';
 import LoanCalculationDisplay from './loan/LoanCalculationDisplay';
 import { calculateInterestFromPayments } from '@/services/calculationService';
@@ -25,6 +25,7 @@ const AddLoan = () => {
     euriborRate: 0,
     personalMargin: 0,
     managementFee: 0,
+    minimumPercent: 3,
     remaining: '',
     dueDate: ''
   });
@@ -75,22 +76,25 @@ const AddLoan = () => {
     const termMonths = parseInt(loanData.remaining.match(/\d+/)?.[0] || '0');
     const totalPayback = loanData.monthly * termMonths;
 
+    // Store exactly what the user entered - don't override with calculated values
     const loanToAdd = {
       name: loanData.name,
       totalAmount: loanData.totalAmount,
       currentAmount: loanData.currentAmount || loanData.totalAmount,
       monthly: loanData.monthly,
-      rate: calculatedValues.yearlyRate || loanData.rate,
-      euriborRate: loanData.euriborRate || calculatedValues.estimatedEuribor,
-      personalMargin: loanData.personalMargin || calculatedValues.estimatedMargin,
+      rate: loanData.rate, // Use user's input, not calculated
+      euriborRate: loanData.euriborRate, // Use user's input
+      personalMargin: loanData.personalMargin, // Use user's input
       managementFee: loanData.managementFee || 0,
-      remaining: loanData.remaining,
+      minimumPercent: loanData.minimumPercent || 3,
+      remaining: isCredit ? 'Credit Card' : loanData.remaining,
       dueDate: loanData.dueDate,
       lastPayment: new Date().toISOString().split('T')[0],
       totalPayback: totalPayback,
-      yearlyInterestRate: calculatedValues.yearlyRate || loanData.rate
+      yearlyInterestRate: loanData.rate // Use user's rate input
     };
 
+    console.log('AddLoan - Storing loan data:', loanToAdd);
     addLoan(loanToAdd);
     
     toast({
@@ -122,6 +126,7 @@ const AddLoan = () => {
             setLoanData={setLoanData}
             calculatedValues={calculatedValues}
             isCredit={isCredit}
+            setIsCredit={setIsCredit}
           />
           
           <Button onClick={handleAddLoan} className="w-full bg-white text-[#294D73]">
