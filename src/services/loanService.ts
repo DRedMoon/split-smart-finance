@@ -17,15 +17,18 @@ export const addLoan = (loan: Omit<FinancialData['loans'][0], 'id'>): void => {
   const billType = loan.remaining === 'Credit Card' ? 'credit_payment' : 'loan_payment';
   const billCategory = loan.remaining === 'Credit Card' ? 'Credit Card' : 'Loan';
   
-  addBill({
+  // Create bill with all necessary properties
+  const billData = {
     name: loan.name,
     amount: loan.monthly,
     dueDate: loan.dueDate,
     type: billType,
-    category: billCategory,
     paid: false,
-    isPaid: false
-  });
+    isPaid: false,
+    category: billCategory
+  };
+  
+  addBill(billData);
   
   saveFinancialData(data);
 };

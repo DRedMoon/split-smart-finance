@@ -29,8 +29,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     if (billIndex === -1) return;
 
     const bill = data.monthlyBills[billIndex];
-    // Handle both 'paid' and 'isPaid' properties for compatibility
-    const currentPaidStatus = bill.paid || bill.isPaid || false;
+    const currentPaidStatus = bill.paid || false;
     const newPaidStatus = !currentPaidStatus;
 
     if (newPaidStatus) {
@@ -46,7 +45,6 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
       
       // Mark as paid - deduct from balance
       data.monthlyBills[billIndex].paid = true;
-      data.monthlyBills[billIndex].isPaid = true; // Set both for compatibility
       data.balance -= bill.amount;
       
       toast({
@@ -56,7 +54,6 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     } else {
       // Mark as unpaid - add back to balance
       data.monthlyBills[billIndex].paid = false;
-      data.monthlyBills[billIndex].isPaid = false; // Set both for compatibility
       data.balance += bill.amount;
       
       toast({
@@ -77,9 +74,9 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
 
   const displayedBills = showAll ? monthlyBills : monthlyBills.slice(0, 2);
   
-  // Calculate paid and unpaid bills using both 'paid' and 'isPaid' properties
-  const paidBills = monthlyBills.filter((bill: any) => bill.paid || bill.isPaid);
-  const unpaidBills = monthlyBills.filter((bill: any) => !(bill.paid || bill.isPaid));
+  // Calculate paid and unpaid bills using only 'paid' property
+  const paidBills = monthlyBills.filter((bill: any) => bill.paid);
+  const unpaidBills = monthlyBills.filter((bill: any) => !bill.paid);
 
   return (
     <Card className="bg-[#294D73] border-none">
@@ -112,7 +109,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
         {monthlyBills.length > 0 && (
           <div className="space-y-2 mb-4">
             {displayedBills.map((bill: any) => {
-              const isPaid = bill.paid || bill.isPaid || false;
+              const isPaid = bill.paid || false;
               return (
                 <div key={bill.id} className={`rounded p-2 ${isPaid ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/10'}`}>
                   <div className="flex justify-between items-center">

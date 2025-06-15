@@ -86,7 +86,7 @@ const Dashboard = () => {
       </div>
 
       {/* This Week's Upcoming Payments */}
-      <Up ngWeekCard filteredWeekPayments={filteredWeekPayments} />
+      <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />
 
       {/* Recent Transactions */}
       <RecentTransactionsCard recentTransactions={recentTransactions} />

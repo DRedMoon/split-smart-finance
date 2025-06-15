@@ -25,6 +25,8 @@ export interface FinancialData {
     dueDate: string;
     type: string;
     paid: boolean;
+    isPaid?: boolean;
+    category?: string;
   }>;
   transactions: Array<{
     id: number;
