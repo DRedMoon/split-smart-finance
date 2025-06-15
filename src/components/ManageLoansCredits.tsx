@@ -16,10 +16,12 @@ const ManageLoansCredits = () => {
 
   useEffect(() => {
     const data = loadFinancialData();
+    console.log('ManageLoansCredits - Loaded financial data:', data);
     setFinancialData(data);
   }, []);
   
   const loans = financialData?.loans || [];
+  console.log('ManageLoansCredits - Loans to display:', loans);
 
   const handleDelete = (loanId: number, loanName: string) => {
     if (financialData) {
@@ -59,6 +61,7 @@ const ManageLoansCredits = () => {
         ) : (
           loans.map((loan) => {
             const isCredit = loan.remaining === 'Credit Card';
+            console.log('ManageLoansCredits - Displaying loan:', loan.name, 'stored rate:', loan.rate);
             
             return (
               <Card key={loan.id} className="bg-[#294D73] border-none">
@@ -110,7 +113,7 @@ const ManageLoansCredits = () => {
                     </div>
                     <div>
                       <p className="text-white/70">Korko</p>
-                      <p className="text-white font-medium">{isCredit ? (loan.rate?.toFixed(2) || '0.00') : ((loan.euriborRate || 0) + (loan.personalMargin || 0)).toFixed(2)}%</p>
+                      <p className="text-white font-medium">{loan.rate?.toFixed(2) || '0.00'}%</p>
                     </div>
                     <div>
                       <p className="text-white/70">Eräpäivä</p>

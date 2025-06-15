@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,16 +16,30 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
   const { t } = useLanguage();
 
   const handleNumberInput = (field: string, value: string) => {
-    // Allow empty string, numbers with decimals, commas, and dots
+    console.log('LoanFormFields - Input received:', field, value);
+    
+    // Allow empty string or numbers with comma/dot as decimal separator
     if (value === '' || /^[0-9]*[.,]?[0-9]*$/.test(value)) {
       // Convert comma to dot for calculation but keep original display
       const normalizedValue = value.replace(',', '.');
       const numValue = value === '' || value === '.' || value === ',' ? 0 : parseFloat(normalizedValue) || 0;
-      setLoanData(prev => ({ ...prev, [field]: numValue }));
+      
+      console.log('LoanFormFields - Setting field:', field, 'display:', value, 'numeric:', numValue);
+      
+      setLoanData(prev => ({ 
+        ...prev, 
+        [field]: numValue,
+        [`${field}_display`]: value // Store display format separately
+      }));
     }
   };
 
-  const formatDisplayValue = (value: number) => {
+  const getDisplayValue = (field: string, value: number) => {
+    const displayField = `${field}_display`;
+    // Use stored display format if available, otherwise convert number to string
+    if (loanData[displayField] !== undefined) {
+      return loanData[displayField];
+    }
     return value === 0 ? '' : value.toString();
   };
 
@@ -51,7 +66,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           <Input
             id="total-amount"
             type="text"
-            value={formatDisplayValue(loanData.totalAmount)}
+            value={getDisplayValue('totalAmount', loanData.totalAmount)}
             onChange={(e) => handleNumberInput('totalAmount', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
             placeholder="15000,00"
@@ -65,7 +80,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           <Input
             id="current-amount"
             type="text"
-            value={formatDisplayValue(loanData.currentAmount)}
+            value={getDisplayValue('currentAmount', loanData.currentAmount)}
             onChange={(e) => handleNumberInput('currentAmount', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
             placeholder="12000,00"
@@ -79,7 +94,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           <Input
             id="monthly-payment"
             type="text"
-            value={formatDisplayValue(loanData.monthly)}
+            value={getDisplayValue('monthly', loanData.monthly)}
             onChange={(e) => handleNumberInput('monthly', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
             placeholder="881,15"
@@ -91,7 +106,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
           <Input
             id="management-fee"
             type="text"
-            value={formatDisplayValue(loanData.managementFee)}
+            value={getDisplayValue('managementFee', loanData.managementFee)}
             onChange={(e) => handleNumberInput('managementFee', e.target.value)}
             className="bg-white/10 border-white/20 text-white mt-2"
             placeholder="2,50"
@@ -107,7 +122,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
               <Input
                 id="euribor-rate"
                 type="text"
-                value={formatDisplayValue(loanData.euriborRate)}
+                value={getDisplayValue('euriborRate', loanData.euriborRate)}
                 onChange={(e) => handleNumberInput('euriborRate', e.target.value)}
                 className="bg-white/10 border-white/20 text-white mt-2"
                 placeholder="3,75"
@@ -119,7 +134,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
               <Input
                 id="personal-margin"
                 type="text"
-                value={formatDisplayValue(loanData.personalMargin)}
+                value={getDisplayValue('personalMargin', loanData.personalMargin)}
                 onChange={(e) => handleNumberInput('personalMargin', e.target.value)}
                 className="bg-white/10 border-white/20 text-white mt-2"
                 placeholder="0,50"
@@ -147,7 +162,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
             <Input
               id="credit-interest"
               type="text"
-              value={formatDisplayValue(loanData.rate)}
+              value={getDisplayValue('rate', loanData.rate)}
               onChange={(e) => handleNumberInput('rate', e.target.value)}
               className="bg-white/10 border-white/20 text-white mt-2"
               placeholder="15,50"
@@ -159,7 +174,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit }: L
             <Input
               id="minimum-percent"
               type="text"
-              value={formatDisplayValue(loanData.minimumPercent)}
+              value={getDisplayValue('minimumPercent', loanData.minimumPercent)}
               onChange={(e) => handleNumberInput('minimumPercent', e.target.value)}
               className="bg-white/10 border-white/20 text-white mt-2"
               placeholder="3,0"
