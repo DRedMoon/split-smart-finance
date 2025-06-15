@@ -32,8 +32,8 @@ export const useFinancialData = (refreshKey: number) => {
   const expenseTransactions = allTransactions.filter(transaction => transaction.amount < 0);
   recentTransactions.push(...expenseTransactions);
   
-  // Add paid monthly bills as expense transactions
-  const paidBills = monthlyBills.filter(bill => bill.paid);
+  // Add ONLY paid monthly bills as expense transactions
+  const paidBills = monthlyBills.filter(bill => bill.paid === true);
   const billTransactions = paidBills.map(bill => ({
     id: `bill-${bill.id}`,
     name: bill.name,
