@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -140,10 +139,10 @@ const Dashboard = () => {
   if (!navigationReady) {
     return (
       <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">
-        <div className="text-center mb-6">
+        <div className="text-center mb-2">
           <h1 className="text-3xl font-bold text-white">Maksut</h1>
         </div>
-        <div className="bg-white/10 rounded-lg h-64 mb-6 animate-pulse"></div>
+        <div className="bg-white/10 rounded-lg h-64 mb-2 animate-pulse"></div>
       </div>
     );
   }
@@ -153,37 +152,37 @@ const Dashboard = () => {
   const showUpcomingWeek = currentSlide === 0;
   const showRecentTransactions = true;
 
-  // Dynamic spacing classes based on current slide
+  // Dynamic spacing classes based on current slide - more aggressive spacing reduction
   const getCarouselSpacing = () => {
     switch (currentSlide) {
-      case 0: // Balance view
-        return 'mb-4';
-      case 1: // Loans & Credits view
-        return 'mb-2';
-      case 2: // Monthly Payments view
-        return 'mb-4';
+      case 0: // Balance view - minimal spacing
+        return 'mb-1';
+      case 1: // Loans & Credits view - even more minimal spacing
+        return 'mb-1';
+      case 2: // Monthly Payments view - minimal spacing
+        return 'mb-1';
       default:
-        return 'mb-4';
+        return 'mb-1';
     }
   };
 
   const getButtonSpacing = () => {
-    return showNavigationButtons ? 'mb-4' : '';
+    return showNavigationButtons ? 'mb-1' : '';
   };
 
   const getUpcomingWeekSpacing = () => {
-    return showUpcomingWeek ? 'mb-4' : '';
+    return showUpcomingWeek ? 'mb-1' : '';
   };
 
   return (
-    <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto flex flex-col">
-      {/* Title */}
-      <div className="text-center mb-6">
+    <div className="h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto flex flex-col overflow-hidden">
+      {/* Title with minimal spacing */}
+      <div className="text-center mb-2 flex-shrink-0">
         <h1 className="text-3xl font-bold text-white">Maksut</h1>
       </div>
 
-      {/* Main Carousel with dynamic spacing */}
-      <div className={getCarouselSpacing()}>
+      {/* Main Carousel with aggressive spacing reduction */}
+      <div className={`flex-shrink-0 ${getCarouselSpacing()}`}>
         <DashboardCarousel 
           key={refreshKey}
           balance={balance}
@@ -198,9 +197,9 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Navigation Buttons - Only show on Balance view */}
+      {/* Navigation Buttons - Only show on Balance view with minimal spacing */}
       {showNavigationButtons && (
-        <div className={`grid grid-cols-2 gap-4 ${getButtonSpacing()}`}>
+        <div className={`grid grid-cols-2 gap-4 flex-shrink-0 ${getButtonSpacing()}`}>
           <Button
             onClick={() => navigate('/upcoming')}
             className="bg-[#294D73] hover:bg-[#1f3a5f] text-white"
@@ -216,16 +215,16 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* This Week's Upcoming Payments - Only show on Balance view */}
+      {/* This Week's Upcoming Payments - Only show on Balance view with minimal spacing */}
       {showUpcomingWeek && (
-        <div className={getUpcomingWeekSpacing()}>
+        <div className={`flex-shrink-0 ${getUpcomingWeekSpacing()}`}>
           <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />
         </div>
       )}
 
-      {/* Recent Transactions - Always show with flex-grow to fill remaining space */}
+      {/* Recent Transactions - Fill remaining space but don't overflow past toolbar */}
       {showRecentTransactions && (
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 flex flex-col">
           <RecentTransactionsCard 
             recentTransactions={sortedRecentTransactions} 
             isExpandedView={currentSlide !== 0}

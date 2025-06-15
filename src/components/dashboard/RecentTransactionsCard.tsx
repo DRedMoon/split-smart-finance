@@ -16,9 +16,10 @@ const RecentTransactionsCard = ({ recentTransactions, isExpandedView = false }: 
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  // Dynamic height based on whether it's expanded view or not
-  const scrollAreaHeight = isExpandedView ? 'h-full' : 'h-48';
-  const cardClasses = isExpandedView ? 'bg-[#294D73] border-none h-full flex flex-col' : 'bg-[#294D73] border-none';
+  // For expanded view, fill available space; for balance view, use fixed height
+  const cardClasses = isExpandedView 
+    ? 'bg-[#294D73] border-none h-full flex flex-col' 
+    : 'bg-[#294D73] border-none flex flex-col h-full';
 
   return (
     <Card className={cardClasses}>
@@ -33,33 +34,35 @@ const RecentTransactionsCard = ({ recentTransactions, isExpandedView = false }: 
           <ArrowRight size={16} />
         </Button>
       </CardHeader>
-      <CardContent className={`pb-6 ${isExpandedView ? 'flex-1 min-h-0' : ''}`}>
+      <CardContent className="pb-6 flex-1 min-h-0 flex flex-col">
         {recentTransactions.length === 0 ? (
           <p className="text-white/70 text-center py-8">{t('no_transactions')}</p>
         ) : (
-          <ScrollArea className={`${scrollAreaHeight} pr-4`}>
-            <div className="space-y-3">
-              {recentTransactions.map((transaction) => (
-                <div key={transaction.id} className="flex justify-between items-center">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-full ${transaction.amount > 0 ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-                      {transaction.amount > 0 ? 
-                        <TrendingUp size={16} className="text-green-400" /> : 
-                        <TrendingDown size={16} className="text-red-400" />
-                      }
+          <div className="flex-1 min-h-0">
+            <ScrollArea className="h-full pr-4">
+              <div className="space-y-3">
+                {recentTransactions.map((transaction) => (
+                  <div key={transaction.id} className="flex justify-between items-center">
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-2 rounded-full ${transaction.amount > 0 ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+                        {transaction.amount > 0 ? 
+                          <TrendingUp size={16} className="text-green-400" /> : 
+                          <TrendingDown size={16} className="text-red-400" />
+                        }
+                      </div>
+                      <div>
+                        <p className="text-white font-medium text-sm">{transaction.name}</p>
+                        <p className="text-white/70 text-xs">{transaction.date}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-white font-medium text-sm">{transaction.name}</p>
-                      <p className="text-white/70 text-xs">{transaction.date}</p>
-                    </div>
+                    <p className={`font-semibold ${transaction.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {transaction.amount > 0 ? '+' : ''}€{Math.abs(transaction.amount).toFixed(2)}
+                    </p>
                   </div>
-                  <p className={`font-semibold ${transaction.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {transaction.amount > 0 ? '+' : ''}€{Math.abs(transaction.amount).toFixed(2)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
         )}
       </CardContent>
     </Card>
