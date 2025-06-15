@@ -148,30 +148,16 @@ const Dashboard = () => {
   }
 
   // Dynamic layout based on current slide
-  const showNavigationButtons = currentSlide === 0;
-  const showUpcomingWeek = currentSlide === 0;
-  const showRecentTransactions = true;
+  const isBalanceView = currentSlide === 0;
+  const isLoansCreditsView = currentSlide === 1;
+  const isMonthlyPaymentsView = currentSlide === 2;
 
-  // Dynamic spacing classes based on current slide - more aggressive spacing reduction
+  // Dynamic spacing functions - truly dynamic based on view
   const getCarouselSpacing = () => {
-    switch (currentSlide) {
-      case 0: // Balance view - minimal spacing
-        return 'mb-1';
-      case 1: // Loans & Credits view - even more minimal spacing
-        return 'mb-1';
-      case 2: // Monthly Payments view - minimal spacing
-        return 'mb-1';
-      default:
-        return 'mb-1';
-    }
-  };
-
-  const getButtonSpacing = () => {
-    return showNavigationButtons ? 'mb-1' : '';
-  };
-
-  const getUpcomingWeekSpacing = () => {
-    return showUpcomingWeek ? 'mb-1' : '';
+    if (isBalanceView) return 'mb-3'; // Some spacing for balance view elements
+    if (isLoansCreditsView) return 'mb-1'; // Minimal spacing for loans view
+    if (isMonthlyPaymentsView) return 'mb-2'; // Moderate spacing for monthly payments
+    return 'mb-1';
   };
 
   return (
@@ -181,7 +167,7 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold text-white">Maksut</h1>
       </div>
 
-      {/* Main Carousel with aggressive spacing reduction */}
+      {/* Main Carousel with dynamic spacing */}
       <div className={`flex-shrink-0 ${getCarouselSpacing()}`}>
         <DashboardCarousel 
           key={refreshKey}
@@ -197,9 +183,9 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Navigation Buttons - Only show on Balance view with minimal spacing */}
-      {showNavigationButtons && (
-        <div className={`grid grid-cols-2 gap-4 flex-shrink-0 ${getButtonSpacing()}`}>
+      {/* Navigation Buttons - Only render on Balance view */}
+      {isBalanceView && (
+        <div className="grid grid-cols-2 gap-4 flex-shrink-0 mb-2">
           <Button
             onClick={() => navigate('/upcoming')}
             className="bg-[#294D73] hover:bg-[#1f3a5f] text-white"
@@ -215,22 +201,20 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* This Week's Upcoming Payments - Only show on Balance view with minimal spacing */}
-      {showUpcomingWeek && (
-        <div className={`flex-shrink-0 ${getUpcomingWeekSpacing()}`}>
+      {/* This Week's Upcoming Payments - Only render on Balance view */}
+      {isBalanceView && (
+        <div className="flex-shrink-0 mb-2">
           <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />
         </div>
       )}
 
-      {/* Recent Transactions - Fill remaining space but don't overflow past toolbar */}
-      {showRecentTransactions && (
-        <div className="flex-1 min-h-0 flex flex-col">
-          <RecentTransactionsCard 
-            recentTransactions={sortedRecentTransactions} 
-            isExpandedView={currentSlide !== 0}
-          />
-        </div>
-      )}
+      {/* Recent Transactions - Fill remaining space */}
+      <div className="flex-1 min-h-0 flex flex-col">
+        <RecentTransactionsCard 
+          recentTransactions={sortedRecentTransactions} 
+          isExpandedView={!isBalanceView}
+        />
+      </div>
     </div>
   );
 };

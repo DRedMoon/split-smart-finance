@@ -47,7 +47,7 @@ const DashboardCarousel = ({
   }, [api, onApiReady, initialSlide])
 
   return (
-    <div className="mb-4" data-dashboard-carousel>
+    <div data-dashboard-carousel>
       <Carousel 
         className="w-full"
         setApi={setApi}
