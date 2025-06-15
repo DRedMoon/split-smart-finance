@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from 'react';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
@@ -17,14 +18,37 @@ export const useFinancialData = (refreshKey: number) => {
   const allTransactions = data?.transactions || [];
   const monthlyBills = data?.monthlyBills || [];
 
-  // Calculate the actual balance by including all transactions
-  // This should be the ACTUAL current balance: base + transactions
-  const transactionSum = allTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-  const balance = baseBalance + transactionSum;
+  // Calculate balance following the same logic as recent transactions:
+  // 1. Include all regular transactions (non-recurring) immediately
+  // 2. Include recurring payments only when marked as PAID
+  const regularTransactionSum = allTransactions
+    .filter(transaction => {
+      // Check if this transaction corresponds to a recurring payment
+      const correspondingBill = monthlyBills.find(bill => 
+        bill.name === transaction.name && Math.abs(bill.amount) === Math.abs(transaction.amount)
+      );
+      
+      // If no corresponding bill, it's a regular transaction - include it
+      if (!correspondingBill) {
+        return true;
+      }
+      
+      // If there's a corresponding bill, only include if the bill is paid
+      return correspondingBill.paid;
+    })
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+  // Add paid monthly bills as expenses
+  const paidBillsSum = monthlyBills
+    .filter(bill => bill.paid)
+    .reduce((sum, bill) => sum - bill.amount, 0); // Negative because bills are expenses
+
+  const balance = baseBalance + regularTransactionSum + paidBillsSum;
 
   console.log('Balance calculation:', {
     baseBalance,
-    transactionSum,
+    regularTransactionSum,
+    paidBillsSum,
     totalBalance: balance,
     transactionCount: allTransactions.length,
     allTransactions: allTransactions.map(t => ({ name: t.name, amount: t.amount, date: t.date, id: t.id }))
@@ -111,3 +135,4 @@ export const useFinancialData = (refreshKey: number) => {
     filteredWeekPayments
   };
 };
+
