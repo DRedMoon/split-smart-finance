@@ -27,7 +27,7 @@ const LoansCreditsCard = ({ loans, totalLoanAmount, totalMonthlyPayments, curren
 
   return (
     <Card className="bg-[#294D73] border-none">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 p-3">
         <CardTitle className="text-white text-lg flex items-center space-x-2">
           <CreditCard size={20} />
           <span>{t('loans_credits')}</span>
@@ -54,7 +54,7 @@ const LoansCreditsCard = ({ loans, totalLoanAmount, totalMonthlyPayments, curren
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 pt-0">
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <p className="text-white/70 text-sm">{t('total_debt')}</p>

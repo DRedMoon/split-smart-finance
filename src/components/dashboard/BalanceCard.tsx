@@ -14,7 +14,7 @@ const BalanceCard = ({ balance, currentSlide = 0 }: BalanceCardProps) => {
 
   return (
     <Card className="bg-gradient-to-r from-[#294D73] to-[#1f3a5f] border-none">
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 p-3">
         <CardTitle className="text-white text-lg flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Wallet size={20} />
@@ -33,7 +33,7 @@ const BalanceCard = ({ balance, currentSlide = 0 }: BalanceCardProps) => {
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 pt-0">
         <div className="text-3xl font-bold text-white">
           €{balance.toFixed(2)}
         </div>

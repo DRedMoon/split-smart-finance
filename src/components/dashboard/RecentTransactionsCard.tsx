@@ -23,7 +23,7 @@ const RecentTransactionsCard = ({ recentTransactions, isExpandedView = false }: 
 
   return (
     <Card className={cardClasses}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2 flex-shrink-0">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 flex-shrink-0 p-3">
         <CardTitle className="text-white text-lg">{t('recent_transactions')}</CardTitle>
         <Button
           variant="ghost"
@@ -34,7 +34,7 @@ const RecentTransactionsCard = ({ recentTransactions, isExpandedView = false }: 
           <ArrowRight size={16} />
         </Button>
       </CardHeader>
-      <CardContent className="pb-6 flex-1 min-h-0 flex flex-col">
+      <CardContent className="flex-1 min-h-0 flex flex-col p-3 pt-0">
         {recentTransactions.length === 0 ? (
           <p className="text-white/70 text-center py-8">{t('no_transactions')}</p>
         ) : (

@@ -152,22 +152,22 @@ const Dashboard = () => {
   const isLoansCreditsView = currentSlide === 1;
   const isMonthlyPaymentsView = currentSlide === 2;
 
-  // Dynamic spacing functions - truly dynamic based on view
+  // Truly minimal spacing - aggressive space reduction
   const getCarouselSpacing = () => {
-    if (isBalanceView) return 'mb-3'; // Some spacing for balance view elements
-    if (isLoansCreditsView) return 'mb-1'; // Minimal spacing for loans view
-    if (isMonthlyPaymentsView) return 'mb-2'; // Moderate spacing for monthly payments
-    return 'mb-1';
+    if (isBalanceView) return 'mb-1'; // Minimal spacing for balance view
+    if (isLoansCreditsView) return 'mb-0'; // No spacing for loans view
+    if (isMonthlyPaymentsView) return 'mb-1'; // Minimal spacing for monthly payments
+    return 'mb-0';
   };
 
   return (
     <div className="h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto flex flex-col overflow-hidden">
       {/* Title with minimal spacing */}
-      <div className="text-center mb-2 flex-shrink-0">
+      <div className="text-center mb-1 flex-shrink-0">
         <h1 className="text-3xl font-bold text-white">Maksut</h1>
       </div>
 
-      {/* Main Carousel with dynamic spacing */}
+      {/* Main Carousel with minimal spacing */}
       <div className={`flex-shrink-0 ${getCarouselSpacing()}`}>
         <DashboardCarousel 
           key={refreshKey}
@@ -183,9 +183,9 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Navigation Buttons - Only render on Balance view */}
+      {/* Navigation Buttons - Only render on Balance view with reduced gap */}
       {isBalanceView && (
-        <div className="grid grid-cols-2 gap-4 flex-shrink-0 mb-2">
+        <div className="grid grid-cols-2 gap-2 flex-shrink-0 mb-1">
           <Button
             onClick={() => navigate('/upcoming')}
             className="bg-[#294D73] hover:bg-[#1f3a5f] text-white"
@@ -203,7 +203,7 @@ const Dashboard = () => {
 
       {/* This Week's Upcoming Payments - Only render on Balance view */}
       {isBalanceView && (
-        <div className="flex-shrink-0 mb-2">
+        <div className="flex-shrink-0 mb-1">
           <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />
         </div>
       )}

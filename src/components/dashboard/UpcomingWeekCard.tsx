@@ -15,8 +15,8 @@ const UpcomingWeekCard = ({ filteredWeekPayments }: UpcomingWeekCardProps) => {
   const navigate = useNavigate();
 
   return (
-    <Card className="mb-6 bg-[#294D73] border-none">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <Card className="bg-[#294D73] border-none">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 p-3">
         <CardTitle className="text-white text-lg flex items-center space-x-2">
           <Calendar size={20} />
           <span>{t('upcoming_week')}</span>
@@ -30,7 +30,7 @@ const UpcomingWeekCard = ({ filteredWeekPayments }: UpcomingWeekCardProps) => {
           <ArrowRight size={16} />
         </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 pt-0">
         {filteredWeekPayments.length === 0 ? (
           <p className="text-white/70 text-center py-4">Ei maksuja tällä viikolla</p>
         ) : (
