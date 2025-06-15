@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { calculateInterestFromPayments } from '@/services/calculationService';
 
 interface LoanCardProps {
   loan: any;
@@ -25,10 +26,28 @@ const LoanCard = ({ loan, calculateLoanDetails }: LoanCardProps) => {
   const isCredit = loan.remaining === 'Credit Card';
   const progress = loan.totalAmount > 0 ? ((loan.totalAmount - loan.currentAmount) / loan.totalAmount) * 100 : 0;
 
-  // Use the calculated rate from euribor + margin if available, otherwise use the stored rate
-  const displayRate = (loan.euriborRate && loan.personalMargin) 
-    ? loan.euriborRate + loan.personalMargin 
-    : (loan.rate || loan.yearlyInterestRate || 0);
+  // Calculate the display rate using the same logic as ManageLoansCredits
+  const calculateDisplayRate = () => {
+    if (!isCredit && loan.totalAmount > 0 && loan.monthly > 0 && loan.remaining) {
+      const termMonths = parseInt(loan.remaining.match(/\d+/)?.[0] || '12');
+      if (termMonths > 0) {
+        const calculation = calculateInterestFromPayments(
+          loan.totalAmount,
+          loan.monthly,
+          loan.managementFee || 0,
+          termMonths
+        );
+        return calculation.yearlyRate || 0;
+      }
+    }
+    
+    // Fallback to stored rate or calculated rate
+    return (loan.euriborRate && loan.personalMargin) 
+      ? loan.euriborRate + loan.personalMargin 
+      : (loan.rate || loan.yearlyInterestRate || 0);
+  };
+
+  const displayRate = calculateDisplayRate();
 
   return (
     <Card className="bg-[#294D73] border-none">
