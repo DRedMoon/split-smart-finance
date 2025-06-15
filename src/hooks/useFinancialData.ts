@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
@@ -33,9 +34,40 @@ export const useFinancialData = (refreshKey: number) => {
     monthlyBills: monthlyBills.map(b => ({ name: b.name, amount: b.amount, paid: b.paid, id: b.id }))
   });
 
-  // Recent transactions logic - ONLY show actual transactions from the transactions array
-  // Do NOT add any bill payments or fake transactions
-  const sortedRecentTransactions = allTransactions
+  // Recent transactions logic - Show ONLY:
+  // 1. Regular transactions (non-recurring)
+  // 2. Recurring payments that are marked as PAID
+  const recentTransactionsFromRegular = allTransactions.filter(transaction => {
+    // Check if this transaction corresponds to a recurring payment
+    const correspondingBill = monthlyBills.find(bill => 
+      bill.name === transaction.name && Math.abs(bill.amount) === Math.abs(transaction.amount)
+    );
+    
+    // If no corresponding bill, it's a regular transaction - show it
+    if (!correspondingBill) {
+      return true;
+    }
+    
+    // If there's a corresponding bill, only show if the bill is paid
+    return correspondingBill.paid;
+  });
+
+  // Add paid monthly bills as negative transactions (expenses)
+  const paidBillTransactions = monthlyBills
+    .filter(bill => bill.paid)
+    .map(bill => ({
+      id: `bill-${bill.id}`,
+      name: bill.name,
+      amount: -bill.amount, // Bills are expenses, so negative
+      date: new Date().toISOString().split('T')[0], // Today's date when paid
+      type: 'expense',
+      category: bill.type || 'bill'
+    }));
+
+  // Combine and sort all recent transactions
+  const allRecentTransactions = [...recentTransactionsFromRegular, ...paidBillTransactions];
+  
+  const sortedRecentTransactions = allRecentTransactions
     .sort((a, b) => {
       // First sort by date
       const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
