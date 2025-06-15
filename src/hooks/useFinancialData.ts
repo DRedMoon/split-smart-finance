@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { loadFinancialData } from '@/services/dataService';
+import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
 
 export const useFinancialData = (refreshKey: number) => {
@@ -12,10 +12,14 @@ export const useFinancialData = (refreshKey: number) => {
   }, [refreshKey]);
 
   // Safe data loading with fallbacks
-  const balance = data?.balance || 0;
+  const baseBalance = data?.balance || 0;
   const loans = data?.loans || [];
   const allTransactions = data?.transactions || [];
   const monthlyBills = data?.monthlyBills || [];
+
+  // Calculate the actual balance by including all transactions
+  const transactionSum = allTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const balance = baseBalance + transactionSum;
 
   // Enhanced recent transactions logic
   const recentTransactions = [];
