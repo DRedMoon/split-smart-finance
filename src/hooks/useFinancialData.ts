@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
@@ -18,8 +17,16 @@ export const useFinancialData = (refreshKey: number) => {
   const monthlyBills = data?.monthlyBills || [];
 
   // Calculate the actual balance by including all transactions
+  // This should be the ACTUAL current balance: base + transactions
   const transactionSum = allTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
   const balance = baseBalance + transactionSum;
+
+  console.log('Balance calculation:', {
+    baseBalance,
+    transactionSum,
+    totalBalance: balance,
+    transactionCount: allTransactions.length
+  });
 
   // Enhanced recent transactions logic - ONLY show paid bills and regular transactions
   const recentTransactions = [];
@@ -44,9 +51,17 @@ export const useFinancialData = (refreshKey: number) => {
   
   recentTransactions.push(...regularTransactions);
   
-  // Sort by date and show more transactions
+  // Sort by date and time - newest first
   const sortedRecentTransactions = recentTransactions
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => {
+      // First sort by date, then by ID (creation time) for same dates
+      const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (dateComparison === 0) {
+        // If dates are the same, sort by ID (newer IDs first)
+        return (b.id || 0) - (a.id || 0);
+      }
+      return dateComparison;
+    })
     .slice(0, 15);
 
   console.log('Final sorted recent transactions (paid bills only):', sortedRecentTransactions);
