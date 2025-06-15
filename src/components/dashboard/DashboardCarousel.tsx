@@ -14,6 +14,7 @@ interface DashboardCarouselProps {
   totalBillsAmount: number;
   onApiReady?: (api: CarouselApi) => void;
   initialSlide?: number;
+  currentSlide?: number;
 }
 
 const DashboardCarousel = ({ 
@@ -24,10 +25,10 @@ const DashboardCarousel = ({
   totalMonthlyPayments, 
   totalBillsAmount,
   onApiReady,
-  initialSlide = 0
+  initialSlide = 0,
+  currentSlide = 0
 }: DashboardCarouselProps) => {
   const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(initialSlide);
 
   useEffect(() => {
     if (!api) {
@@ -39,26 +40,14 @@ const DashboardCarousel = ({
       api.scrollTo(initialSlide, false);
     }
 
-    setCurrent(api.selectedScrollSnap())
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap())
-    })
-
     // Pass the API back to the parent
     if (onApiReady) {
       onApiReady(api);
     }
   }, [api, onApiReady, initialSlide])
 
-  const handleDotClick = (index: number) => {
-    if (api) {
-      api.scrollTo(index);
-    }
-  };
-
   return (
-    <div className="mb-6" data-dashboard-carousel>
+    <div className="mb-4" data-dashboard-carousel>
       <Carousel 
         className="w-full"
         setApi={setApi}
@@ -70,36 +59,25 @@ const DashboardCarousel = ({
       >
         <CarouselContent>
           <CarouselItem>
-            <BalanceCard balance={balance} />
+            <BalanceCard balance={balance} currentSlide={currentSlide} />
           </CarouselItem>
           <CarouselItem>
             <LoansCreditsCard 
               loans={loans}
               totalLoanAmount={totalLoanAmount}
               totalMonthlyPayments={totalMonthlyPayments}
+              currentSlide={currentSlide}
             />
           </CarouselItem>
           <CarouselItem>
             <MonthlyPaymentsCard 
               monthlyBills={monthlyBills}
               totalBillsAmount={totalBillsAmount}
+              currentSlide={currentSlide}
             />
           </CarouselItem>
         </CarouselContent>
       </Carousel>
-
-      {/* Carousel Indicators - Clickable */}
-      <div className="flex justify-center space-x-2 mt-4">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <button
-            key={index}
-            onClick={() => handleDotClick(index)}
-            className={`w-3 h-3 rounded-full transition-colors cursor-pointer ${
-              index === current ? 'bg-white' : 'bg-white/30'
-            }`}
-          />
-        ))}
-      </div>
     </div>
   );
 };

@@ -10,9 +10,10 @@ interface LoansCreditsCardProps {
   loans: any[];
   totalLoanAmount: number;
   totalMonthlyPayments: number;
+  currentSlide?: number;
 }
 
-const LoansCreditsCard = ({ loans, totalLoanAmount, totalMonthlyPayments }: LoansCreditsCardProps) => {
+const LoansCreditsCard = ({ loans, totalLoanAmount, totalMonthlyPayments, currentSlide = 0 }: LoansCreditsCardProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [showAll, setShowAll] = useState(false);
@@ -31,14 +32,27 @@ const LoansCreditsCard = ({ loans, totalLoanAmount, totalMonthlyPayments }: Loan
           <CreditCard size={20} />
           <span>{t('loans_credits')}</span>
         </CardTitle>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleNavigateToLoans}
-          className="text-white hover:bg-white/10 p-2"
-        >
-          <ArrowRight size={20} />
-        </Button>
+        <div className="flex items-center space-x-3">
+          {/* Carousel Indicators */}
+          <div className="flex space-x-1">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full ${
+                  index === currentSlide ? 'bg-white' : 'bg-white/30'
+                }`}
+              />
+            ))}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleNavigateToLoans}
+            className="text-white hover:bg-white/10 p-2"
+          >
+            <ArrowRight size={20} />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4 mb-4">

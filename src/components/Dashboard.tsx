@@ -17,6 +17,7 @@ const Dashboard = () => {
   const [carouselApi, setCarouselApi] = useState(null);
   const [initialView, setInitialView] = useState(0);
   const [navigationReady, setNavigationReady] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
   
   // Listen for financial data updates
   useEffect(() => {
@@ -44,6 +45,7 @@ const Dashboard = () => {
       
       console.log('Dashboard - Setting initial view to:', viewIndex);
       setInitialView(viewIndex);
+      setCurrentSlide(viewIndex);
       
       // Clear URL immediately
       window.history.replaceState({}, '', '/');
@@ -64,6 +66,15 @@ const Dashboard = () => {
       setNavigationReady(true);
     }
   }, [carouselApi, initialView]);
+
+  // Track carousel slide changes
+  useEffect(() => {
+    if (carouselApi) {
+      carouselApi.on("select", () => {
+        setCurrentSlide(carouselApi.selectedScrollSnap());
+      });
+    }
+  }, [carouselApi]);
   
   // Safe data loading with fallbacks
   const data = loadFinancialData();
@@ -135,6 +146,11 @@ const Dashboard = () => {
     );
   }
 
+  // Determine what to show based on current slide
+  const showNavigationButtons = currentSlide === 0; // Only show on Balance view
+  const showUpcomingWeek = currentSlide === 0; // Only show on Balance view
+  const showRecentTransactions = true; // Always show recent transactions
+
   return (
     <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">
       {/* Title */}
@@ -153,29 +169,32 @@ const Dashboard = () => {
         totalBillsAmount={totalBillsAmount}
         onApiReady={setCarouselApi}
         initialSlide={initialView}
+        currentSlide={currentSlide}
       />
 
-      {/* Navigation Buttons */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <Button
-          onClick={() => navigate('/upcoming')}
-          className="bg-[#294D73] hover:bg-[#1f3a5f] text-white"
-        >
-          {t('upcoming')}
-        </Button>
-        <Button
-          onClick={() => navigate('/transactions')}
-          className="bg-[#294D73] hover:bg-[#1f3a5f] text-white"
-        >
-          {t('transactions')}
-        </Button>
-      </div>
+      {/* Navigation Buttons - Only show on Balance view */}
+      {showNavigationButtons && (
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <Button
+            onClick={() => navigate('/upcoming')}
+            className="bg-[#294D73] hover:bg-[#1f3a5f] text-white"
+          >
+            {t('upcoming')}
+          </Button>
+          <Button
+            onClick={() => navigate('/transactions')}
+            className="bg-[#294D73] hover:bg-[#1f3a5f] text-white"
+          >
+            {t('transactions')}
+          </Button>
+        </div>
+      )}
 
-      {/* This Week's Upcoming Payments */}
-      <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />
+      {/* This Week's Upcoming Payments - Only show on Balance view */}
+      {showUpcomingWeek && <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />}
 
-      {/* Recent Transactions */}
-      <RecentTransactionsCard recentTransactions={sortedRecentTransactions} />
+      {/* Recent Transactions - Always show */}
+      {showRecentTransactions && <RecentTransactionsCard recentTransactions={sortedRecentTransactions} />}
     </div>
   );
 };
