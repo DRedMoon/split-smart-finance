@@ -3,12 +3,23 @@ import { useCallback } from 'react';
 import { saveFinancialData } from '@/services/storageService';
 
 export const usePaymentToggleHandler = (financialData: any, setFinancialData: any, toast: any) => {
+  const calculateCurrentBalance = (data: any) => {
+    const baseBalance = data?.balance || 0;
+    const allTransactions = data?.transactions || [];
+    const transactionSum = allTransactions.reduce((sum: number, transaction: any) => sum + transaction.amount, 0);
+    return baseBalance + transactionSum;
+  };
+
   const handleTogglePaid = useCallback((billId: string | number) => {
     if (!financialData) return;
 
     console.log('🔄 Toggle payment request for ID:', billId, 'Type:', typeof billId);
     
     const updatedData = { ...financialData };
+    
+    // Calculate the actual current balance including transactions
+    const currentBalance = calculateCurrentBalance(updatedData);
+    console.log('🔄 Current calculated balance:', currentBalance);
 
     // Handle loan payments with improved ID matching
     if ((typeof billId === 'string' && billId.startsWith('loan-')) || 
@@ -75,10 +86,10 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
       console.log('💰 Toggling loan payment status:', bill.name, 'from', bill.paid, 'to', newPaidStatus);
 
       if (newPaidStatus) {
-        if (updatedData.balance < bill.amount) {
+        if (currentBalance < bill.amount) {
           toast({
             title: 'Riittämätön saldo',
-            description: `Saldo: €${updatedData.balance.toFixed(2)}, Vaaditaan: €${bill.amount.toFixed(2)}`,
+            description: `Saldo: €${currentBalance.toFixed(2)}, Vaaditaan: €${bill.amount.toFixed(2)}`,
             variant: "destructive"
           });
           return;
@@ -129,10 +140,10 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
       console.log('📄 Processing regular bill payment for:', bill.name, 'New status:', newPaidStatus);
 
       if (newPaidStatus) {
-        if (updatedData.balance < bill.amount) {
+        if (currentBalance < bill.amount) {
           toast({
             title: 'Riittämätön saldo',
-            description: `Saldo: €${updatedData.balance.toFixed(2)}, Vaaditaan: €${bill.amount.toFixed(2)}`,
+            description: `Saldo: €${currentBalance.toFixed(2)}, Vaaditaan: €${bill.amount.toFixed(2)}`,
             variant: "destructive"
           });
           return;

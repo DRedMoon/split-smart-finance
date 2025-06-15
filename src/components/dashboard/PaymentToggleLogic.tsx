@@ -5,6 +5,13 @@ import { useToast } from '@/hooks/use-toast';
 export const usePaymentToggleLogic = () => {
   const { toast } = useToast();
 
+  const calculateCurrentBalance = (data: any) => {
+    const baseBalance = data?.balance || 0;
+    const allTransactions = data?.transactions || [];
+    const transactionSum = allTransactions.reduce((sum: number, transaction: any) => sum + transaction.amount, 0);
+    return baseBalance + transactionSum;
+  };
+
   const handleTogglePaid = (billId: string | number, event?: React.MouseEvent) => {
     if (event) {
       event.stopPropagation();
@@ -18,6 +25,10 @@ export const usePaymentToggleLogic = () => {
       console.error('No financial data found');
       return;
     }
+
+    // Calculate the actual current balance including transactions
+    const currentBalance = calculateCurrentBalance(data);
+    console.log('PaymentToggleLogic - Current calculated balance:', currentBalance);
 
     // Handle loan payment bills (generated from loans)
     if (typeof billId === 'string' && billId.startsWith('loan-')) {
@@ -55,10 +66,10 @@ export const usePaymentToggleLogic = () => {
       const newPaidStatus = !bill.paid;
 
       if (newPaidStatus) {
-        if (data.balance < bill.amount) {
+        if (currentBalance < bill.amount) {
           toast({
             title: 'Riittämätön saldo',
-            description: `Saldo: €${data.balance.toFixed(2)}, Vaaditaan: €${bill.amount.toFixed(2)}`,
+            description: `Saldo: €${currentBalance.toFixed(2)}, Vaaditaan: €${bill.amount.toFixed(2)}`,
             variant: "destructive"
           });
           return;
@@ -107,10 +118,10 @@ export const usePaymentToggleLogic = () => {
       console.log('PaymentToggleLogic - Processing regular bill payment for:', bill.name, 'New status:', newPaidStatus);
 
       if (newPaidStatus) {
-        if (data.balance < bill.amount) {
+        if (currentBalance < bill.amount) {
           toast({
             title: 'Riittämätön saldo',
-            description: `Saldo: €${data.balance.toFixed(2)}, Vaaditaan: €${bill.amount.toFixed(2)}`,
+            description: `Saldo: €${currentBalance.toFixed(2)}, Vaaditaan: €${bill.amount.toFixed(2)}`,
             variant: "destructive"
           });
           return;
