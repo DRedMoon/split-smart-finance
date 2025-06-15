@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { loadFinancialData, saveFinancialData } from '@/services/storageService';
+import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 
 const ManageLoansCredits = () => {
   const navigate = useNavigate();
@@ -96,32 +96,62 @@ const ManageLoansCredits = () => {
                       <p className="text-white/70">
                         {isCredit ? 'Luottoraja' : 'Kokonaissumma'}
                       </p>
-                      <p className="text-white font-medium">€{loan.totalAmount.toFixed(2)}</p>
+                      <p className="text-white font-medium">€{loan.totalAmount?.toFixed(2) || '0.00'}</p>
                     </div>
                     <div>
                       <p className="text-white/70">
                         {isCredit ? 'Käytetty luotto' : 'Nykyinen summa'}
                       </p>
-                      <p className="text-white font-medium">€{loan.currentAmount.toFixed(2)}</p>
+                      <p className="text-white font-medium">€{loan.currentAmount?.toFixed(2) || '0.00'}</p>
                     </div>
                     <div>
                       <p className="text-white/70">Kuukausimaksu</p>
-                      <p className="text-white font-medium">€{loan.monthly.toFixed(2)}</p>
+                      <p className="text-white font-medium">€{loan.monthly?.toFixed(2) || '0.00'}</p>
                     </div>
                     <div>
                       <p className="text-white/70">Korko</p>
-                      <p className="text-white font-medium">{loan.rate.toFixed(2)}%</p>
+                      <p className="text-white font-medium">{isCredit ? (loan.rate?.toFixed(2) || '0.00') : ((loan.euriborRate || 0) + (loan.personalMargin || 0)).toFixed(2)}%</p>
                     </div>
                     <div>
                       <p className="text-white/70">Eräpäivä</p>
-                      <p className="text-white font-medium">{loan.dueDate}</p>
+                      <p className="text-white font-medium">{loan.dueDate || '-'}</p>
                     </div>
                     <div>
                       <p className="text-white/70">Jäljellä</p>
-                      <p className="text-white font-medium">{loan.remaining}</p>
+                      <p className="text-white font-medium">{loan.remaining || '-'}</p>
                     </div>
                   </div>
                   
+                  {!isCredit && (loan.euriborRate !== undefined || loan.personalMargin !== undefined) && (
+                    <div className="border-t border-white/20 pt-3 mt-3">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-white/70">Euribor-korko</p>
+                          <p className="text-white font-medium">{loan.euriborRate?.toFixed(2) || '0.00'}%</p>
+                        </div>
+                        <div>
+                          <p className="text-white/70">Marginaali</p>
+                          <p className="text-white font-medium">{loan.personalMargin?.toFixed(2) || '0.00'}%</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {isCredit && loan.minimumPercent && (
+                    <div className="border-t border-white/20 pt-3 mt-3">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-white/70">Vähimmäismaksu-%</p>
+                          <p className="text-white font-medium">{loan.minimumPercent?.toFixed(2) || '0.00'}%</p>
+                        </div>
+                        <div>
+                          <p className="text-white/70">Hoitokulu</p>
+                          <p className="text-white font-medium">€{loan.managementFee?.toFixed(2) || '0.00'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {loan.totalPayback && loan.totalPayback > 0 && (
                     <div className="border-t border-white/20 pt-3 mt-3">
                       <div className="grid grid-cols-2 gap-4 text-sm">
@@ -132,7 +162,7 @@ const ManageLoansCredits = () => {
                         <div>
                           <p className="text-white/70">Kokonaiskorko</p>
                           <p className="text-white font-medium text-red-300">
-                            €{(loan.totalPayback - loan.currentAmount).toFixed(2)}
+                            €{(loan.totalPayback - (loan.currentAmount || 0)).toFixed(2)}
                           </p>
                         </div>
                       </div>

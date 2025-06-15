@@ -12,6 +12,7 @@ interface DashboardCarouselProps {
   totalLoanAmount: number;
   totalMonthlyPayments: number;
   totalBillsAmount: number;
+  onApiReady?: (api: CarouselApi) => void;
 }
 
 const DashboardCarousel = ({ 
@@ -20,7 +21,8 @@ const DashboardCarousel = ({
   monthlyBills, 
   totalLoanAmount, 
   totalMonthlyPayments, 
-  totalBillsAmount 
+  totalBillsAmount,
+  onApiReady 
 }: DashboardCarouselProps) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -35,7 +37,12 @@ const DashboardCarousel = ({
     api.on("select", () => {
       setCurrent(api.selectedScrollSnap())
     })
-  }, [api])
+
+    // Pass the API back to the parent
+    if (onApiReady) {
+      onApiReady(api);
+    }
+  }, [api, onApiReady])
 
   // Listen for custom navigation events
   useEffect(() => {

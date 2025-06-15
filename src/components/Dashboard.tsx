@@ -14,6 +14,7 @@ const Dashboard = () => {
   const location = useLocation();
   const { t } = useLanguage();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [carouselApi, setCarouselApi] = useState(null);
   
   // Listen for financial data updates
   useEffect(() => {
@@ -27,44 +28,27 @@ const Dashboard = () => {
     };
   }, []);
 
-  // Handle returnTo navigation parameter - FIXED VERSION
+  // Handle returnTo navigation parameter
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const returnTo = urlParams.get('returnTo');
     
-    if (returnTo) {
+    if (returnTo && carouselApi) {
       console.log('Dashboard returnTo parameter detected:', returnTo);
       
-      // Clear URL immediately to prevent re-triggering
+      const viewIndex = returnTo === 'balance' ? 0 : 
+                       returnTo === 'loans-credits' ? 1 : 
+                       returnTo === 'monthly-payments' ? 2 : 0;
+      
+      console.log('Navigating to carousel index:', viewIndex);
+      
+      // Navigate immediately
+      carouselApi.scrollTo(viewIndex);
+      
+      // Clear the URL parameter
       navigate('/', { replace: true });
-      
-      // Navigate carousel to the correct view with proper delay
-      const timer = setTimeout(() => {
-        const carousel = document.querySelector('[data-dashboard-carousel]');
-        if (carousel) {
-          const viewIndex = returnTo === 'balance' ? 0 : 
-                           returnTo === 'loans-credits' ? 1 : 
-                           returnTo === 'monthly-payments' ? 2 : 0;
-          
-          console.log('Navigating to carousel index:', viewIndex);
-          
-          // Use the carousel API directly
-          const emblaApi = (carousel as any).__emblaApi__;
-          if (emblaApi) {
-            emblaApi.scrollTo(viewIndex);
-          } else {
-            // Fallback to custom event
-            const event = new CustomEvent('navigate-dashboard', {
-              detail: { index: viewIndex }
-            });
-            carousel.dispatchEvent(event);
-          }
-        }
-      }, 100); // Reduced delay
-      
-      return () => clearTimeout(timer);
     }
-  }, [location.search, navigate]);
+  }, [location.search, navigate, carouselApi]);
   
   // Safe data loading with fallbacks
   const data = loadFinancialData();
@@ -109,6 +93,7 @@ const Dashboard = () => {
         totalLoanAmount={totalLoanAmount}
         totalMonthlyPayments={totalMonthlyPayments}
         totalBillsAmount={totalBillsAmount}
+        onApiReady={setCarouselApi}
       />
 
       {/* Navigation Buttons */}

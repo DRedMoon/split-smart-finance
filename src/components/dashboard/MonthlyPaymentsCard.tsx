@@ -13,7 +13,7 @@ interface MonthlyPaymentsCardProps {
   totalBillsAmount: number;
 }
 
-const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPaymentsCardProps) => {
+const MonthlyPaymentsCard = ({ monthlyBills }: MonthlyPaymentsCardProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -94,10 +94,8 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
   const displayedRegular = showAllRegular ? regularBills : regularBills.slice(0, 2);
   const displayedLoanCredit = showAllLoanCredit ? loanCreditPayments : loanCreditPayments.slice(0, 2);
 
-  const renderBillItem = (bill: any) => {
+  const renderBillItem = (bill: any, isLoanPayment: boolean = false) => {
     const isPaid = bill.paid || false;
-    const isLoanPayment = bill.category === 'Loan' || bill.category === 'Credit Card' || 
-                          bill.type === 'loan_payment' || bill.type === 'credit_payment';
     
     return (
       <div key={bill.id} className={`rounded p-2 ${isPaid ? 'bg-green-500/20 border border-green-500/30' : isLoanPayment ? 'bg-red-500/20 border border-red-500/30' : 'bg-white/10'}`}>
@@ -142,10 +140,11 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
       </CardHeader>
       <CardContent>
         {/* Regular Monthly Payments Section */}
-        <div className="mb-4">
+        <div className="mb-6">
+          <h3 className="text-white font-medium mb-3">Laskut</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <p className="text-white/70 text-sm">Laskut yhteensä</p>
+              <p className="text-white/70 text-sm">Yhteensä</p>
               <p className="text-white font-semibold">€{totalRegularAmount.toFixed(2)}</p>
             </div>
             <div>
@@ -154,9 +153,9 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
             </div>
           </div>
           
-          {regularBills.length > 0 && (
+          {regularBills.length > 0 ? (
             <div className="space-y-2 mb-4">
-              {displayedRegular.map(renderBillItem)}
+              {displayedRegular.map(bill => renderBillItem(bill, false))}
               {regularBills.length > 2 && (
                 <Button
                   variant="ghost"
@@ -167,6 +166,8 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
                 </Button>
               )}
             </div>
+          ) : (
+            <p className="text-white/60 text-sm mb-4">Ei laskuja</p>
           )}
         </div>
 
@@ -176,7 +177,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
             <h3 className="text-white font-medium mb-3">Lainat ja luotot</h3>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <p className="text-white/70 text-sm">Laskut yhteensä</p>
+                <p className="text-white/70 text-sm">Yhteensä</p>
                 <p className="text-white font-semibold">€{totalLoanCreditAmount.toFixed(2)}</p>
               </div>
               <div>
@@ -186,7 +187,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
             </div>
             
             <div className="space-y-2 mb-4">
-              {displayedLoanCredit.map(renderBillItem)}
+              {displayedLoanCredit.map(bill => renderBillItem(bill, true))}
               {loanCreditPayments.length > 2 && (
                 <Button
                   variant="ghost"
