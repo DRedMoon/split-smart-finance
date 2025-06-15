@@ -10,51 +10,56 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
     
     const updatedData = { ...financialData };
 
-    // Handle both loan payment formats (new loan-prefixed and legacy numeric IDs)
+    // Handle loan payments with improved ID matching
     if ((typeof billId === 'string' && billId.startsWith('loan-')) || 
         (typeof billId === 'number' && updatedData.monthlyBills.find((b: any) => b.id === billId && (b.category === 'Loan' || b.category === 'Credit Card')))) {
       
-      let loanIdToMatch: string;
-      let loan: any;
+      let targetLoan: any = null;
+      let loanIdFromBill: string = '';
       
       if (typeof billId === 'string' && billId.startsWith('loan-')) {
-        // New format: loan-{loanId} - extract the loan ID part
-        loanIdToMatch = billId.replace('loan-', '');
+        // Extract loan ID from loan-{loanId} format
+        loanIdFromBill = billId.replace('loan-', '');
+        console.log('🔍 Looking for loan with ID from bill:', loanIdFromBill);
         
-        // Find loan by comparing both as strings (to handle decimal precision)
-        loan = updatedData.loans.find((l: any) => l.id.toString() === loanIdToMatch);
-        
-        console.log('🔍 Looking for loan with ID (string):', loanIdToMatch);
-        console.log('🔍 Available loan IDs:', updatedData.loans.map((l: any) => l.id.toString()));
+        // Find loan by comparing both as strings to handle decimal precision
+        targetLoan = updatedData.loans.find((l: any) => {
+          const loanIdStr = l.id.toString();
+          const matches = loanIdStr === loanIdFromBill;
+          console.log('🔍 Comparing loan ID:', loanIdStr, 'with extracted:', loanIdFromBill, 'matches:', matches);
+          return matches;
+        });
       } else {
         // Legacy format: find loan by bill name
         const existingBill = updatedData.monthlyBills.find((b: any) => b.id === billId);
         if (existingBill) {
-          loan = updatedData.loans.find((l: any) => l.name === existingBill.name);
-          loanIdToMatch = loan?.id.toString() || '';
+          targetLoan = updatedData.loans.find((l: any) => l.name === existingBill.name);
+          loanIdFromBill = targetLoan?.id.toString() || '';
         }
       }
       
-      if (!loan) {
-        console.error('❌ Loan not found for ID:', loanIdToMatch);
-        console.log('📋 Available loans:', updatedData.loans.map((l: any) => ({ id: l.id, name: l.name })));
+      if (!targetLoan) {
+        console.error('❌ Loan not found for ID:', loanIdFromBill);
+        console.log('📋 Available loan IDs:', updatedData.loans.map((l: any) => ({ id: l.id.toString(), name: l.name })));
         return;
       }
 
-      console.log('🏦 Processing loan payment for:', loan.name, 'Loan ID:', loan.id);
+      console.log('🏦 Processing loan payment for:', targetLoan.name, 'Loan ID:', targetLoan.id);
 
       // Find or create the bill entry
-      let billIndex = updatedData.monthlyBills.findIndex((b: any) => 
-        b.name === loan.name || b.id === billId
-      );
+      let billIndex = updatedData.monthlyBills.findIndex((b: any) => {
+        // Match by name (most reliable) or by bill ID
+        return b.name === targetLoan.name || b.id === billId;
+      });
       
       if (billIndex === -1) {
-        const isCredit = loan.remaining === 'Credit Card';
+        // Create new bill entry
+        const isCredit = targetLoan.remaining === 'Credit Card';
         const newBill = {
-          id: `loan-${loan.id}`,
-          name: loan.name,
-          amount: loan.monthly,
-          dueDate: loan.dueDate || '1',
+          id: `loan-${targetLoan.id}`,
+          name: targetLoan.name,
+          amount: targetLoan.monthly,
+          dueDate: targetLoan.dueDate || '1',
           category: isCredit ? 'Credit Card' : 'Loan',
           type: isCredit ? 'credit_payment' : 'loan_payment',
           paid: false
@@ -82,8 +87,8 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
         updatedData.monthlyBills[billIndex].paid = true;
         updatedData.balance -= bill.amount;
         
-        // Update loan amount - use string comparison for ID matching
-        const loanToUpdate = updatedData.loans.find((l: any) => l.id.toString() === loan.id.toString());
+        // Update loan amount using exact ID match
+        const loanToUpdate = updatedData.loans.find((l: any) => l.id.toString() === targetLoan.id.toString());
         if (loanToUpdate) {
           loanToUpdate.currentAmount = Math.max(0, loanToUpdate.currentAmount - bill.amount);
           loanToUpdate.lastPayment = new Date().toISOString().split('T')[0];
@@ -98,7 +103,7 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
         updatedData.monthlyBills[billIndex].paid = false;
         updatedData.balance += bill.amount;
         
-        const loanToUpdate = updatedData.loans.find((l: any) => l.id.toString() === loan.id.toString());
+        const loanToUpdate = updatedData.loans.find((l: any) => l.id.toString() === targetLoan.id.toString());
         if (loanToUpdate) {
           loanToUpdate.currentAmount += bill.amount;
           console.log('✅ Restored loan amount:', loanToUpdate.name, 'New amount:', loanToUpdate.currentAmount);
