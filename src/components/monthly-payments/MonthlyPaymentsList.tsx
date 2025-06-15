@@ -51,7 +51,7 @@ const MonthlyPaymentsList = ({
       {/* Loan/Credit Payments */}
       {sortedLoanCredit.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-white text-lg font-semibold mb-4">{t('loans_credits')}</h2>
+          <h2 className="text-white text-lg font-semibold mb-4">Lainat ja luotot</h2>
           <div className="space-y-4">
             {displayedLoanCredit.map((bill) => (
               <PaymentItem
@@ -71,12 +71,12 @@ const MonthlyPaymentsList = ({
                 {showAllLoanCredit ? (
                   <>
                     <ChevronUp size={16} className="mr-2" />
-                    {t('show_less')}
+                    Näytä vähemmän
                   </>
                 ) : (
                   <>
                     <ChevronDown size={16} className="mr-2" />
-                    +{sortedLoanCredit.length - 2} {t('more')}
+                    +{sortedLoanCredit.length - 2} lisää
                   </>
                 )}
               </Button>
@@ -87,12 +87,12 @@ const MonthlyPaymentsList = ({
 
       {/* Regular Monthly Payments */}
       <div>
-        <h2 className="text-white text-lg font-semibold mb-4">{t('monthly_payments')}</h2>
+        <h2 className="text-white text-lg font-semibold mb-4">Kuukausimaksut</h2>
         <div className="space-y-4">
           {displayedRegular.length === 0 ? (
             <Card className="bg-[#294D73] border-none">
               <CardContent className="p-6 text-center text-white/70">
-                {t('no_monthly_payments')}
+                Ei kuukausimaksuja
               </CardContent>
             </Card>
           ) : (
@@ -115,12 +115,12 @@ const MonthlyPaymentsList = ({
                   {showAllPayments ? (
                     <>
                       <ChevronUp size={16} className="mr-2" />
-                      {t('show_less')}
+                      Näytä vähemmän
                     </>
                   ) : (
                     <>
                       <ChevronDown size={16} className="mr-2" />
-                      +{sortedRegular.length - 2} {t('more')}
+                      +{sortedRegular.length - 2} lisää
                     </>
                   )}
                 </Button>

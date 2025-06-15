@@ -9,7 +9,6 @@ import { loadFinancialData, saveFinancialData } from '@/services/storageService'
 import MonthlyPaymentsHeader from './monthly-payments/MonthlyPaymentsHeader';
 import MonthlyPaymentsSummary from './monthly-payments/MonthlyPaymentsSummary';
 import MonthlyPaymentsList from './monthly-payments/MonthlyPaymentsList';
-import { useMonthlyPaymentsData } from './monthly-payments/useMonthlyPaymentsData';
 
 const today = new Date();
 
@@ -142,8 +141,8 @@ const MonthlyPayments = () => {
       if (newPaidStatus) {
         if (updatedData.balance < bill.amount) {
           toast({
-            title: t('insufficient_funds'),
-            description: `${t('balance')}: €${updatedData.balance.toFixed(2)}, ${t('required')}: €${bill.amount.toFixed(2)}`,
+            title: 'Riittämätön saldo',
+            description: `Saldo: €${updatedData.balance.toFixed(2)}, Vaaditaan: €${bill.amount.toFixed(2)}`,
             variant: "destructive"
           });
           return;
@@ -161,8 +160,8 @@ const MonthlyPayments = () => {
         }
         
         toast({
-          title: t('payment_processed'),
-          description: `${bill.name} ${t('marked_as_paid')}`
+          title: 'Maksu käsitelty',
+          description: `${bill.name} merkitty maksetuksi`
         });
       } else {
         updatedData.monthlyBills[billIndex].paid = false;
@@ -176,8 +175,8 @@ const MonthlyPayments = () => {
         }
         
         toast({
-          title: t('payment_reversed'),
-          description: `${bill.name} ${t('marked_as_unpaid')}`
+          title: 'Maksu peruutettu',
+          description: `${bill.name} merkitty maksamattomaksi`
         });
       }
     }
@@ -192,7 +191,64 @@ const MonthlyPayments = () => {
     return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
   }
 
-  const { regularBills, loanCreditPayments, totals } = useMonthlyPaymentsData(financialData);
+  // Process data directly in component instead of using the problematic hook
+  const allLoans = financialData?.loans || [];
+  
+  // Create comprehensive list of loan/credit payments
+  const allLoanPayments: any[] = [];
+  
+  // Add existing loan bills from monthlyBills
+  const existingLoanBills = (financialData.monthlyBills || []).filter((bill: any) => 
+    bill.category === 'Loan' || bill.category === 'Credit Card' || 
+    bill.type === 'loan_payment' || bill.type === 'credit_payment'
+  );
+  
+  // Add all existing loan bills
+  existingLoanBills.forEach(bill => {
+    allLoanPayments.push(bill);
+  });
+  
+  // Add missing loan payments from loans that don't have bills yet
+  allLoans.forEach(loan => {
+    const existingBill = existingLoanBills.find(bill => bill.name === loan.name);
+    if (!existingBill && loan.monthly > 0) {
+      const isCredit = loan.remaining === 'Credit Card';
+      allLoanPayments.push({
+        id: `loan-${loan.id}`,
+        name: loan.name,
+        amount: loan.monthly,
+        dueDate: loan.dueDate || '1',
+        category: isCredit ? 'Credit Card' : 'Loan',
+        type: isCredit ? 'credit_payment' : 'loan_payment',
+        paid: false
+      });
+    }
+  });
+
+  const loanCreditPayments = allLoanPayments;
+
+  const regularBills = (financialData.monthlyBills || []).filter((bill: any) => 
+    bill.category !== 'Loan' && bill.category !== 'Credit Card' && 
+    bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
+  );
+
+  // Calculate totals
+  const totalRegular = regularBills.reduce((sum: number, bill: any) => sum + bill.amount, 0);
+  const paidRegular = regularBills.filter((bill: any) => bill.paid).reduce((sum: number, bill: any) => sum + bill.amount, 0);
+  const remainingRegular = totalRegular - paidRegular;
+
+  const totalLoanCredit = loanCreditPayments.reduce((sum: number, bill: any) => sum + bill.amount, 0);
+  const paidLoanCredit = loanCreditPayments.filter((bill: any) => bill.paid).reduce((sum: number, bill: any) => sum + bill.amount, 0);
+  const remainingLoanCredit = totalLoanCredit - paidLoanCredit;
+
+  const totals = {
+    totalRegular,
+    paidRegular,
+    remainingRegular,
+    totalLoanCredit,
+    paidLoanCredit,
+    remainingLoanCredit
+  };
 
   return (
     <div className="p-4 pb-20 bg-[#192E45] min-h-screen max-w-md mx-auto">

@@ -28,8 +28,8 @@ const Settings = () => {
   const handleExportData = () => {
     exportFinancialData();
     toast({
-      title: t('backup_created'),
-      description: t('backup_created'),
+      title: 'Varmuuskopio luotu',
+      description: 'Tiedot on viety onnistuneesti',
     });
   };
 
@@ -39,14 +39,14 @@ const Settings = () => {
       importFinancialData(file)
         .then(() => {
           toast({
-            title: t('data_imported'),
-            description: t('data_imported'),
+            title: 'Tiedot tuotu',
+            description: 'Tiedot on tuotu onnistuneesti',
           });
         })
         .catch(() => {
           toast({
-            title: t('error'),
-            description: t('error'),
+            title: 'Virhe',
+            description: 'Virhe tietojen tuonnissa',
             variant: "destructive"
           });
         });
@@ -54,11 +54,11 @@ const Settings = () => {
   };
 
   const handleClearAllData = () => {
-    if (confirm(t('confirm_clear_all_data'))) {
+    if (confirm('Haluatko varmasti tyhjentää kaikki tiedot?')) {
       clearAllData();
       toast({
-        title: t('data_cleared'),
-        description: t('data_cleared'),
+        title: 'Tiedot tyhjennetty',
+        description: 'Kaikki tiedot on poistettu',
       });
     }
   };
@@ -68,15 +68,15 @@ const Settings = () => {
       const hasPermission = await initializeNotifications();
       if (hasPermission) {
         setNotificationsEnabled(true);
-        await showNotification(t('notifications_enabled'), t('will_receive_payment_notifications'));
+        await showNotification('Ilmoitukset käytössä', 'Saat nyt ilmoituksia maksuista');
         toast({
-          title: t('notifications_enabled'),
-          description: t('will_receive_payment_notifications'),
+          title: 'Ilmoitukset käytössä',
+          description: 'Saat nyt ilmoituksia maksuista',
         });
       } else {
         toast({
-          title: t('permission_denied'),
-          description: t('notifications_require_permission'),
+          title: 'Käyttöoikeus evätty',
+          description: 'Ilmoitukset tarvitsevat käyttöoikeuden',
           variant: "destructive"
         });
       }
@@ -87,45 +87,45 @@ const Settings = () => {
 
   const settingsGroups = [
     {
-      title: t('account'),
+      title: 'Tili',
       items: [
-        { icon: User, label: t('profile'), action: () => navigate('/profile') },
-        { icon: Bell, label: t('notifications'), action: () => navigate('/notification-settings') },
-        { icon: Shield, label: t('privacy_security'), action: () => navigate('/privacy') }
+        { icon: User, label: 'Profiili', action: () => navigate('/profile') },
+        { icon: Bell, label: 'Ilmoitukset', action: () => navigate('/notification-settings') },
+        { icon: Shield, label: 'Yksityisyys ja turvallisuus', action: () => navigate('/privacy') }
       ]
     },
     {
-      title: t('appearance_and_features'),
+      title: 'Ulkoasu ja ominaisuudet',
       items: [
-        { icon: Palette, label: t('appearance'), action: () => navigate('/appearance') },
-        { icon: SettingsIcon, label: t('backup'), action: () => navigate('/backup-settings') }
+        { icon: Palette, label: 'Ulkoasu', action: () => navigate('/appearance') },
+        { icon: SettingsIcon, label: 'Varmuuskopiot', action: () => navigate('/backup-settings') }
       ]
     },
     {
-      title: 'Security & Passwords',
+      title: 'Turvallisuus ja salasanat',
       items: [
-        { icon: Lock, label: t('change_password'), action: () => navigate('/security') },
-        { icon: Key, label: t('add_password'), action: () => navigate('/security') }
+        { icon: Lock, label: 'Vaihda salasana', action: () => navigate('/security') },
+        { icon: Key, label: 'Lisää salasana', action: () => navigate('/security') }
       ]
     },
     {
-      title: t('data'),
+      title: 'Tiedot',
       items: [
-        { icon: Database, label: t('data_management'), action: () => navigate('/data-management') },
-        { icon: Download, label: t('export_data'), action: handleExportData },
-        { icon: Upload, label: t('import_data'), action: () => document.getElementById('import-input')?.click() }
+        { icon: Database, label: 'Tietojen hallinta', action: () => navigate('/data-management') },
+        { icon: Download, label: 'Vie tiedot', action: handleExportData },
+        { icon: Upload, label: 'Tuo tiedot', action: () => document.getElementById('import-input')?.click() }
       ]
     }
   ];
 
   return (
-    <div className="p-4 pb-20 bg-[#192E45] min-h-screen">
+    <div className="p-4 pb-20 bg-[#192E45] min-h-screen max-w-md mx-auto">
       {/* Header */}
       <div className="flex items-center space-x-3 mb-6">
         <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-white hover:bg-white/10">
           <ArrowLeft size={20} />
         </Button>
-        <h1 className="text-2xl font-bold text-white">{t('settings')}</h1>
+        <h1 className="text-2xl font-bold text-white">Asetukset</h1>
       </div>
 
       {/* Profile Card */}
@@ -137,12 +137,12 @@ const Settings = () => {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-lg text-white">
-                {loadFinancialData()?.profile?.name || t('user')}
+                {loadFinancialData()?.profile?.name || 'Käyttäjä'}
               </h3>
               <p className="text-white/70">{loadFinancialData()?.profile?.email || 'user@example.com'}</p>
               <div className="flex space-x-4 mt-2 text-sm">
-                <span className="text-green-300">{t('balance')}: €{loadFinancialData()?.balance?.toFixed(2) || '0.00'}</span>
-                <span className="text-red-300">{t('debts')}: €{loadFinancialData()?.loans?.reduce((sum, loan) => sum + loan.currentAmount, 0)?.toFixed(2) || '0.00'}</span>
+                <span className="text-green-300">Saldo: €{loadFinancialData()?.balance?.toFixed(2) || '0.00'}</span>
+                <span className="text-red-300">Velat: €{loadFinancialData()?.loans?.reduce((sum, loan) => sum + loan.currentAmount, 0)?.toFixed(2) || '0.00'}</span>
               </div>
             </div>
           </div>
@@ -190,7 +190,7 @@ const Settings = () => {
             onClick={handleClearAllData}
             className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10"
           >
-            {t('clear_all_data')}
+            Tyhjennä kaikki tiedot
           </Button>
         </CardContent>
       </Card>
@@ -206,8 +206,8 @@ const Settings = () => {
 
       {/* App Info */}
       <div className="text-center mt-6 text-sm text-white/50">
-        <p>{t('financial_management_app')}</p>
-        <p>{t('version')} 1.0.0</p>
+        <p>Taloudenhallinta-sovellus</p>
+        <p>Versio 1.0.0</p>
       </div>
     </div>
   );
