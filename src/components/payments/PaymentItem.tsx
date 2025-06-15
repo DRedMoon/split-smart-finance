@@ -1,117 +1,87 @@
 
 import React from 'react';
-import { CheckCircle, Circle, Clock, CreditCard, Receipt } from 'lucide-react';
+import { Check, X, Calendar } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PaymentItemProps {
   bill: any;
   onTogglePaid: (billId: string | number) => void;
-  getDaysUntilDue: (dueDate: string) => number;
+  getDaysUntilDue: (dueDate: string) => number | null;
 }
 
 const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) => {
-  const { t } = useLanguage();
-  const daysUntilDue = getDaysUntilDue(bill.dueDate);
-  const isOverdue = daysUntilDue < 0;
-  const isDueToday = daysUntilDue === 0;
-  const isDueSoon = daysUntilDue > 0 && daysUntilDue <= 3;
   const isPaid = bill.paid || false;
+  const daysUntilDue = getDaysUntilDue(bill.dueDate);
+  const isLoanCredit = bill.category === 'Loan' || bill.category === 'Credit Card' || 
+                      bill.type === 'loan_payment' || bill.type === 'credit_payment';
 
-  const handlePaymentToggle = (e: React.MouseEvent) => {
+  const handleTogglePaid = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('PaymentItem - Clicking payment button for:', bill.name, 'ID:', bill.id);
     onTogglePaid(bill.id);
   };
 
-  const getStatusBadge = () => {
-    if (isPaid) {
-      return <Badge className="bg-green-500 text-white">Maksettu</Badge>;
-    }
-    if (isOverdue) {
-      return <Badge variant="destructive">Myöhässä</Badge>;
-    }
-    if (isDueToday) {
-      return <Badge className="bg-orange-500 text-white">Erääntyy tänään</Badge>;
-    }
-    if (isDueSoon) {
-      return <Badge className="bg-yellow-500 text-black">Erääntyy pian</Badge>;
-    }
-    return <Badge className="bg-red-500 text-white">Maksamaton</Badge>;
+  const getCardBackground = () => {
+    if (isPaid) return 'bg-green-500/20 border border-green-500/30';
+    if (isLoanCredit) return 'bg-red-500/20 border border-red-500/30';
+    return 'bg-[#294D73] border-none';
   };
 
-  const getIcon = () => {
-    if (bill.category === 'Loan' || bill.category === 'Credit Card') {
-      return <CreditCard size={20} className="text-blue-400" />;
-    }
-    return <Receipt size={20} className="text-green-400" />;
-  };
-
-  const getStatusText = () => {
-    if (isPaid) {
-      return <span className="text-green-400 text-sm font-medium">Maksettu</span>;
-    }
-    return <span className="text-red-400 text-sm font-medium">Maksamaton</span>;
-  };
-
-  const getCategoryText = () => {
-    if (bill.category === 'Loan') return 'Laina';
-    if (bill.category === 'Credit Card') return 'Luottokortti';
-    return bill.category;
+  const getDueDateColor = () => {
+    if (isPaid) return 'text-green-400';
+    if (daysUntilDue !== null && daysUntilDue <= 3) return 'text-red-400';
+    if (daysUntilDue !== null && daysUntilDue <= 7) return 'text-orange-400';
+    return 'text-white/70';
   };
 
   return (
-    <Card className="bg-[#294D73] border-none">
+    <Card className={getCardBackground()}>
       <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            {getIcon()}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleTogglePaid}
+              className={`p-2 h-8 w-8 ${isPaid ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
+            >
+              {isPaid ? <Check size={14} className="text-white" /> : <X size={14} className="text-white" />}
+            </Button>
             <div>
-              <h3 className="text-white font-medium">{bill.name}</h3>
-              <p className="text-white/70 text-sm">{getCategoryText()}</p>
-              {getStatusText()}
-            </div>
-          </div>
-          {getStatusBadge()}
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div>
-              <p className="text-white font-bold">€{bill.amount.toFixed(2)}</p>
-              <p className="text-white/70 text-sm flex items-center">
-                <Clock size={14} className="mr-1" />
-                {bill.dueDate}. päivä
-              </p>
-            </div>
-            {daysUntilDue !== null && (
-              <div className="text-sm">
-                {isOverdue ? (
-                  <p className="text-red-400">{Math.abs(daysUntilDue)} päivää myöhässä</p>
-                ) : isDueToday ? (
-                  <p className="text-orange-400">Erääntyy tänään</p>
-                ) : (
-                  <p className="text-white/70">{daysUntilDue} päivää jäljellä</p>
-                )}
+              <div className="font-medium text-white">{bill.name}</div>
+              <div className="flex items-center space-x-2 mt-1">
+                <Calendar size={12} className={getDueDateColor()} />
+                <span className={`text-sm ${getDueDateColor()}`}>
+                  {bill.dueDate}
+                  {daysUntilDue !== null && !isPaid && (
+                    <span className="ml-1">
+                      ({daysUntilDue === 0 ? 'Tänään' : `${daysUntilDue} pv`})
+                    </span>
+                  )}
+                </span>
               </div>
-            )}
+            </div>
           </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handlePaymentToggle}
-            className="text-white hover:bg-white/10"
-          >
-            {isPaid ? (
-              <CheckCircle size={20} className="text-green-400" />
-            ) : (
-              <Circle size={20} className="text-white/50" />
-            )}
-          </Button>
+          <div className="text-right">
+            <div className={`font-bold text-lg ${isPaid ? 'text-green-400' : isLoanCredit ? 'text-red-300' : 'text-white'}`}>
+              €{bill.amount.toFixed(2)}
+            </div>
+            <div className="flex items-center space-x-1 mt-1">
+              {isLoanCredit && (
+                <Badge variant="outline" className="text-xs border-red-300 text-red-300">
+                  {bill.category === 'Credit Card' ? 'Luotto' : 'Laina'}
+                </Badge>
+              )}
+              <Badge
+                variant="outline"
+                className={`text-xs ${isPaid ? 'border-green-300 text-green-300' : 'border-white/30 text-white/70'}`}
+              >
+                {isPaid ? 'Maksettu' : 'Maksamaton'}
+              </Badge>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

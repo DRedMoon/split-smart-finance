@@ -12,6 +12,12 @@ interface PaymentBillItemProps {
 const PaymentBillItem = ({ bill, isLoanPayment, onTogglePaid }: PaymentBillItemProps) => {
   const isPaid = bill.paid || false;
   
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onTogglePaid(bill.id, e);
+  };
+  
   return (
     <div className={`rounded p-2 ${isPaid ? 'bg-green-500/20 border border-green-500/30' : isLoanPayment ? 'bg-red-500/20 border border-red-500/30' : 'bg-white/10'}`}>
       <div className="flex justify-between items-center">
@@ -19,7 +25,7 @@ const PaymentBillItem = ({ bill, isLoanPayment, onTogglePaid }: PaymentBillItemP
           <Button
             variant="ghost"
             size="sm"
-            onClick={(e) => onTogglePaid(bill.id, e)}
+            onClick={handleClick}
             className={`p-1 h-6 w-6 ${isPaid ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
           >
             {isPaid ? <Check size={12} className="text-white" /> : <X size={12} className="text-white" />}

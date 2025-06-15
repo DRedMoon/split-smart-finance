@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
@@ -20,43 +21,21 @@ export const useFinancialData = (refreshKey: number) => {
   const transactionSum = allTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
   const balance = baseBalance + transactionSum;
 
-  // Enhanced recent transactions logic
+  // Enhanced recent transactions logic - NO DUPLICATES
   const recentTransactions = [];
   
-  // Add ALL income transactions (including Paycheck)
-  const incomeTransactions = allTransactions.filter(transaction => transaction.amount > 0);
-  recentTransactions.push(...incomeTransactions);
+  // Add ALL regular transactions (income and expenses)
+  recentTransactions.push(...allTransactions);
   
-  // Add expense transactions
-  const expenseTransactions = allTransactions.filter(transaction => transaction.amount < 0);
-  recentTransactions.push(...expenseTransactions);
-  
-  // Add ONLY paid monthly bills as expense transactions - with strict filtering
-  console.log('All monthly bills:', monthlyBills);
-  const paidBills = monthlyBills.filter(bill => {
-    console.log(`Bill ${bill.name}: paid = ${bill.paid}, type = ${typeof bill.paid}`);
-    return bill.paid === true;
-  });
-  console.log('Paid bills:', paidBills);
-  
-  const billTransactions = paidBills.map(bill => ({
-    id: `bill-${bill.id}`,
-    name: bill.name,
-    amount: -bill.amount,
-    date: new Date().toISOString().split('T')[0],
-    type: 'expense',
-    category: bill.type || bill.category
-  }));
-  console.log('Bill transactions being added to recent:', billTransactions);
-  
-  recentTransactions.push(...billTransactions);
+  // DO NOT add bill transactions as they duplicate regular transactions
+  // Only actual transactions should appear in recent transactions
   
   // Sort by date and show more transactions
   const sortedRecentTransactions = recentTransactions
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 15);
 
-  console.log('Final sorted recent transactions:', sortedRecentTransactions);
+  console.log('Final sorted recent transactions (no duplicates):', sortedRecentTransactions);
 
   const totalLoanAmount = loans.reduce((sum, loan) => sum + (loan.currentAmount || 0), 0);
   const totalMonthlyPayments = loans.reduce((sum, loan) => sum + (loan.monthly || 0), 0);
