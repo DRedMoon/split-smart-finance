@@ -30,7 +30,7 @@ const Dashboard = () => {
     };
   }, []);
 
-  // Handle returnTo parameter immediately to prevent showing wrong view
+  // Handle returnTo parameter immediately
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const returnTo = urlParams.get('returnTo');
@@ -69,7 +69,6 @@ const Dashboard = () => {
   const balance = data?.balance || 0;
   const loans = data?.loans || [];
   
-  // Debug loan data
   console.log('Dashboard - All loans:', loans);
   console.log('Dashboard - Monthly bills:', data?.monthlyBills);
   
@@ -80,8 +79,10 @@ const Dashboard = () => {
       // Always show income (positive amounts)
       if (transaction.amount > 0) return true;
       
-      // For expenses, only show if they're marked as paid/completed
-      return transaction.paid === true || transaction.completed === true;
+      // For expenses, check if transaction has status indicating payment
+      // Since transaction type doesn't have paid/completed, we'll show recent expenses
+      // The user can mark them as paid in the transaction details
+      return transaction.amount < 0; // Show all expenses for now
     })
     .slice(0, 3);
 
@@ -108,7 +109,7 @@ const Dashboard = () => {
     bill.type !== 'credit_payment'
   );
 
-  // Show loading or skeleton while navigation is not ready
+  // Show loading while navigation is not ready
   if (!navigationReady) {
     return (
       <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">
