@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Settings } from 'lucide-react';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { addTransaction, addIncome, loadFinancialData, addMonthlyBill } from '@/services/storageService';
@@ -21,7 +21,8 @@ const AddExpense = () => {
     name: '',
     amount: 0,
     category: '',
-    type: 'expense'
+    type: 'expense',
+    isRecurring: false
   });
 
   const [availableCategories, setAvailableCategories] = useState([]);
@@ -32,6 +33,13 @@ const AddExpense = () => {
     const customCategories = data?.categories || [];
     setAvailableCategories(customCategories);
   }, []);
+
+  // Auto-set recurring for subscription category
+  useEffect(() => {
+    if (quickData.category === 'subscription') {
+      setQuickData(prev => ({ ...prev, isRecurring: true }));
+    }
+  }, [quickData.category]);
 
   const handleQuickAdd = () => {
     if (!quickData.name || quickData.amount === 0 || !quickData.category) {
@@ -52,20 +60,19 @@ const AddExpense = () => {
         type: 'expense'
       });
 
-      // Check if this should be added as a monthly bill (for recurring expenses)
+      // Add to monthly bills if marked as recurring or if it's a recurring payment category
       const data = loadFinancialData();
       const categoryData = data?.categories?.find(cat => 
         cat.name.toLowerCase().replace(/\s+/g, '_') === quickData.category
       );
 
-      // Add to monthly bills if it's a recurring payment category
       const recurringCategories = ['insurance', 'subscription', 'bill', 'maintenance_charge', 'hoitovastike', 'housing_company_expenditure'];
-      const isRecurring = categoryData?.isMonthlyPayment || 
-                         categoryData?.isMaintenanceCharge || 
-                         categoryData?.isHousingCompanyExpenditure ||
-                         recurringCategories.includes(quickData.category);
+      const isAutoRecurring = categoryData?.isMonthlyPayment || 
+                             categoryData?.isMaintenanceCharge || 
+                             categoryData?.isHousingCompanyExpenditure ||
+                             recurringCategories.includes(quickData.category);
 
-      if (isRecurring) {
+      if (quickData.isRecurring || isAutoRecurring) {
         // Add to monthly bills with default due date
         addMonthlyBill({
           name: quickData.name,
@@ -99,7 +106,8 @@ const AddExpense = () => {
       name: '',
       amount: 0,
       category: '',
-      type: 'expense'
+      type: 'expense',
+      isRecurring: false
     });
   };
 
@@ -209,6 +217,20 @@ const AddExpense = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {quickData.type === 'expense' && (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="recurring"
+                checked={quickData.isRecurring}
+                onCheckedChange={(checked) => setQuickData(prev => ({ ...prev, isRecurring: !!checked }))}
+                className="border-white/20 data-[state=checked]:bg-white data-[state=checked]:text-[#294D73]"
+              />
+              <Label htmlFor="recurring" className="text-white text-sm">
+                {t('recurring_payment')}
+              </Label>
+            </div>
+          )}
           
           <Button onClick={handleQuickAdd} className="w-full bg-white text-[#294D73]">
             <Plus size={16} className="mr-2" />

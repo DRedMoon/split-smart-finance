@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { loadFinancialData, saveFinancialData, calculateLoanPayment2, calculateCreditPayment } from '@/services/storageService';
+import { loadFinancialData, saveFinancialData } from '@/services/storageService';
+import { calculateLoanPayment2, calculateCreditPayment } from '@/services/calculationService';
 
 const ManageLoansCredits = () => {
   const navigate = useNavigate();
@@ -45,19 +46,10 @@ const ManageLoansCredits = () => {
         return calculation.totalWithInterest;
       }
     } else {
-      // Loan calculation
-      if (loan.totalAmount > 0 && loan.euriborRate >= 0 && loan.personalMargin >= 0) {
-        const termMonths = parseInt(loan.remaining.match(/\d+/)?.[0] || '12');
-        if (termMonths > 0) {
-          const calculation = calculateLoanPayment2(
-            loan.totalAmount,
-            loan.euriborRate,
-            loan.personalMargin,
-            loan.managementFee || 0,
-            termMonths
-          );
-          return calculation.totalPayback;
-        }
+      // For loans, use user's monthly payment to calculate total payback
+      const termMonths = parseInt(loan.remaining.match(/\d+/)?.[0] || '12');
+      if (termMonths > 0 && loan.monthly > 0) {
+        return loan.monthly * termMonths;
       }
     }
     return 0;
