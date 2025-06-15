@@ -20,8 +20,8 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
   const [showAll, setShowAll] = useState(false);
 
   const handleTogglePaid = (billId: number, event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent navigation when clicking the button
-    event.preventDefault();  // Also prevent default behavior
+    event.stopPropagation();
+    event.preventDefault();
     
     const data = loadFinancialData();
     if (!data) return;
@@ -34,7 +34,6 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     const newPaidStatus = !currentPaidStatus;
 
     if (newPaidStatus) {
-      // Check if sufficient balance
       if (data.balance < bill.amount) {
         toast({
           title: t('insufficient_funds'),
@@ -44,7 +43,6 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
         return;
       }
       
-      // Mark as paid - deduct from balance
       data.monthlyBills[billIndex].paid = true;
       data.balance -= bill.amount;
       
@@ -53,7 +51,6 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
         description: `${bill.name} ${t('marked_as_paid')}`
       });
     } else {
-      // Mark as unpaid - add back to balance
       data.monthlyBills[billIndex].paid = false;
       data.balance += bill.amount;
       
@@ -64,7 +61,6 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     }
     
     saveFinancialData(data);
-    // Use a custom event to update the parent component
     window.dispatchEvent(new CustomEvent('financial-data-updated'));
   };
 
@@ -75,7 +71,6 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
 
   const displayedBills = showAll ? monthlyBills : monthlyBills.slice(0, 2);
   
-  // Calculate paid and unpaid bills using only 'paid' property
   const paidBills = monthlyBills.filter((bill: any) => bill.paid);
   const unpaidBills = monthlyBills.filter((bill: any) => !bill.paid);
 
@@ -111,8 +106,11 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
           <div className="space-y-2 mb-4">
             {displayedBills.map((bill: any) => {
               const isPaid = bill.paid || false;
+              const isLoanPayment = bill.category === 'Loan' || bill.category === 'Credit Card' || 
+                                  bill.type === 'loan_payment' || bill.type === 'credit_payment';
+              
               return (
-                <div key={bill.id} className={`rounded p-2 ${isPaid ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/10'}`}>
+                <div key={bill.id} className={`rounded p-2 ${isPaid ? 'bg-green-500/20 border border-green-500/30' : isLoanPayment ? 'bg-red-500/20 border border-red-500/30' : 'bg-white/10'}`}>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-2">
                       <Button
@@ -124,8 +122,13 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
                         {isPaid ? <Check size={12} className="text-white" /> : <X size={12} className="text-white" />}
                       </Button>
                       <span className="text-white text-sm font-medium">{bill.name}</span>
+                      {isLoanPayment && (
+                        <span className="text-xs bg-red-500/30 px-1 py-0.5 rounded text-red-200">
+                          {bill.category === 'Credit Card' ? 'Credit' : 'Loan'}
+                        </span>
+                      )}
                     </div>
-                    <span className={`text-sm ${isPaid ? 'text-green-400' : 'text-white/70'}`}>€{bill.amount.toFixed(2)}</span>
+                    <span className={`text-sm ${isPaid ? 'text-green-400' : isLoanPayment ? 'text-red-300' : 'text-white/70'}`}>€{bill.amount.toFixed(2)}</span>
                   </div>
                 </div>
               );

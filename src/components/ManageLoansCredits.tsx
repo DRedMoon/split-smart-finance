@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
-import { calculateCreditPayment } from '@/services/calculationService';
 
 const ManageLoansCredits = () => {
   const navigate = useNavigate();
@@ -37,30 +36,6 @@ const ManageLoansCredits = () => {
     }
   };
 
-  const calculateTotalPayback = (loan: any) => {
-    if (loan.remaining === 'Credit Card') {
-      // Credit card calculation
-      if (loan.currentAmount > 0 && loan.rate > 0) {
-        const calculation = calculateCreditPayment(
-          loan.currentAmount,
-          loan.rate,
-          loan.managementFee || 0,
-          loan.minimumPercent || 3
-        );
-        return calculation.totalWithInterest;
-      }
-    } else {
-      // For loans, calculate based on monthly payment and remaining term
-      const termMonths = parseInt(loan.remaining.match(/\d+/)?.[0] || '12');
-      if (termMonths > 0) {
-        // Use the stored monthly payment amount to calculate total payback
-        const monthlyPayment = loan.monthly || 0;
-        return monthlyPayment * termMonths;
-      }
-    }
-    return 0;
-  };
-
   if (!financialData) {
     return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
   }
@@ -83,8 +58,10 @@ const ManageLoansCredits = () => {
           </Card>
         ) : (
           loans.map((loan) => {
-            const totalPayback = calculateTotalPayback(loan);
             const isCredit = loan.remaining === 'Credit Card';
+            // Use the user's stored values directly - don't recalculate
+            const totalPayback = loan.totalPayback || 0;
+            const totalInterest = totalPayback - loan.currentAmount;
             
             return (
               <Card key={loan.id} className="bg-[#294D73] border-none">
@@ -158,7 +135,7 @@ const ManageLoansCredits = () => {
                         <div>
                           <p className="text-white/70">{t('total_interest')}</p>
                           <p className="text-white font-medium text-red-300">
-                            €{(totalPayback - loan.currentAmount).toFixed(2)}
+                            €{totalInterest.toFixed(2)}
                           </p>
                         </div>
                       </div>

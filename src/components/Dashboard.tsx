@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { loadFinancialData } from '@/services/dataService';
@@ -11,6 +11,7 @@ import RecentTransactionsCard from './dashboard/RecentTransactionsCard';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
   const [refreshKey, setRefreshKey] = useState(0);
   
@@ -25,6 +26,32 @@ const Dashboard = () => {
       window.removeEventListener('financial-data-updated', handleDataUpdate);
     };
   }, []);
+
+  // Handle returnTo navigation parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const returnTo = urlParams.get('returnTo');
+    
+    if (returnTo) {
+      // Navigate carousel to the correct view
+      setTimeout(() => {
+        const carousel = document.querySelector('[data-dashboard-carousel]');
+        if (carousel) {
+          const viewIndex = returnTo === 'balance' ? 0 : 
+                           returnTo === 'loans-credits' ? 1 : 
+                           returnTo === 'monthly-payments' ? 2 : 0;
+          
+          const event = new CustomEvent('navigate-dashboard', {
+            detail: { index: viewIndex }
+          });
+          carousel.dispatchEvent(event);
+        }
+      }, 100);
+      
+      // Clean up URL
+      navigate('/', { replace: true });
+    }
+  }, [location.search, navigate]);
   
   // Safe data loading with fallbacks
   const data = loadFinancialData();
@@ -32,13 +59,8 @@ const Dashboard = () => {
   const loans = data?.loans || [];
   const recentTransactions = data?.transactions?.slice(0, 3) || [];
   
-  // Filter monthly bills to exclude loan payments - only show actual recurring bills
-  const monthlyBills = data?.monthlyBills?.filter(bill => 
-    bill.type !== 'laina' && 
-    bill.type !== 'luottokortti' && 
-    bill.type !== 'loan_payment' && 
-    bill.type !== 'credit_payment'
-  ) || [];
+  // DON'T filter out loan payments - include ALL monthly bills
+  const monthlyBills = data?.monthlyBills || [];
 
   const totalLoanAmount = loans.reduce((sum, loan) => sum + (loan.currentAmount || 0), 0);
   const totalMonthlyPayments = loans.reduce((sum, loan) => sum + (loan.monthly || 0), 0);
@@ -52,6 +74,7 @@ const Dashboard = () => {
     console.error('Error getting upcoming payments:', error);
   }
 
+  // Filter only for the upcoming week card display, not for monthly bills total
   const filteredWeekPayments = thisWeekPayments.filter(bill => 
     bill.type !== 'laina' && 
     bill.type !== 'luottokortti' && 

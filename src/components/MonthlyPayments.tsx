@@ -22,7 +22,7 @@ const MonthlyPayments = () => {
   }, []);
 
   const handleBackNavigation = () => {
-    // Navigate back to dashboard with the correct view
+    // Navigate back to dashboard with the correct view - use returnTo parameter
     navigate('/?returnTo=monthly-payments');
   };
 
@@ -53,7 +53,6 @@ const MonthlyPayments = () => {
     
     if (billIndex !== -1) {
       if (newPaidStatus) {
-        // Check if sufficient balance
         if (updatedData.balance < bill.amount) {
           toast({
             title: t('insufficient_funds'),
@@ -63,11 +62,9 @@ const MonthlyPayments = () => {
           return;
         }
         
-        // Mark as paid - deduct from balance
         updatedData.monthlyBills[billIndex].paid = true;
         updatedData.balance -= bill.amount;
         
-        // If it's a loan payment, reduce loan amount
         if (bill.category === 'Loan' || bill.category === 'Credit Card' || bill.type === 'loan_payment' || bill.type === 'credit_payment') {
           const loan = updatedData.loans?.find(l => l.name === bill.name);
           if (loan) {
@@ -81,11 +78,9 @@ const MonthlyPayments = () => {
           description: `${bill.name} ${t('marked_as_paid')}`
         });
       } else {
-        // Mark as unpaid - add back to balance
         updatedData.monthlyBills[billIndex].paid = false;
         updatedData.balance += bill.amount;
         
-        // If it's a loan payment, add back to the loan amount
         if (bill.category === 'Loan' || bill.category === 'Credit Card' || bill.type === 'loan_payment' || bill.type === 'credit_payment') {
           const loan = updatedData.loans?.find(l => l.name === bill.name);
           if (loan) {
@@ -101,8 +96,6 @@ const MonthlyPayments = () => {
       
       saveFinancialData(updatedData);
       setFinancialData(updatedData);
-      
-      // Dispatch event to update dashboard
       window.dispatchEvent(new CustomEvent('financial-data-updated'));
     }
   };
