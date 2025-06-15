@@ -78,7 +78,7 @@ export const useMonthlyPaymentsLogic = (financialData: any, setFinancialData: an
   const handleTogglePaid = useCallback((billId: string | number) => {
     if (!financialData) return;
 
-    console.log('MonthlyPayments - Toggling payment for bill ID:', billId);
+    console.log('Toggling payment for bill ID:', billId);
     
     const updatedData = { ...financialData };
 
@@ -92,7 +92,7 @@ export const useMonthlyPaymentsLogic = (financialData: any, setFinancialData: an
         return;
       }
 
-      console.log('MonthlyPayments - Processing loan payment for:', loan.name);
+      console.log('Processing loan payment for:', loan.name);
 
       let billIndex = updatedData.monthlyBills.findIndex((b: any) => b.name === loan.name);
       
@@ -109,7 +109,7 @@ export const useMonthlyPaymentsLogic = (financialData: any, setFinancialData: an
         };
         updatedData.monthlyBills.push(newBill);
         billIndex = updatedData.monthlyBills.length - 1;
-        console.log('MonthlyPayments - Created new bill for loan:', newBill);
+        console.log('Created new bill for loan:', newBill);
       }
 
       const bill = updatedData.monthlyBills[billIndex];
@@ -153,7 +153,7 @@ export const useMonthlyPaymentsLogic = (financialData: any, setFinancialData: an
         });
       }
     } else {
-      // Handle regular monthly bills
+      // Handle regular monthly bills and existing loan bills
       const billIndex = updatedData.monthlyBills.findIndex((b: any) => b.id === billId);
       if (billIndex === -1) {
         console.error('Bill not found for ID:', billId);
@@ -163,7 +163,7 @@ export const useMonthlyPaymentsLogic = (financialData: any, setFinancialData: an
       const bill = updatedData.monthlyBills[billIndex];
       const newPaidStatus = !bill.paid;
 
-      console.log('MonthlyPayments - Processing regular bill payment for:', bill.name, 'New status:', newPaidStatus);
+      console.log('Processing bill payment for:', bill.name, 'New status:', newPaidStatus);
 
       if (newPaidStatus) {
         if (updatedData.balance < bill.amount) {
@@ -208,7 +208,7 @@ export const useMonthlyPaymentsLogic = (financialData: any, setFinancialData: an
       }
     }
     
-    console.log('MonthlyPayments - Saving updated data and triggering refresh');
+    console.log('Saving updated data and triggering refresh');
     saveFinancialData(updatedData);
     setFinancialData(updatedData);
     window.dispatchEvent(new CustomEvent('financial-data-updated'));

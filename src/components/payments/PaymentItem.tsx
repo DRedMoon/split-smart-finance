@@ -23,7 +23,7 @@ const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) 
   const handlePaymentToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('PaymentItem - Toggling payment for bill:', bill.name, 'ID:', bill.id);
+    console.log('PaymentItem - Clicking payment button for:', bill.name, 'ID:', bill.id);
     onTogglePaid(bill.id);
   };
 
