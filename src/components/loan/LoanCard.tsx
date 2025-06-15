@@ -1,9 +1,7 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Calculator, CreditCard, Coins } from 'lucide-react';
+import { CreditCard, Coins } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { calculateInterestFromPayments } from '@/services/calculationService';
@@ -19,7 +17,6 @@ interface LoanCardProps {
 }
 
 const LoanCard = ({ loan, calculateLoanDetails }: LoanCardProps) => {
-  const navigate = useNavigate();
   const { t } = useLanguage();
   
   const details = calculateLoanDetails(loan);
@@ -126,19 +123,6 @@ const LoanCard = ({ loan, calculateLoanDetails }: LoanCardProps) => {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex space-x-2 pt-2">
-          <Button 
-            onClick={() => navigate(`/edit-loan/${loan.id}`)}
-            size="sm" 
-            variant="outline"
-            className="flex-1 border-white/20 text-white hover:bg-white/10"
-          >
-            <Calculator size={14} className="mr-1" />
-            {t('edit')}
-          </Button>
         </div>
       </CardContent>
     </Card>
