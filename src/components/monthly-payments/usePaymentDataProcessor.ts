@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 
 export const usePaymentDataProcessor = (financialData: any) => {
@@ -17,43 +18,24 @@ export const usePaymentDataProcessor = (financialData: any) => {
       };
     }
 
-    console.log('🔧 Processing payment data - starting migration check');
-
     const allLoans = financialData?.loans || [];
     const allLoanPayments: any[] = [];
     
-    // Get existing loan bills and standardize their IDs
+    // Get existing loan bills
     const existingLoanBills = (financialData.monthlyBills || []).filter((bill: any) => 
       bill.category === 'Loan' || bill.category === 'Credit Card' || 
       bill.type === 'loan_payment' || bill.type === 'credit_payment'
     );
     
-    console.log('🔍 Found existing loan bills:', existingLoanBills.map(b => ({ id: b.id, name: b.name, type: typeof b.id })));
-    
-    // Process existing loan bills and standardize their IDs
+    // Add existing loan bills
     existingLoanBills.forEach(bill => {
-      // Find the corresponding loan to get the proper loan ID
-      const correspondingLoan = allLoans.find(loan => loan.name === bill.name);
-      
-      if (correspondingLoan) {
-        // Standardize the bill ID to use loan-{loanId} format
-        const standardizedBill = {
-          ...bill,
-          id: `loan-${correspondingLoan.id}`
-        };
-        console.log('📋 Standardized existing bill ID:', bill.name, 'from', bill.id, 'to', standardizedBill.id);
-        allLoanPayments.push(standardizedBill);
-      } else {
-        // Keep original bill if no matching loan found
-        allLoanPayments.push(bill);
-      }
+      allLoanPayments.push(bill);
     });
     
     // Add missing loan payments from loans that don't have bills yet
     allLoans.forEach(loan => {
       const existingBill = existingLoanBills.find(bill => bill.name === loan.name);
       if (!existingBill && loan.monthly > 0) {
-        console.log('➕ Adding missing loan payment for:', loan.name, 'with standardized ID');
         const isCredit = loan.remaining === 'Credit Card';
         allLoanPayments.push({
           id: `loan-${loan.id}`,
@@ -72,8 +54,6 @@ export const usePaymentDataProcessor = (financialData: any) => {
       bill.category !== 'Loan' && bill.category !== 'Credit Card' && 
       bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
     );
-
-    console.log('✅ Final processed loan/credit payments:', loanCreditPayments.map(p => ({ id: p.id, name: p.name })));
 
     const totalRegular = regularBills.reduce((sum: number, bill: any) => sum + bill.amount, 0);
     const paidRegular = regularBills.filter((bill: any) => bill.paid).reduce((sum: number, bill: any) => sum + bill.amount, 0);
