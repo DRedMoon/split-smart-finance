@@ -12,15 +12,19 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
 
     // Handle loan payment bills (generated from loans)
     if (typeof billId === 'string' && billId.startsWith('loan-')) {
-      const loanId = parseInt(billId.replace('loan-', ''));
-      const loan = updatedData.loans.find((l: any) => l.id === loanId);
+      const loanIdString = billId.replace('loan-', '');
+      console.log('🔍 Extracted loan ID string:', loanIdString);
+      
+      // Find loan by comparing the full ID string to avoid precision loss
+      const loan = updatedData.loans.find((l: any) => l.id.toString() === loanIdString);
       
       if (!loan) {
-        console.error('❌ Loan not found for ID:', loanId);
+        console.error('❌ Loan not found for ID string:', loanIdString);
+        console.log('📋 Available loans:', updatedData.loans.map((l: any) => ({ id: l.id, name: l.name })));
         return;
       }
 
-      console.log('🏦 Processing loan payment for:', loan.name);
+      console.log('🏦 Processing loan payment for:', loan.name, 'Loan ID:', loan.id);
 
       let billIndex = updatedData.monthlyBills.findIndex((b: any) => b.name === loan.name);
       
@@ -58,10 +62,12 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
         updatedData.monthlyBills[billIndex].paid = true;
         updatedData.balance -= bill.amount;
         
-        const loanToUpdate = updatedData.loans.find((l: any) => l.id === loanId);
+        // Find the loan again using the correct ID
+        const loanToUpdate = updatedData.loans.find((l: any) => l.id.toString() === loanIdString);
         if (loanToUpdate) {
           loanToUpdate.currentAmount = Math.max(0, loanToUpdate.currentAmount - bill.amount);
           loanToUpdate.lastPayment = new Date().toISOString().split('T')[0];
+          console.log('✅ Updated loan amount:', loanToUpdate.name, 'New amount:', loanToUpdate.currentAmount);
         }
         
         toast({
@@ -72,9 +78,10 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
         updatedData.monthlyBills[billIndex].paid = false;
         updatedData.balance += bill.amount;
         
-        const loanToUpdate = updatedData.loans.find((l: any) => l.id === loanId);
+        const loanToUpdate = updatedData.loans.find((l: any) => l.id.toString() === loanIdString);
         if (loanToUpdate) {
           loanToUpdate.currentAmount += bill.amount;
+          console.log('✅ Restored loan amount:', loanToUpdate.name, 'New amount:', loanToUpdate.currentAmount);
         }
         
         toast({
