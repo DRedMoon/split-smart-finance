@@ -21,21 +21,35 @@ export const useFinancialData = (refreshKey: number) => {
   const transactionSum = allTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
   const balance = baseBalance + transactionSum;
 
-  // Enhanced recent transactions logic - NO DUPLICATES
+  // Enhanced recent transactions logic - ONLY show paid bills and regular transactions
   const recentTransactions = [];
   
-  // Add ALL regular transactions (income and expenses)
-  recentTransactions.push(...allTransactions);
+  // Add ALL regular transactions (income and expenses that are NOT bill payments)
+  const regularTransactions = allTransactions.filter(transaction => {
+    // Check if this transaction corresponds to a bill
+    const correspondingBill = monthlyBills.find(bill => 
+      bill.name === transaction.name && 
+      Math.abs(bill.amount) === Math.abs(transaction.amount)
+    );
+    
+    // If there's a corresponding bill, only show the transaction if the bill is paid
+    if (correspondingBill) {
+      console.log('Found corresponding bill for transaction:', transaction.name, 'Bill paid:', correspondingBill.paid);
+      return correspondingBill.paid === true;
+    }
+    
+    // If no corresponding bill, it's a regular transaction (paycheck, food, entertainment, etc.)
+    return true;
+  });
   
-  // DO NOT add bill transactions as they duplicate regular transactions
-  // Only actual transactions should appear in recent transactions
+  recentTransactions.push(...regularTransactions);
   
   // Sort by date and show more transactions
   const sortedRecentTransactions = recentTransactions
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 15);
 
-  console.log('Final sorted recent transactions (no duplicates):', sortedRecentTransactions);
+  console.log('Final sorted recent transactions (paid bills only):', sortedRecentTransactions);
 
   const totalLoanAmount = loans.reduce((sum, loan) => sum + (loan.currentAmount || 0), 0);
   const totalMonthlyPayments = loans.reduce((sum, loan) => sum + (loan.monthly || 0), 0);

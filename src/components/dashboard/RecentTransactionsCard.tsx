@@ -39,8 +39,8 @@ const RecentTransactionsCard = ({ recentTransactions, isExpandedView = false }: 
           <p className="text-white/70 text-center py-8">{t('no_transactions')}</p>
         ) : (
           <div className="flex-1 min-h-0">
-            <ScrollArea className="h-full pr-4">
-              <div className="space-y-3">
+            <ScrollArea className="h-full">
+              <div className="space-y-3 pr-4">
                 {recentTransactions.map((transaction) => (
                   <div key={transaction.id} className="flex justify-between items-center">
                     <div className="flex items-center space-x-3">
