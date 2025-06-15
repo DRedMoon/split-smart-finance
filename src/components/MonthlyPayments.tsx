@@ -24,13 +24,12 @@ const MonthlyPayments = () => {
   }, []);
 
   const handleBackNavigation = () => {
-    // Navigate back to dashboard with the correct view - use returnTo parameter
-    navigate('/?returnTo=monthly-payments');
+    // Direct navigation without returnTo parameter to prevent dashboard carousel slide
+    navigate('/');
   };
 
   const getDaysUntilDue = (dueDate) => {
     if (!dueDate) return null;
-    const today = new Date();
     const dayMatch = dueDate.match(/\d+/);
     if (!dayMatch) return null;
     
@@ -46,14 +45,97 @@ const MonthlyPayments = () => {
   const handleTogglePaid = (billId) => {
     if (!financialData) return;
 
-    const bill = financialData.monthlyBills.find(b => b.id === billId);
-    if (!bill) return;
-
-    const newPaidStatus = !bill.paid;
-    const updatedData = { ...financialData };
-    const billIndex = updatedData.monthlyBills.findIndex(b => b.id === billId);
+    console.log('MonthlyPayments - Toggling payment for bill ID:', billId);
     
-    if (billIndex !== -1) {
+    const updatedData = { ...financialData };
+
+    // Handle loan payment bills (generated from loans)
+    if (typeof billId === 'string' && billId.startsWith('loan-')) {
+      const loanId = parseInt(billId.replace('loan-', ''));
+      const loan = updatedData.loans.find((l) => l.id === loanId);
+      
+      if (!loan) {
+        console.error('Loan not found for ID:', loanId);
+        return;
+      }
+
+      console.log('MonthlyPayments - Processing loan payment for:', loan.name);
+
+      // Find or create the monthly bill for this loan
+      let billIndex = updatedData.monthlyBills.findIndex((b) => b.name === loan.name);
+      
+      if (billIndex === -1) {
+        // Create the bill if it doesn't exist
+        const isCredit = loan.remaining === 'Credit Card';
+        const newBill = {
+          id: Date.now() + Math.random(),
+          name: loan.name,
+          amount: loan.monthly,
+          dueDate: loan.dueDate || '1',
+          category: isCredit ? 'Credit Card' : 'Loan',
+          type: isCredit ? 'credit_payment' : 'loan_payment',
+          paid: false
+        };
+        updatedData.monthlyBills.push(newBill);
+        billIndex = updatedData.monthlyBills.length - 1;
+        console.log('MonthlyPayments - Created new bill for loan:', newBill);
+      }
+
+      const bill = updatedData.monthlyBills[billIndex];
+      const newPaidStatus = !bill.paid;
+
+      if (newPaidStatus) {
+        if (updatedData.balance < bill.amount) {
+          toast({
+            title: 'Riittämätön saldo',
+            description: `Saldo: €${updatedData.balance.toFixed(2)}, Vaaditaan: €${bill.amount.toFixed(2)}`,
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        updatedData.monthlyBills[billIndex].paid = true;
+        updatedData.balance -= bill.amount;
+        
+        // Update loan current amount
+        const loanToUpdate = updatedData.loans.find((l) => l.id === loanId);
+        if (loanToUpdate) {
+          loanToUpdate.currentAmount = Math.max(0, loanToUpdate.currentAmount - bill.amount);
+          loanToUpdate.lastPayment = new Date().toISOString().split('T')[0];
+        }
+        
+        toast({
+          title: 'Maksu käsitelty',
+          description: `${bill.name} merkitty maksetuksi`
+        });
+      } else {
+        updatedData.monthlyBills[billIndex].paid = false;
+        updatedData.balance += bill.amount;
+        
+        // Restore loan current amount
+        const loanToUpdate = updatedData.loans.find((l) => l.id === loanId);
+        if (loanToUpdate) {
+          loanToUpdate.currentAmount += bill.amount;
+        }
+        
+        toast({
+          title: 'Maksu peruutettu',
+          description: `${bill.name} merkitty maksamattomaksi`
+        });
+      }
+    } else {
+      // Handle regular monthly bills
+      const bill = updatedData.monthlyBills.find(b => b.id === billId);
+      if (!bill) {
+        console.error('Bill not found for ID:', billId);
+        return;
+      }
+
+      const billIndex = updatedData.monthlyBills.findIndex(b => b.id === billId);
+      const newPaidStatus = !bill.paid;
+
+      console.log('MonthlyPayments - Processing regular bill payment for:', bill.name, 'New status:', newPaidStatus);
+
       if (newPaidStatus) {
         if (updatedData.balance < bill.amount) {
           toast({
@@ -95,27 +177,64 @@ const MonthlyPayments = () => {
           description: `${bill.name} ${t('marked_as_unpaid')}`
         });
       }
-      
-      saveFinancialData(updatedData);
-      setFinancialData(updatedData);
-      window.dispatchEvent(new CustomEvent('financial-data-updated'));
     }
+    
+    console.log('MonthlyPayments - Saving updated data and triggering refresh');
+    saveFinancialData(updatedData);
+    setFinancialData(updatedData);
+    window.dispatchEvent(new CustomEvent('financial-data-updated'));
   };
 
   if (!financialData) {
     return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
   }
 
-  // Separate loan/credit payments from regular bills
-  const loanCreditPayments = (financialData.monthlyBills || []).filter(bill => 
+  // Get all loans to ensure we have all loan payments
+  const allLoans = financialData?.loans || [];
+  
+  console.log('MonthlyPayments - All loans from data:', allLoans);
+  
+  // Create comprehensive list of loan/credit payments
+  const allLoanPayments = [];
+  
+  // Add existing loan bills from monthlyBills
+  const existingLoanBills = (financialData.monthlyBills || []).filter((bill) => 
     bill.category === 'Loan' || bill.category === 'Credit Card' || 
     bill.type === 'loan_payment' || bill.type === 'credit_payment'
   );
+  
+  // Add all existing loan bills
+  existingLoanBills.forEach(bill => {
+    allLoanPayments.push(bill);
+  });
+  
+  // Add missing loan payments from loans that don't have bills yet
+  allLoans.forEach(loan => {
+    const existingBill = existingLoanBills.find(bill => bill.name === loan.name);
+    if (!existingBill && loan.monthly > 0) {
+      console.log('MonthlyPayments - Adding missing loan payment for:', loan.name);
+      const isCredit = loan.remaining === 'Credit Card';
+      allLoanPayments.push({
+        id: `loan-${loan.id}`,
+        name: loan.name,
+        amount: loan.monthly,
+        dueDate: loan.dueDate || '1',
+        category: isCredit ? 'Credit Card' : 'Loan',
+        type: isCredit ? 'credit_payment' : 'loan_payment',
+        paid: false
+      });
+    }
+  });
 
-  const regularBills = (financialData.monthlyBills || []).filter(bill => 
+  const loanCreditPayments = allLoanPayments;
+
+  const regularBills = (financialData.monthlyBills || []).filter((bill) => 
     bill.category !== 'Loan' && bill.category !== 'Credit Card' && 
     bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
   );
+
+  console.log('MonthlyPayments - Final loan/credit payments:', loanCreditPayments);
+  console.log('MonthlyPayments - Regular bills:', regularBills);
 
   const sortBills = (bills) => bills.sort((a, b) => {
     // Paid bills go to bottom

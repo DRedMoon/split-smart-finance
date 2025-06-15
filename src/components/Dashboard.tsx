@@ -97,10 +97,10 @@ const Dashboard = () => {
   
   recentTransactions.push(...billTransactions);
   
-  // Sort by date and take the most recent 3
+  // Sort by date and take more transactions for scrollable view
   const sortedRecentTransactions = recentTransactions
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 3);
+    .slice(0, 10); // Show up to 10 recent transactions instead of just 3
 
   console.log('Dashboard - Recent transactions:', sortedRecentTransactions);
 
