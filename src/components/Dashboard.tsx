@@ -49,22 +49,22 @@ const Dashboard = () => {
   if (!navigationReady) {
     return (
       <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">
-        <div className="text-center mb-2">
+        <div className="text-center mb-1">
           <h1 className="text-3xl font-bold text-white">Maksut</h1>
         </div>
-        <div className="bg-white/10 rounded-lg h-64 mb-2 animate-pulse"></div>
+        <div className="bg-white/10 rounded-lg h-64 mb-1 animate-pulse"></div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto flex flex-col overflow-hidden">
+    <div className="h-screen bg-[#192E45] p-2 pb-20 max-w-md mx-auto flex flex-col overflow-hidden">
       {/* Title with minimal spacing */}
       <div className="text-center mb-1 flex-shrink-0">
-        <h1 className="text-3xl font-bold text-white">Maksut</h1>
+        <h1 className="text-2xl font-bold text-white">Maksut</h1>
       </div>
 
-      {/* Main Carousel with minimal spacing */}
+      {/* Main Carousel with no spacing */}
       <div className={`flex-shrink-0 ${carouselSpacing}`}>
         <DashboardCarousel 
           key={refreshKey}

@@ -9,16 +9,16 @@ const DashboardNavigation = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="grid grid-cols-2 gap-2 flex-shrink-0 mb-1">
+    <div className="grid grid-cols-2 gap-1 flex-shrink-0">
       <Button
         onClick={() => navigate('/upcoming')}
-        className="bg-[#294D73] hover:bg-[#1f3a5f] text-white"
+        className="bg-[#294D73] hover:bg-[#1f3a5f] text-white text-sm p-2"
       >
         {t('upcoming')}
       </Button>
       <Button
         onClick={() => navigate('/transactions')}
-        className="bg-[#294D73] hover:bg-[#1f3a5f] text-white"
+        className="bg-[#294D73] hover:bg-[#1f3a5f] text-white text-sm p-2"
       >
         {t('transactions')}
       </Button>
