@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
@@ -25,46 +26,55 @@ export const useFinancialData = (refreshKey: number) => {
     baseBalance,
     transactionSum,
     totalBalance: balance,
-    transactionCount: allTransactions.length
+    transactionCount: allTransactions.length,
+    allTransactions: allTransactions.map(t => ({ name: t.name, amount: t.amount, date: t.date, id: t.id }))
   });
 
-  // Enhanced recent transactions logic - ONLY show paid bills and regular transactions
+  // Enhanced recent transactions logic - Show all transactions with proper filtering
   const recentTransactions = [];
   
-  // Add ALL regular transactions (income and expenses that are NOT bill payments)
-  const regularTransactions = allTransactions.filter(transaction => {
-    // Check if this transaction corresponds to a bill
-    const correspondingBill = monthlyBills.find(bill => 
-      bill.name === transaction.name && 
-      Math.abs(bill.amount) === Math.abs(transaction.amount)
+  // Add ALL transactions first (these are the actual financial movements)
+  recentTransactions.push(...allTransactions);
+  
+  // Add paid bills as transactions (these represent money leaving the account)
+  const paidBillTransactions = monthlyBills
+    .filter(bill => bill.paid === true)
+    .map(bill => ({
+      id: `bill-${bill.id}`,
+      name: bill.name,
+      amount: -Math.abs(bill.amount), // Bills are always negative (money out)
+      date: new Date().toISOString().split('T')[0], // Today's date when paid
+      type: 'bill_payment',
+      category: 'Bill Payment'
+    }));
+  
+  recentTransactions.push(...paidBillTransactions);
+  
+  // Remove duplicates based on name, amount, and date
+  const uniqueTransactions = recentTransactions.filter((transaction, index, array) => {
+    return index === array.findIndex(t => 
+      t.name === transaction.name && 
+      Math.abs(t.amount) === Math.abs(transaction.amount) && 
+      t.date === transaction.date
     );
-    
-    // If there's a corresponding bill, only show the transaction if the bill is paid
-    if (correspondingBill) {
-      console.log('Found corresponding bill for transaction:', transaction.name, 'Bill paid:', correspondingBill.paid);
-      return correspondingBill.paid === true;
-    }
-    
-    // If no corresponding bill, it's a regular transaction (paycheck, food, entertainment, etc.)
-    return true;
   });
   
-  recentTransactions.push(...regularTransactions);
-  
-  // Sort by date and time - newest first
-  const sortedRecentTransactions = recentTransactions
+  // Sort by date and time - newest first, then by ID for same dates
+  const sortedRecentTransactions = uniqueTransactions
     .sort((a, b) => {
-      // First sort by date, then by ID (creation time) for same dates
+      // First sort by date
       const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
       if (dateComparison === 0) {
         // If dates are the same, sort by ID (newer IDs first)
-        return (b.id || 0) - (a.id || 0);
+        const aId = typeof a.id === 'string' ? parseInt(a.id.split('-')[1]) || 0 : a.id || 0;
+        const bId = typeof b.id === 'string' ? parseInt(b.id.split('-')[1]) || 0 : b.id || 0;
+        return bId - aId;
       }
       return dateComparison;
     })
     .slice(0, 15);
 
-  console.log('Final sorted recent transactions (paid bills only):', sortedRecentTransactions);
+  console.log('Final sorted recent transactions:', sortedRecentTransactions);
 
   const totalLoanAmount = loans.reduce((sum, loan) => sum + (loan.currentAmount || 0), 0);
   const totalMonthlyPayments = loans.reduce((sum, loan) => sum + (loan.monthly || 0), 0);
