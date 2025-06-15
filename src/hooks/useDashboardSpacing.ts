@@ -5,8 +5,7 @@ export const useDashboardSpacing = (currentSlide: number) => {
   const isMonthlyPaymentsView = currentSlide === 2;
 
   const getCarouselSpacing = () => {
-    // Remove all spacing - make it completely compact
-    return 'mb-0';
+    return 'mb-4';
   };
 
   return {
