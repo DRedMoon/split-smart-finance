@@ -16,7 +16,7 @@ const UpcomingWeekCard = ({ filteredWeekPayments }: UpcomingWeekCardProps) => {
 
   return (
     <Card className="bg-[#294D73] border-none">
-      <CardHeader className="flex flex-row items-center justify-between pb-1 p-2">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
         <CardTitle className="text-white text-lg flex items-center space-x-2">
           <Calendar size={20} />
           <span>{t('upcoming_week')}</span>
@@ -25,27 +25,27 @@ const UpcomingWeekCard = ({ filteredWeekPayments }: UpcomingWeekCardProps) => {
           variant="ghost"
           size="sm"
           onClick={() => navigate('/upcoming')}
-          className="text-white hover:bg-white/10 p-1"
+          className="text-white hover:bg-white/10"
         >
           <ArrowRight size={16} />
         </Button>
       </CardHeader>
-      <CardContent className="p-2 pt-0">
+      <CardContent className="pt-0">
         {filteredWeekPayments.length === 0 ? (
-          <p className="text-white/70 text-center py-2 text-sm">Ei maksuja tällä viikolla</p>
+          <p className="text-white/70 text-center py-4">Ei maksuja tällä viikolla</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {filteredWeekPayments.slice(0, 3).map(bill => (
-              <div key={bill.id} className="flex justify-between items-center p-2 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+              <div key={bill.id} className="flex justify-between items-center p-3 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
                 <div>
-                  <div className="font-medium text-white text-sm">{bill.name}</div>
-                  <div className="text-xs text-white/70">{t('due')} {bill.dueDate}</div>
+                  <div className="font-medium text-white">{bill.name}</div>
+                  <div className="text-sm text-white/70">{t('due')} {bill.dueDate}</div>
                 </div>
-                <div className="font-bold text-yellow-300 text-sm">€{bill.amount}</div>
+                <div className="font-bold text-yellow-300">€{bill.amount}</div>
               </div>
             ))}
             {filteredWeekPayments.length > 3 && (
-              <p className="text-white/70 text-xs text-center">+{filteredWeekPayments.length - 3} more this week</p>
+              <p className="text-white/70 text-sm text-center">+{filteredWeekPayments.length - 3} more this week</p>
             )}
           </div>
         )}
