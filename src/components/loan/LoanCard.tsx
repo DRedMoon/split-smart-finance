@@ -25,9 +25,10 @@ const LoanCard = ({ loan, calculateLoanDetails }: LoanCardProps) => {
   const isCredit = loan.remaining === 'Credit Card';
   const progress = loan.totalAmount > 0 ? ((loan.totalAmount - loan.currentAmount) / loan.totalAmount) * 100 : 0;
 
-  // Use the correct interest rate - either user's input rate or calculated rate
-  const displayRate = loan.rate || 
-    (loan.euriborRate && loan.personalMargin ? loan.euriborRate + loan.personalMargin : 0);
+  // Use the calculated rate from euribor + margin if available, otherwise use the stored rate
+  const displayRate = (loan.euriborRate && loan.personalMargin) 
+    ? loan.euriborRate + loan.personalMargin 
+    : (loan.rate || loan.yearlyInterestRate || 0);
 
   return (
     <Card className="bg-[#294D73] border-none">
