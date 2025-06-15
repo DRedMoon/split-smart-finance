@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
@@ -32,8 +31,14 @@ export const useFinancialData = (refreshKey: number) => {
   const expenseTransactions = allTransactions.filter(transaction => transaction.amount < 0);
   recentTransactions.push(...expenseTransactions);
   
-  // Add ONLY paid monthly bills as expense transactions
-  const paidBills = monthlyBills.filter(bill => bill.paid === true);
+  // Add ONLY paid monthly bills as expense transactions - with strict filtering
+  console.log('All monthly bills:', monthlyBills);
+  const paidBills = monthlyBills.filter(bill => {
+    console.log(`Bill ${bill.name}: paid = ${bill.paid}, type = ${typeof bill.paid}`);
+    return bill.paid === true;
+  });
+  console.log('Paid bills:', paidBills);
+  
   const billTransactions = paidBills.map(bill => ({
     id: `bill-${bill.id}`,
     name: bill.name,
@@ -42,6 +47,7 @@ export const useFinancialData = (refreshKey: number) => {
     type: 'expense',
     category: bill.type || bill.category
   }));
+  console.log('Bill transactions being added to recent:', billTransactions);
   
   recentTransactions.push(...billTransactions);
   
@@ -49,6 +55,8 @@ export const useFinancialData = (refreshKey: number) => {
   const sortedRecentTransactions = recentTransactions
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 15);
+
+  console.log('Final sorted recent transactions:', sortedRecentTransactions);
 
   const totalLoanAmount = loans.reduce((sum, loan) => sum + (loan.currentAmount || 0), 0);
   const totalMonthlyPayments = loans.reduce((sum, loan) => sum + (loan.monthly || 0), 0);
