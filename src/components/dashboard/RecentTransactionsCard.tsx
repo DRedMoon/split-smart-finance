@@ -9,15 +9,20 @@ import { useNavigate } from 'react-router-dom';
 
 interface RecentTransactionsCardProps {
   recentTransactions: any[];
+  isExpandedView?: boolean;
 }
 
-const RecentTransactionsCard = ({ recentTransactions }: RecentTransactionsCardProps) => {
+const RecentTransactionsCard = ({ recentTransactions, isExpandedView = false }: RecentTransactionsCardProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
+  // Dynamic height based on whether it's expanded view or not
+  const scrollAreaHeight = isExpandedView ? 'h-full' : 'h-48';
+  const cardClasses = isExpandedView ? 'bg-[#294D73] border-none h-full flex flex-col' : 'bg-[#294D73] border-none';
+
   return (
-    <Card className="bg-[#294D73] border-none">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <Card className={cardClasses}>
+      <CardHeader className="flex flex-row items-center justify-between pb-2 flex-shrink-0">
         <CardTitle className="text-white text-lg">{t('recent_transactions')}</CardTitle>
         <Button
           variant="ghost"
@@ -28,11 +33,11 @@ const RecentTransactionsCard = ({ recentTransactions }: RecentTransactionsCardPr
           <ArrowRight size={16} />
         </Button>
       </CardHeader>
-      <CardContent className="pb-6">
+      <CardContent className={`pb-6 ${isExpandedView ? 'flex-1 min-h-0' : ''}`}>
         {recentTransactions.length === 0 ? (
           <p className="text-white/70 text-center py-8">{t('no_transactions')}</p>
         ) : (
-          <ScrollArea className="h-48 pr-4">
+          <ScrollArea className={`${scrollAreaHeight} pr-4`}>
             <div className="space-y-3">
               {recentTransactions.map((transaction) => (
                 <div key={transaction.id} className="flex justify-between items-center">

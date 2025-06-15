@@ -47,7 +47,6 @@ const Dashboard = () => {
       setInitialView(viewIndex);
       setCurrentSlide(viewIndex);
       
-      // Clear URL immediately
       window.history.replaceState({}, '', '/');
     } else {
       setNavigationReady(true);
@@ -84,36 +83,39 @@ const Dashboard = () => {
   console.log('Dashboard - All loans:', loans);
   console.log('Dashboard - Monthly bills:', data?.monthlyBills);
   
-  // Get recent transactions that represent actual payments made
+  // Enhanced recent transactions logic to include all transaction types
   const allTransactions = data?.transactions || [];
   const monthlyBills = data?.monthlyBills || [];
   
-  // Create recent transactions from paid monthly bills and regular income transactions
   const recentTransactions = [];
   
-  // Add income transactions (always show these)
+  // Add ALL income transactions (including Paycheck)
   const incomeTransactions = allTransactions.filter(transaction => transaction.amount > 0);
   recentTransactions.push(...incomeTransactions);
   
-  // Add paid monthly bills as "transactions" to show payment activity
+  // Add expense transactions
+  const expenseTransactions = allTransactions.filter(transaction => transaction.amount < 0);
+  recentTransactions.push(...expenseTransactions);
+  
+  // Add paid monthly bills as expense transactions
   const paidBills = monthlyBills.filter(bill => bill.paid);
   const billTransactions = paidBills.map(bill => ({
     id: `bill-${bill.id}`,
     name: bill.name,
-    amount: -bill.amount, // Negative because it's an expense
-    date: new Date().toISOString().split('T')[0], // Today's date since it was just paid
+    amount: -bill.amount,
+    date: new Date().toISOString().split('T')[0],
     type: 'expense',
     category: bill.type || bill.category
   }));
   
   recentTransactions.push(...billTransactions);
   
-  // Sort by date and take more transactions for scrollable view
+  // Sort by date and show more transactions
   const sortedRecentTransactions = recentTransactions
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 10); // Show up to 10 recent transactions instead of just 3
+    .slice(0, 15);
 
-  console.log('Dashboard - Recent transactions:', sortedRecentTransactions);
+  console.log('Dashboard - Enhanced recent transactions:', sortedRecentTransactions);
 
   const totalLoanAmount = loans.reduce((sum, loan) => sum + (loan.currentAmount || 0), 0);
   const totalMonthlyPayments = loans.reduce((sum, loan) => sum + (loan.monthly || 0), 0);
@@ -146,35 +148,59 @@ const Dashboard = () => {
     );
   }
 
-  // Determine what to show based on current slide
-  const showNavigationButtons = currentSlide === 0; // Only show on Balance view
-  const showUpcomingWeek = currentSlide === 0; // Only show on Balance view
-  const showRecentTransactions = true; // Always show recent transactions
+  // Dynamic layout based on current slide
+  const showNavigationButtons = currentSlide === 0;
+  const showUpcomingWeek = currentSlide === 0;
+  const showRecentTransactions = true;
+
+  // Dynamic spacing classes based on current slide
+  const getCarouselSpacing = () => {
+    switch (currentSlide) {
+      case 0: // Balance view
+        return 'mb-4';
+      case 1: // Loans & Credits view
+        return 'mb-2';
+      case 2: // Monthly Payments view
+        return 'mb-4';
+      default:
+        return 'mb-4';
+    }
+  };
+
+  const getButtonSpacing = () => {
+    return showNavigationButtons ? 'mb-4' : '';
+  };
+
+  const getUpcomingWeekSpacing = () => {
+    return showUpcomingWeek ? 'mb-4' : '';
+  };
 
   return (
-    <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">
+    <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto flex flex-col">
       {/* Title */}
       <div className="text-center mb-6">
         <h1 className="text-3xl font-bold text-white">Maksut</h1>
       </div>
 
-      {/* Main Carousel */}
-      <DashboardCarousel 
-        key={refreshKey}
-        balance={balance}
-        loans={loans}
-        monthlyBills={monthlyBills}
-        totalLoanAmount={totalLoanAmount}
-        totalMonthlyPayments={totalMonthlyPayments}
-        totalBillsAmount={totalBillsAmount}
-        onApiReady={setCarouselApi}
-        initialSlide={initialView}
-        currentSlide={currentSlide}
-      />
+      {/* Main Carousel with dynamic spacing */}
+      <div className={getCarouselSpacing()}>
+        <DashboardCarousel 
+          key={refreshKey}
+          balance={balance}
+          loans={loans}
+          monthlyBills={monthlyBills}
+          totalLoanAmount={totalLoanAmount}
+          totalMonthlyPayments={totalMonthlyPayments}
+          totalBillsAmount={totalBillsAmount}
+          onApiReady={setCarouselApi}
+          initialSlide={initialView}
+          currentSlide={currentSlide}
+        />
+      </div>
 
       {/* Navigation Buttons - Only show on Balance view */}
       {showNavigationButtons && (
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className={`grid grid-cols-2 gap-4 ${getButtonSpacing()}`}>
           <Button
             onClick={() => navigate('/upcoming')}
             className="bg-[#294D73] hover:bg-[#1f3a5f] text-white"
@@ -191,10 +217,21 @@ const Dashboard = () => {
       )}
 
       {/* This Week's Upcoming Payments - Only show on Balance view */}
-      {showUpcomingWeek && <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />}
+      {showUpcomingWeek && (
+        <div className={getUpcomingWeekSpacing()}>
+          <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />
+        </div>
+      )}
 
-      {/* Recent Transactions - Always show */}
-      {showRecentTransactions && <RecentTransactionsCard recentTransactions={sortedRecentTransactions} />}
+      {/* Recent Transactions - Always show with flex-grow to fill remaining space */}
+      {showRecentTransactions && (
+        <div className="flex-1 min-h-0">
+          <RecentTransactionsCard 
+            recentTransactions={sortedRecentTransactions} 
+            isExpandedView={currentSlide !== 0}
+          />
+        </div>
+      )}
     </div>
   );
 };

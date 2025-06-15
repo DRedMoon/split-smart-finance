@@ -5,9 +5,11 @@ import { useToast } from '@/hooks/use-toast';
 export const usePaymentToggleLogic = () => {
   const { toast } = useToast();
 
-  const handleTogglePaid = (billId: string | number, event: React.MouseEvent) => {
-    event.stopPropagation();
-    event.preventDefault();
+  const handleTogglePaid = (billId: string | number, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     
     console.log('PaymentToggleLogic - Toggling payment for bill ID:', billId);
     
