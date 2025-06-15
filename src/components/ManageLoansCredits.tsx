@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,23 +13,27 @@ const ManageLoansCredits = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { toast } = useToast();
+  const [financialData, setFinancialData] = useState(null);
+
+  useEffect(() => {
+    const data = loadFinancialData();
+    setFinancialData(data);
+  }, []);
   
-  const data = loadFinancialData();
-  const loans = data?.loans || [];
+  const loans = financialData?.loans || [];
 
   const handleDelete = (loanId: number, loanName: string) => {
-    if (data) {
-      data.loans = data.loans.filter(loan => loan.id !== loanId);
-      data.monthlyBills = data.monthlyBills.filter(bill => bill.name !== loanName);
-      saveFinancialData(data);
+    if (financialData) {
+      const updatedData = { ...financialData };
+      updatedData.loans = updatedData.loans.filter(loan => loan.id !== loanId);
+      updatedData.monthlyBills = updatedData.monthlyBills.filter(bill => bill.name !== loanName);
+      saveFinancialData(updatedData);
+      setFinancialData(updatedData);
       
       toast({
         title: 'Deleted',
         description: `${loanName} has been removed`
       });
-      
-      // Refresh the page
-      window.location.reload();
     }
   };
 
@@ -46,14 +50,20 @@ const ManageLoansCredits = () => {
         return calculation.totalWithInterest;
       }
     } else {
-      // For loans, use user's monthly payment and remaining months to calculate total payback
+      // For loans, calculate based on monthly payment and remaining term
       const termMonths = parseInt(loan.remaining.match(/\d+/)?.[0] || '12');
-      if (termMonths > 0 && loan.monthly > 0) {
-        return loan.monthly * termMonths;
+      if (termMonths > 0) {
+        // Use the stored monthly payment amount to calculate total payback
+        const monthlyPayment = loan.monthly || 0;
+        return monthlyPayment * termMonths;
       }
     }
     return 0;
   };
+
+  if (!financialData) {
+    return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">

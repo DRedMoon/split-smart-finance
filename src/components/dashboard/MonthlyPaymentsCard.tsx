@@ -19,7 +19,9 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
   const { toast } = useToast();
   const [showAll, setShowAll] = useState(false);
 
-  const handleTogglePaid = (billId: number) => {
+  const handleTogglePaid = (billId: number, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent navigation when clicking the button
+    
     const data = loadFinancialData();
     if (!data) return;
 
@@ -27,8 +29,8 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     if (billIndex === -1) return;
 
     const bill = data.monthlyBills[billIndex];
-    // Check both 'paid' and 'isPaid' properties for compatibility
-    const currentPaidStatus = bill.paid || bill.isPaid || false;
+    // Handle both 'paid' and 'isPaid' properties for compatibility
+    const currentPaidStatus = bill.paid || (bill as any).isPaid || false;
     const newPaidStatus = !currentPaidStatus;
 
     if (newPaidStatus) {
@@ -44,7 +46,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
       
       // Mark as paid - deduct from balance
       data.monthlyBills[billIndex].paid = true;
-      data.monthlyBills[billIndex].isPaid = true; // Set both for compatibility
+      (data.monthlyBills[billIndex] as any).isPaid = true; // Set both for compatibility
       data.balance -= bill.amount;
       
       toast({
@@ -54,7 +56,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     } else {
       // Mark as unpaid - add back to balance
       data.monthlyBills[billIndex].paid = false;
-      data.monthlyBills[billIndex].isPaid = false; // Set both for compatibility
+      (data.monthlyBills[billIndex] as any).isPaid = false; // Set both for compatibility
       data.balance += bill.amount;
       
       toast({
@@ -64,14 +66,20 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     }
     
     saveFinancialData(data);
-    window.location.reload(); // Refresh to show updated data
+    // Force a page refresh to update all components with new data
+    window.location.reload();
+  };
+
+  const handleNavigateToMonthlyPayments = () => {
+    localStorage.setItem('dashboardLastView', 'monthly-payments');
+    navigate('/monthly-payments');
   };
 
   const displayedBills = showAll ? monthlyBills : monthlyBills.slice(0, 2);
   
   // Calculate paid and unpaid bills using both 'paid' and 'isPaid' properties
-  const paidBills = monthlyBills.filter(bill => bill.paid || bill.isPaid);
-  const unpaidBills = monthlyBills.filter(bill => !(bill.paid || bill.isPaid));
+  const paidBills = monthlyBills.filter(bill => bill.paid || (bill as any).isPaid);
+  const unpaidBills = monthlyBills.filter(bill => !(bill.paid || (bill as any).isPaid));
 
   return (
     <Card className="bg-[#294D73] border-none">
@@ -83,7 +91,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/monthly-payments')}
+          onClick={handleNavigateToMonthlyPayments}
           className="text-white hover:bg-white/10 p-2"
         >
           <ArrowRight size={20} />
@@ -104,7 +112,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
         {monthlyBills.length > 0 && (
           <div className="space-y-2 mb-4">
             {displayedBills.map((bill) => {
-              const isPaid = bill.paid || bill.isPaid || false;
+              const isPaid = bill.paid || (bill as any).isPaid || false;
               return (
                 <div key={bill.id} className={`rounded p-2 ${isPaid ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/10'}`}>
                   <div className="flex justify-between items-center">
@@ -112,7 +120,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleTogglePaid(bill.id)}
+                        onClick={(e) => handleTogglePaid(bill.id, e)}
                         className={`p-1 h-6 w-6 ${isPaid ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
                       >
                         {isPaid ? <Check size={12} className="text-white" /> : <X size={12} className="text-white" />}
@@ -138,7 +146,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
         
         <Button
           variant="ghost"
-          onClick={() => navigate('/monthly-payments')}
+          onClick={handleNavigateToMonthlyPayments}
           className="w-full text-white hover:bg-white/10"
         >
           {t('view_all_payments')}

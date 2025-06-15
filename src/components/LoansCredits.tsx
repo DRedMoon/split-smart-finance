@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Settings } from 'lucide-react';
@@ -21,7 +20,8 @@ const LoansCredits = () => {
   }, []);
 
   const handleBackNavigation = () => {
-    navigate('/?view=loans-credits');
+    // Navigate back to dashboard with the correct view
+    navigate('/?returnTo=loans-credits');
   };
 
   const calculateLoanDetails = (loan) => {

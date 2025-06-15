@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Settings, ChevronDown, ChevronUp } from 'lucide-react';
@@ -23,7 +22,8 @@ const MonthlyPayments = () => {
   }, []);
 
   const handleBackNavigation = () => {
-    navigate('/?view=monthly-payments');
+    // Navigate back to dashboard with the correct view
+    navigate('/?returnTo=monthly-payments');
   };
 
   const getDaysUntilDue = (dueDate) => {
