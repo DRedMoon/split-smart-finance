@@ -20,6 +20,8 @@ const MonthlyPaymentsCard = ({ monthlyBills }: MonthlyPaymentsCardProps) => {
   const [showAllRegular, setShowAllRegular] = useState(false);
   const [showAllLoanCredit, setShowAllLoanCredit] = useState(false);
 
+  console.log('MonthlyPaymentsCard - Received monthly bills:', monthlyBills);
+
   const handleTogglePaid = (billId: number, event: React.MouseEvent) => {
     event.stopPropagation();
     event.preventDefault();
@@ -70,16 +72,50 @@ const MonthlyPaymentsCard = ({ monthlyBills }: MonthlyPaymentsCardProps) => {
     navigate('/monthly-payments');
   };
 
-  // Separate loan/credit payments from regular bills
-  const loanCreditPayments = monthlyBills.filter((bill: any) => 
+  // Get all loans to ensure we have all loan payments
+  const data = loadFinancialData();
+  const allLoans = data?.loans || [];
+  
+  console.log('MonthlyPaymentsCard - All loans from data:', allLoans);
+  
+  // Create loan/credit payment bills from actual loan data if they're missing
+  const existingLoanBills = monthlyBills.filter((bill: any) => 
     bill.category === 'Loan' || bill.category === 'Credit Card' || 
     bill.type === 'loan_payment' || bill.type === 'credit_payment'
   );
+  
+  console.log('MonthlyPaymentsCard - Existing loan bills:', existingLoanBills);
+  
+  // Add missing loan payments
+  const allLoanPayments = [...existingLoanBills];
+  
+  allLoans.forEach(loan => {
+    const existingBill = existingLoanBills.find(bill => bill.name === loan.name);
+    if (!existingBill && loan.monthly > 0) {
+      console.log('MonthlyPaymentsCard - Adding missing loan payment for:', loan.name);
+      const isCredit = loan.remaining === 'Credit Card';
+      allLoanPayments.push({
+        id: `loan-${loan.id}`,
+        name: loan.name,
+        amount: loan.monthly,
+        dueDate: loan.dueDate || '1',
+        category: isCredit ? 'Credit Card' : 'Loan',
+        type: isCredit ? 'credit_payment' : 'loan_payment',
+        paid: false
+      });
+    }
+  });
+
+  // Separate loan/credit payments from regular bills
+  const loanCreditPayments = allLoanPayments;
 
   const regularBills = monthlyBills.filter((bill: any) => 
     bill.category !== 'Loan' && bill.category !== 'Credit Card' && 
     bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
   );
+
+  console.log('MonthlyPaymentsCard - Final loan/credit payments:', loanCreditPayments);
+  console.log('MonthlyPaymentsCard - Regular bills:', regularBills);
 
   // Calculate totals for regular bills only
   const totalRegularAmount = regularBills.reduce((sum: number, bill: any) => sum + (bill.amount || 0), 0);

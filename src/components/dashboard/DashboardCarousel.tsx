@@ -13,6 +13,7 @@ interface DashboardCarouselProps {
   totalMonthlyPayments: number;
   totalBillsAmount: number;
   onApiReady?: (api: CarouselApi) => void;
+  initialSlide?: number;
 }
 
 const DashboardCarousel = ({ 
@@ -22,14 +23,20 @@ const DashboardCarousel = ({
   totalLoanAmount, 
   totalMonthlyPayments, 
   totalBillsAmount,
-  onApiReady 
+  onApiReady,
+  initialSlide = 0
 }: DashboardCarouselProps) => {
   const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(0);
+  const [current, setCurrent] = useState(initialSlide);
 
   useEffect(() => {
     if (!api) {
       return
+    }
+
+    // Set initial slide if specified
+    if (initialSlide !== 0) {
+      api.scrollTo(initialSlide, false);
     }
 
     setCurrent(api.selectedScrollSnap())
@@ -42,24 +49,7 @@ const DashboardCarousel = ({
     if (onApiReady) {
       onApiReady(api);
     }
-  }, [api, onApiReady])
-
-  // Listen for custom navigation events
-  useEffect(() => {
-    const handleNavigation = (event: CustomEvent) => {
-      if (api && event.detail?.index !== undefined) {
-        api.scrollTo(event.detail.index);
-      }
-    };
-
-    const carousel = document.querySelector('[data-dashboard-carousel]');
-    if (carousel) {
-      carousel.addEventListener('navigate-dashboard', handleNavigation as EventListener);
-      return () => {
-        carousel.removeEventListener('navigate-dashboard', handleNavigation as EventListener);
-      };
-    }
-  }, [api]);
+  }, [api, onApiReady, initialSlide])
 
   const handleDotClick = (index: number) => {
     if (api) {
@@ -75,6 +65,7 @@ const DashboardCarousel = ({
         opts={{
           align: "start",
           loop: true,
+          startIndex: initialSlide,
         }}
       >
         <CarouselContent>

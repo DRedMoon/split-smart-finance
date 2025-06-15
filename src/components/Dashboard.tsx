@@ -15,7 +15,8 @@ const Dashboard = () => {
   const { t } = useLanguage();
   const [refreshKey, setRefreshKey] = useState(0);
   const [carouselApi, setCarouselApi] = useState(null);
-  const [pendingReturnTo, setPendingReturnTo] = useState<string | null>(null);
+  const [initialView, setInitialView] = useState(0);
+  const [navigationReady, setNavigationReady] = useState(false);
   
   // Listen for financial data updates
   useEffect(() => {
@@ -29,43 +30,62 @@ const Dashboard = () => {
     };
   }, []);
 
-  // Store returnTo parameter when component mounts
+  // Handle returnTo parameter immediately to prevent showing wrong view
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const returnTo = urlParams.get('returnTo');
     
     if (returnTo) {
-      console.log('Dashboard - Storing returnTo navigation:', returnTo);
-      setPendingReturnTo(returnTo);
+      console.log('Dashboard - Processing returnTo:', returnTo);
+      const viewIndex = returnTo === 'balance' ? 0 : 
+                       returnTo === 'loans-credits' ? 1 : 
+                       returnTo === 'monthly-payments' ? 2 : 0;
+      
+      console.log('Dashboard - Setting initial view to:', viewIndex);
+      setInitialView(viewIndex);
+      
+      // Clear URL immediately
+      window.history.replaceState({}, '', '/');
+    } else {
+      setNavigationReady(true);
     }
   }, [location.search]);
 
-  // Handle returnTo navigation when carousel API is ready
+  // Navigate when carousel API is ready and we have a target view
   useEffect(() => {
-    if (pendingReturnTo && carouselApi) {
-      console.log('Dashboard - Processing returnTo navigation:', pendingReturnTo);
-      
-      const viewIndex = pendingReturnTo === 'balance' ? 0 : 
-                       pendingReturnTo === 'loans-credits' ? 1 : 
-                       pendingReturnTo === 'monthly-payments' ? 2 : 0;
-      
-      console.log('Dashboard - Navigating to carousel index:', viewIndex);
-      
-      // Navigate to the correct view
+    if (carouselApi && initialView !== 0) {
+      console.log('Dashboard - Navigating carousel to view:', initialView);
       setTimeout(() => {
-        carouselApi.scrollTo(viewIndex);
-        // Clear the pending navigation and URL
-        setPendingReturnTo(null);
-        window.history.replaceState({}, '', '/');
-      }, 100);
+        carouselApi.scrollTo(initialView);
+        setNavigationReady(true);
+      }, 50);
+    } else if (carouselApi) {
+      setNavigationReady(true);
     }
-  }, [pendingReturnTo, carouselApi]);
+  }, [carouselApi, initialView]);
   
   // Safe data loading with fallbacks
   const data = loadFinancialData();
   const balance = data?.balance || 0;
   const loans = data?.loans || [];
-  const recentTransactions = data?.transactions?.slice(0, 3) || [];
+  
+  // Debug loan data
+  console.log('Dashboard - All loans:', loans);
+  console.log('Dashboard - Monthly bills:', data?.monthlyBills);
+  
+  // Filter recent transactions to only show paid items and income
+  const allTransactions = data?.transactions || [];
+  const recentTransactions = allTransactions
+    .filter(transaction => {
+      // Always show income (positive amounts)
+      if (transaction.amount > 0) return true;
+      
+      // For expenses, only show if they're marked as paid/completed
+      return transaction.paid === true || transaction.completed === true;
+    })
+    .slice(0, 3);
+
+  console.log('Dashboard - Filtered recent transactions:', recentTransactions);
   
   const monthlyBills = data?.monthlyBills || [];
 
@@ -88,6 +108,18 @@ const Dashboard = () => {
     bill.type !== 'credit_payment'
   );
 
+  // Show loading or skeleton while navigation is not ready
+  if (!navigationReady) {
+    return (
+      <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-white">Maksut</h1>
+        </div>
+        <div className="bg-white/10 rounded-lg h-64 mb-6 animate-pulse"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">
       {/* Title */}
@@ -105,6 +137,7 @@ const Dashboard = () => {
         totalMonthlyPayments={totalMonthlyPayments}
         totalBillsAmount={totalBillsAmount}
         onApiReady={setCarouselApi}
+        initialSlide={initialView}
       />
 
       {/* Navigation Buttons */}

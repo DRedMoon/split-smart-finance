@@ -66,7 +66,13 @@ const ManageLoansCredits = () => {
         ) : (
           loans.map((loan) => {
             const isCredit = loan.remaining === 'Credit Card';
-            console.log('ManageLoansCredits - Displaying loan:', loan.name, 'stored rate:', loan.rate);
+            console.log('ManageLoansCredits - Displaying loan:', loan.name, 'exact stored values:', {
+              totalAmount: loan.totalAmount,
+              currentAmount: loan.currentAmount,
+              monthly: loan.monthly,
+              rate: loan.rate,
+              totalPayback: loan.totalPayback
+            });
             
             return (
               <Card key={loan.id} className="bg-[#294D73] border-none">
@@ -104,21 +110,21 @@ const ManageLoansCredits = () => {
                       <p className="text-white/70">
                         {isCredit ? 'Luottoraja' : 'Kokonaissumma'}
                       </p>
-                      <p className="text-white font-medium">€{loan.totalAmount?.toFixed(2) || '0.00'}</p>
+                      <p className="text-white font-medium">€{(loan.totalAmount || 0).toFixed(2)}</p>
                     </div>
                     <div>
                       <p className="text-white/70">
                         {isCredit ? 'Käytetty luotto' : 'Nykyinen summa'}
                       </p>
-                      <p className="text-white font-medium">€{loan.currentAmount?.toFixed(2) || '0.00'}</p>
+                      <p className="text-white font-medium">€{(loan.currentAmount || 0).toFixed(2)}</p>
                     </div>
                     <div>
                       <p className="text-white/70">Kuukausimaksu</p>
-                      <p className="text-white font-medium">€{loan.monthly?.toFixed(2) || '0.00'}</p>
+                      <p className="text-white font-medium">€{(loan.monthly || 0).toFixed(2)}</p>
                     </div>
                     <div>
                       <p className="text-white/70">Korko</p>
-                      <p className="text-white font-medium">{loan.rate?.toFixed(2) || '0.00'}%</p>
+                      <p className="text-white font-medium">{(loan.rate || 0).toFixed(2)}%</p>
                     </div>
                     <div>
                       <p className="text-white/70">Eräpäivä</p>
@@ -135,11 +141,11 @@ const ManageLoansCredits = () => {
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <p className="text-white/70">Euribor-korko</p>
-                          <p className="text-white font-medium">{loan.euriborRate?.toFixed(2) || '0.00'}%</p>
+                          <p className="text-white font-medium">{(loan.euriborRate || 0).toFixed(2)}%</p>
                         </div>
                         <div>
                           <p className="text-white/70">Marginaali</p>
-                          <p className="text-white font-medium">{loan.personalMargin?.toFixed(2) || '0.00'}%</p>
+                          <p className="text-white font-medium">{(loan.personalMargin || 0).toFixed(2)}%</p>
                         </div>
                       </div>
                     </div>
@@ -150,11 +156,11 @@ const ManageLoansCredits = () => {
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <p className="text-white/70">Vähimmäismaksu-%</p>
-                          <p className="text-white font-medium">{loan.minimumPercent?.toFixed(2) || '0.00'}%</p>
+                          <p className="text-white font-medium">{(loan.minimumPercent || 0).toFixed(2)}%</p>
                         </div>
                         <div>
                           <p className="text-white/70">Hoitokulu</p>
-                          <p className="text-white font-medium">€{loan.managementFee?.toFixed(2) || '0.00'}</p>
+                          <p className="text-white font-medium">€{(loan.managementFee || 0).toFixed(2)}</p>
                         </div>
                       </div>
                     </div>
