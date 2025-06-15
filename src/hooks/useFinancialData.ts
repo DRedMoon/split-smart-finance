@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
@@ -28,6 +27,10 @@ export const useFinancialData = (refreshKey: number) => {
     totalBalance: balance,
     transactionCount: allTransactions.length,
     allTransactions: allTransactions.map(t => ({ name: t.name, amount: t.amount, date: t.date, id: t.id }))
+  });
+
+  console.log('Monthly bills data:', {
+    monthlyBills: monthlyBills.map(b => ({ name: b.name, amount: b.amount, paid: b.paid, id: b.id }))
   });
 
   // Recent transactions logic - ONLY show actual transactions from the transactions array
