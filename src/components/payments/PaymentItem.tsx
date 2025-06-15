@@ -20,6 +20,13 @@ const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) 
   const isDueSoon = daysUntilDue > 0 && daysUntilDue <= 3;
   const isPaid = bill.paid || false;
 
+  const handlePaymentToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('PaymentItem - Toggling payment for bill:', bill.name, 'ID:', bill.id);
+    onTogglePaid(bill.id);
+  };
+
   const getStatusBadge = () => {
     if (isPaid) {
       return <Badge className="bg-green-500 text-white">Maksettu</Badge>;
@@ -96,7 +103,7 @@ const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) 
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onTogglePaid(bill.id)}
+            onClick={handlePaymentToggle}
             className="text-white hover:bg-white/10"
           >
             {isPaid ? (
