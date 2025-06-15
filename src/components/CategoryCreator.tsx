@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react';
@@ -24,6 +23,7 @@ const CategoryCreator = () => {
     isMaintenanceCharge: false,
     isHousingCompanyExpenditure: false,
     isMonthlyPayment: false,
+    requiresDueDate: false,
     color: '#294D73'
   });
 
@@ -61,6 +61,7 @@ const CategoryCreator = () => {
       isMaintenanceCharge: false,
       isHousingCompanyExpenditure: false,
       isMonthlyPayment: false,
+      requiresDueDate: false,
       color: '#294D73'
     });
 
@@ -158,6 +159,11 @@ const CategoryCreator = () => {
                       {t('monthly_payment')}
                     </span>
                   )}
+                  {category.requiresDueDate && (
+                    <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-1 rounded">
+                      Eräpäivä vaaditaan
+                    </span>
+                  )}
                 </div>
               </div>
             ))
@@ -245,6 +251,19 @@ const CategoryCreator = () => {
                 checked={newCategory.isMonthlyPayment}
                 onCheckedChange={(checked) => 
                   setNewCategory(prev => ({ ...prev, isMonthlyPayment: checked }))
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="text-white">
+                <div className="font-medium">Eräpäivä vaaditaan</div>
+                <div className="text-sm text-white/70">Näytä eräpäivän valitsin tätä kategoriaa käytettäessä</div>
+              </div>
+              <Switch 
+                checked={newCategory.requiresDueDate}
+                onCheckedChange={(checked) => 
+                  setNewCategory(prev => ({ ...prev, requiresDueDate: checked }))
                 }
               />
             </div>

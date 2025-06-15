@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { addTransaction, addIncome, loadFinancialData, addMonthlyBill } from '@/services/storageService';
+import DueDatePicker from './loan/DueDatePicker';
 
 const AddExpense = () => {
   const navigate = useNavigate();
@@ -22,7 +23,8 @@ const AddExpense = () => {
     amount: 0,
     category: '',
     type: 'expense',
-    isRecurring: false
+    isRecurring: false,
+    dueDate: ''
   });
 
   const [availableCategories, setAvailableCategories] = useState([]);
@@ -41,11 +43,35 @@ const AddExpense = () => {
     }
   }, [quickData.category]);
 
+  // Check if category requires due date
+  const requiresDueDate = (category) => {
+    const dueDateCategories = ['subscription', 'bill', 'insurance', 'loan_repayment', 'credit_repayment', 'credit_purchase'];
+    
+    // Check default categories
+    if (dueDateCategories.includes(category)) return true;
+    
+    // Check custom categories
+    const categoryData = availableCategories.find(cat => 
+      cat.name.toLowerCase().replace(/\s+/g, '_') === category
+    );
+    return categoryData?.requiresDueDate || false;
+  };
+
   const handleQuickAdd = () => {
     if (!quickData.name || quickData.amount === 0 || !quickData.category) {
       toast({
         title: t('error'),
         description: t('fill_required_fields'),
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if due date is required but missing
+    if (requiresDueDate(quickData.category) && !quickData.dueDate) {
+      toast({
+        title: t('error'),
+        description: 'Eräpäivä vaaditaan tälle kategorialle',
         variant: "destructive"
       });
       return;
@@ -73,11 +99,11 @@ const AddExpense = () => {
                              recurringCategories.includes(quickData.category);
 
       if (quickData.isRecurring || isAutoRecurring) {
-        // Add to monthly bills with default due date
+        // Add to monthly bills with user-specified due date or default
         addMonthlyBill({
           name: quickData.name,
           amount: quickData.amount,
-          dueDate: '15th', // Default due date
+          dueDate: quickData.dueDate || '15th', // Use user's due date or default
           type: quickData.category,
           paid: false
         });
@@ -107,7 +133,8 @@ const AddExpense = () => {
       amount: 0,
       category: '',
       type: 'expense',
-      isRecurring: false
+      isRecurring: false,
+      dueDate: ''
     });
   };
 
@@ -217,6 +244,16 @@ const AddExpense = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Due Date Picker - only show for categories that require it */}
+          {quickData.category && requiresDueDate(quickData.category) && (
+            <DueDatePicker
+              value={quickData.dueDate}
+              onChange={(value) => setQuickData(prev => ({ ...prev, dueDate: value }))}
+              label="Eräpäivä"
+              placeholder="Valitse päivä"
+            />
+          )}
 
           {quickData.type === 'expense' && (
             <div className="flex items-center space-x-2">

@@ -43,6 +43,7 @@ export interface FinancialData {
     isMaintenanceCharge: boolean;
     isHousingCompanyExpenditure: boolean;
     isMonthlyPayment: boolean;
+    requiresDueDate?: boolean;
     color: string;
     createdAt: string;
   }>;
