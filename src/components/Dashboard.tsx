@@ -21,6 +21,7 @@ const Dashboard = () => {
   // Listen for financial data updates
   useEffect(() => {
     const handleDataUpdate = () => {
+      console.log('Dashboard - Financial data updated, refreshing...');
       setRefreshKey(prev => prev + 1);
     };
 
@@ -72,23 +73,36 @@ const Dashboard = () => {
   console.log('Dashboard - All loans:', loans);
   console.log('Dashboard - Monthly bills:', data?.monthlyBills);
   
-  // Filter recent transactions to only show paid items and income
+  // Get recent transactions that represent actual payments made
   const allTransactions = data?.transactions || [];
-  const recentTransactions = allTransactions
-    .filter(transaction => {
-      // Always show income (positive amounts)
-      if (transaction.amount > 0) return true;
-      
-      // For expenses, check if transaction has status indicating payment
-      // Since transaction type doesn't have paid/completed, we'll show recent expenses
-      // The user can mark them as paid in the transaction details
-      return transaction.amount < 0; // Show all expenses for now
-    })
+  const monthlyBills = data?.monthlyBills || [];
+  
+  // Create recent transactions from paid monthly bills and regular income transactions
+  const recentTransactions = [];
+  
+  // Add income transactions (always show these)
+  const incomeTransactions = allTransactions.filter(transaction => transaction.amount > 0);
+  recentTransactions.push(...incomeTransactions);
+  
+  // Add paid monthly bills as "transactions" to show payment activity
+  const paidBills = monthlyBills.filter(bill => bill.paid);
+  const billTransactions = paidBills.map(bill => ({
+    id: `bill-${bill.id}`,
+    name: bill.name,
+    amount: -bill.amount, // Negative because it's an expense
+    date: new Date().toISOString().split('T')[0], // Today's date since it was just paid
+    type: 'expense',
+    category: bill.type || bill.category
+  }));
+  
+  recentTransactions.push(...billTransactions);
+  
+  // Sort by date and take the most recent 3
+  const sortedRecentTransactions = recentTransactions
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 3);
 
-  console.log('Dashboard - Filtered recent transactions:', recentTransactions);
-  
-  const monthlyBills = data?.monthlyBills || [];
+  console.log('Dashboard - Recent transactions:', sortedRecentTransactions);
 
   const totalLoanAmount = loans.reduce((sum, loan) => sum + (loan.currentAmount || 0), 0);
   const totalMonthlyPayments = loans.reduce((sum, loan) => sum + (loan.monthly || 0), 0);
@@ -161,7 +175,7 @@ const Dashboard = () => {
       <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />
 
       {/* Recent Transactions */}
-      <RecentTransactionsCard recentTransactions={recentTransactions} />
+      <RecentTransactionsCard recentTransactions={sortedRecentTransactions} />
     </div>
   );
 };

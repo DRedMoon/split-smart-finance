@@ -26,10 +26,13 @@ const MonthlyPaymentsCard = ({ monthlyBills }: MonthlyPaymentsCardProps) => {
     event.stopPropagation();
     event.preventDefault();
     
-    const data = loadFinancialData();
-    if (!data) return;
-
     console.log('MonthlyPaymentsCard - Toggling payment for bill ID:', billId);
+    
+    const data = loadFinancialData();
+    if (!data) {
+      console.error('No financial data found');
+      return;
+    }
 
     // Handle loan payment bills (generated from loans)
     if (typeof billId === 'string' && billId.startsWith('loan-')) {
@@ -40,6 +43,8 @@ const MonthlyPaymentsCard = ({ monthlyBills }: MonthlyPaymentsCardProps) => {
         console.error('Loan not found for ID:', loanId);
         return;
       }
+
+      console.log('MonthlyPaymentsCard - Processing loan payment for:', loan.name);
 
       // Find or create the monthly bill for this loan
       let billIndex = data.monthlyBills.findIndex((b: any) => b.name === loan.name);
@@ -106,10 +111,15 @@ const MonthlyPaymentsCard = ({ monthlyBills }: MonthlyPaymentsCardProps) => {
     } else {
       // Handle regular monthly bills
       const billIndex = data.monthlyBills.findIndex((b: any) => b.id === billId);
-      if (billIndex === -1) return;
+      if (billIndex === -1) {
+        console.error('Bill not found for ID:', billId);
+        return;
+      }
 
       const bill = data.monthlyBills[billIndex];
       const newPaidStatus = !bill.paid;
+
+      console.log('MonthlyPaymentsCard - Processing regular bill payment for:', bill.name, 'New status:', newPaidStatus);
 
       if (newPaidStatus) {
         if (data.balance < bill.amount) {
@@ -139,6 +149,7 @@ const MonthlyPaymentsCard = ({ monthlyBills }: MonthlyPaymentsCardProps) => {
       }
     }
     
+    console.log('MonthlyPaymentsCard - Saving updated data and triggering refresh');
     saveFinancialData(data);
     window.dispatchEvent(new CustomEvent('financial-data-updated'));
   };
