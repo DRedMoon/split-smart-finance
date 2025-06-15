@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { loadFinancialData, getThisWeekUpcomingPayments } from '@/services/storageService';
+import { loadFinancialData } from '@/services/dataService';
+import { getThisWeekUpcomingPayments } from '@/services/storageService';
 import DashboardCarousel from './dashboard/DashboardCarousel';
 import UpcomingWeekCard from './dashboard/UpcomingWeekCard';
 import RecentTransactionsCard from './dashboard/RecentTransactionsCard';
@@ -25,6 +26,7 @@ const Dashboard = () => {
     };
   }, []);
   
+  // Safe data loading with fallbacks
   const data = loadFinancialData();
   const balance = data?.balance || 0;
   const loans = data?.loans || [];
@@ -38,12 +40,18 @@ const Dashboard = () => {
     bill.type !== 'credit_payment'
   ) || [];
 
-  const totalLoanAmount = loans.reduce((sum, loan) => sum + loan.currentAmount, 0);
-  const totalMonthlyPayments = loans.reduce((sum, loan) => sum + loan.monthly, 0);
-  const totalBillsAmount = monthlyBills.reduce((sum, bill) => sum + bill.amount, 0);
+  const totalLoanAmount = loans.reduce((sum, loan) => sum + (loan.currentAmount || 0), 0);
+  const totalMonthlyPayments = loans.reduce((sum, loan) => sum + (loan.monthly || 0), 0);
+  const totalBillsAmount = monthlyBills.reduce((sum, bill) => sum + (bill.amount || 0), 0);
 
-  // Get this week's upcoming payments
-  const thisWeekPayments = getThisWeekUpcomingPayments();
+  // Get this week's upcoming payments with error handling
+  let thisWeekPayments = [];
+  try {
+    thisWeekPayments = getThisWeekUpcomingPayments();
+  } catch (error) {
+    console.error('Error getting upcoming payments:', error);
+  }
+
   const filteredWeekPayments = thisWeekPayments.filter(bill => 
     bill.type !== 'laina' && 
     bill.type !== 'luottokortti' && 

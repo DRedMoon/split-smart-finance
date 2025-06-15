@@ -98,7 +98,21 @@ const translations = {
     
     // Backup settings
     backup_location: 'Varmuuskopion sijainti',
-    choose_backup_folder: 'Valitse varmuuskopiokansio'
+    choose_backup_folder: 'Valitse varmuuskopiokansio',
+    
+    // New missing translations
+    home: 'Koti',
+    back: 'Takaisin',
+    cancel: 'Peruuta',
+    save: 'Tallenna',
+    delete: 'Poista',
+    edit: 'Muokkaa',
+    add: 'Lisää',
+    remove: 'Poista',
+    loading: 'Ladataan...',
+    no_data: 'Ei tietoja',
+    success: 'Onnistui',
+    failed: 'Epäonnistui'
   },
   en: {
     // Dashboard
@@ -188,9 +202,23 @@ const translations = {
     
     // Backup settings
     backup_location: 'Backup Location',
-    choose_backup_folder: 'Choose Backup Folder'
+    choose_backup_folder: 'Choose Backup Folder',
+    
+    // New missing translations
+    home: 'Home',
+    back: 'Back',
+    cancel: 'Cancel',
+    save: 'Save',
+    delete: 'Delete',
+    edit: 'Edit',
+    add: 'Add',
+    remove: 'Remove',
+    loading: 'Loading...',
+    no_data: 'No data',
+    success: 'Success',
+    failed: 'Failed'
   }
-};
+} as const;
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
@@ -198,7 +226,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [language, setLanguage] = useState<Language>('fi');
 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    const translation = translations[language][key as keyof typeof translations[typeof language]];
+    return translation || key;
   };
 
   return (
