@@ -18,10 +18,11 @@ const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) 
   const isOverdue = daysUntilDue < 0;
   const isDueToday = daysUntilDue === 0;
   const isDueSoon = daysUntilDue > 0 && daysUntilDue <= 3;
+  const isPaid = bill.paid || false; // Use consistent 'paid' property
 
   const getStatusBadge = () => {
-    if (bill.isPaid) {
-      return <Badge className="bg-green-500 text-white">{t('paid')}</Badge>;
+    if (isPaid) {
+      return <Badge className="bg-green-500 text-white">Maksettu</Badge>;
     }
     if (isOverdue) {
       return <Badge variant="destructive">{t('overdue')}</Badge>;
@@ -32,7 +33,7 @@ const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) 
     if (isDueSoon) {
       return <Badge className="bg-yellow-500 text-black">{t('due_soon')}</Badge>;
     }
-    return <Badge variant="outline" className="border-white/20 text-white">{t('upcoming')}</Badge>;
+    return <Badge className="bg-red-500 text-white">Maksamaton</Badge>;
   };
 
   const getIcon = () => {
@@ -40,6 +41,13 @@ const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) 
       return <CreditCard size={20} className="text-blue-400" />;
     }
     return <Receipt size={20} className="text-green-400" />;
+  };
+
+  const getStatusText = () => {
+    if (isPaid) {
+      return <span className="text-green-400 text-sm font-medium">Maksettu</span>;
+    }
+    return <span className="text-red-400 text-sm font-medium">Maksamaton</span>;
   };
 
   return (
@@ -51,6 +59,7 @@ const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) 
             <div>
               <h3 className="text-white font-medium">{bill.name}</h3>
               <p className="text-white/70 text-sm">{bill.category}</p>
+              {getStatusText()}
             </div>
           </div>
           {getStatusBadge()}
@@ -84,7 +93,7 @@ const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) 
             onClick={() => onTogglePaid(bill.id)}
             className="text-white hover:bg-white/10"
           >
-            {bill.isPaid ? (
+            {isPaid ? (
               <CheckCircle size={20} className="text-green-400" />
             ) : (
               <Circle size={20} className="text-white/50" />

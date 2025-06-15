@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Settings, ChevronDown, ChevronUp } from 'lucide-react';
@@ -14,6 +15,7 @@ const MonthlyPayments = () => {
   const { toast } = useToast();
   const [financialData, setFinancialData] = useState(null);
   const [showAllPayments, setShowAllPayments] = useState(false);
+  const [showAllLoanCredit, setShowAllLoanCredit] = useState(false);
 
   useEffect(() => {
     const data = loadFinancialData();
@@ -137,7 +139,9 @@ const MonthlyPayments = () => {
   const remainingLoanCredit = totalLoanCredit - paidLoanCredit;
 
   const displayedRegular = showAllPayments ? sortedRegular : sortedRegular.slice(0, 2);
+  const displayedLoanCredit = showAllLoanCredit ? sortedLoanCredit : sortedLoanCredit.slice(0, 2);
   const hasMoreRegular = sortedRegular.length > 2;
+  const hasMoreLoanCredit = sortedLoanCredit.length > 2;
 
   return (
     <div className="p-4 pb-20 bg-[#192E45] min-h-screen max-w-md mx-auto">
@@ -216,7 +220,7 @@ const MonthlyPayments = () => {
         <div className="mb-6">
           <h2 className="text-white text-lg font-semibold mb-4">{t('loans_credits')}</h2>
           <div className="space-y-4">
-            {sortedLoanCredit.map((bill) => (
+            {displayedLoanCredit.map((bill) => (
               <PaymentItem
                 key={bill.id}
                 bill={bill}
@@ -224,6 +228,26 @@ const MonthlyPayments = () => {
                 getDaysUntilDue={getDaysUntilDue}
               />
             ))}
+            
+            {hasMoreLoanCredit && (
+              <Button
+                variant="ghost"
+                onClick={() => setShowAllLoanCredit(!showAllLoanCredit)}
+                className="w-full text-white/70 hover:text-white hover:bg-white/10"
+              >
+                {showAllLoanCredit ? (
+                  <>
+                    <ChevronUp size={16} className="mr-2" />
+                    {t('show_less')}
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown size={16} className="mr-2" />
+                    +{sortedLoanCredit.length - 2} {t('more')}
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
       )}
