@@ -1,13 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Settings, ChevronDown, ChevronUp } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, Plus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
-import PaymentItem from './payments/PaymentItem';
+import MonthlyPaymentsHeader from './monthly-payments/MonthlyPaymentsHeader';
+import MonthlyPaymentsSummary from './monthly-payments/MonthlyPaymentsSummary';
+import MonthlyPaymentsList from './monthly-payments/MonthlyPaymentsList';
+import { useMonthlyPaymentsData } from './monthly-payments/useMonthlyPaymentsData';
+
+const today = new Date();
 
 const MonthlyPayments = () => {
   const navigate = useNavigate();
@@ -24,7 +28,6 @@ const MonthlyPayments = () => {
   }, []);
 
   const handleBackNavigation = () => {
-    // Direct navigation without returnTo parameter to prevent dashboard carousel slide
     navigate('/');
   };
 
@@ -189,232 +192,24 @@ const MonthlyPayments = () => {
     return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
   }
 
-  // Get all loans to ensure we have all loan payments
-  const allLoans = financialData?.loans || [];
-  
-  console.log('MonthlyPayments - All loans from data:', allLoans);
-  
-  // Create comprehensive list of loan/credit payments
-  const allLoanPayments = [];
-  
-  // Add existing loan bills from monthlyBills
-  const existingLoanBills = (financialData.monthlyBills || []).filter((bill) => 
-    bill.category === 'Loan' || bill.category === 'Credit Card' || 
-    bill.type === 'loan_payment' || bill.type === 'credit_payment'
-  );
-  
-  // Add all existing loan bills
-  existingLoanBills.forEach(bill => {
-    allLoanPayments.push(bill);
-  });
-  
-  // Add missing loan payments from loans that don't have bills yet
-  allLoans.forEach(loan => {
-    const existingBill = existingLoanBills.find(bill => bill.name === loan.name);
-    if (!existingBill && loan.monthly > 0) {
-      console.log('MonthlyPayments - Adding missing loan payment for:', loan.name);
-      const isCredit = loan.remaining === 'Credit Card';
-      allLoanPayments.push({
-        id: `loan-${loan.id}`,
-        name: loan.name,
-        amount: loan.monthly,
-        dueDate: loan.dueDate || '1',
-        category: isCredit ? 'Credit Card' : 'Loan',
-        type: isCredit ? 'credit_payment' : 'loan_payment',
-        paid: false
-      });
-    }
-  });
-
-  const loanCreditPayments = allLoanPayments;
-
-  const regularBills = (financialData.monthlyBills || []).filter((bill) => 
-    bill.category !== 'Loan' && bill.category !== 'Credit Card' && 
-    bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
-  );
-
-  console.log('MonthlyPayments - Final loan/credit payments:', loanCreditPayments);
-  console.log('MonthlyPayments - Regular bills:', regularBills);
-
-  const sortBills = (bills) => bills.sort((a, b) => {
-    // Paid bills go to bottom
-    if (a.paid !== b.paid) {
-      return a.paid ? 1 : -1;
-    }
-    // Sort by due date
-    return parseInt(a.dueDate) - parseInt(b.dueDate);
-  });
-
-  const sortedLoanCredit = sortBills([...loanCreditPayments]);
-  const sortedRegular = sortBills([...regularBills]);
-
-  // Calculate totals
-  const totalRegular = regularBills.reduce((sum, bill) => sum + bill.amount, 0);
-  const paidRegular = regularBills.filter(bill => bill.paid).reduce((sum, bill) => sum + bill.amount, 0);
-  const remainingRegular = totalRegular - paidRegular;
-
-  const totalLoanCredit = loanCreditPayments.reduce((sum, bill) => sum + bill.amount, 0);
-  const paidLoanCredit = loanCreditPayments.filter(bill => bill.paid).reduce((sum, bill) => sum + bill.amount, 0);
-  const remainingLoanCredit = totalLoanCredit - paidLoanCredit;
-
-  const displayedRegular = showAllPayments ? sortedRegular : sortedRegular.slice(0, 2);
-  const displayedLoanCredit = showAllLoanCredit ? sortedLoanCredit : sortedLoanCredit.slice(0, 2);
-  const hasMoreRegular = sortedRegular.length > 2;
-  const hasMoreLoanCredit = sortedLoanCredit.length > 2;
+  const { regularBills, loanCreditPayments, totals } = useMonthlyPaymentsData(financialData);
 
   return (
     <div className="p-4 pb-20 bg-[#192E45] min-h-screen max-w-md mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <Button variant="ghost" size="sm" onClick={handleBackNavigation} className="text-white hover:bg-white/10">
-            <ArrowLeft size={20} />
-          </Button>
-          <h1 className="text-2xl font-bold text-white">{t('monthly_payments')}</h1>
-        </div>
-        <div className="flex space-x-2">
-          <Button 
-            onClick={() => navigate('/settings')} 
-            size="sm" 
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
-          >
-            <Settings size={16} />
-          </Button>
-          <Button onClick={() => navigate('/add')} size="sm" className="bg-[#294D73] hover:bg-[#1f3a5f]">
-            <Plus size={16} />
-          </Button>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="space-y-4 mb-6">
-        {/* Regular Bills Summary */}
-        <Card className="bg-[#1a4a6b] border-none">
-          <CardContent className="p-4">
-            <h3 className="text-white font-medium mb-3">{t('monthly_payments')}</h3>
-            <div className="space-y-2 text-white text-sm">
-              <div className="flex justify-between">
-                <span>{t('total_monthly')}:</span>
-                <span className="font-bold">€{totalRegular.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t('paid')}:</span>
-                <span className="font-bold text-green-400">€{paidRegular.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t('remaining')}:</span>
-                <span className="font-bold text-red-300">€{remainingRegular.toFixed(2)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Loan/Credit Summary */}
-        {totalLoanCredit > 0 && (
-          <Card className="bg-[#1a4a6b] border-none">
-            <CardContent className="p-4">
-              <h3 className="text-white font-medium mb-3">{t('loans_credits')}</h3>
-              <div className="space-y-2 text-white text-sm">
-                <div className="flex justify-between">
-                  <span>{t('total_monthly')}:</span>
-                  <span className="font-bold">€{totalLoanCredit.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{t('paid')}:</span>
-                  <span className="font-bold text-green-400">€{paidLoanCredit.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{t('remaining')}:</span>
-                  <span className="font-bold text-red-300">€{remainingLoanCredit.toFixed(2)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Loan/Credit Payments */}
-      {sortedLoanCredit.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-white text-lg font-semibold mb-4">{t('loans_credits')}</h2>
-          <div className="space-y-4">
-            {displayedLoanCredit.map((bill) => (
-              <PaymentItem
-                key={bill.id}
-                bill={bill}
-                onTogglePaid={handleTogglePaid}
-                getDaysUntilDue={getDaysUntilDue}
-              />
-            ))}
-            
-            {hasMoreLoanCredit && (
-              <Button
-                variant="ghost"
-                onClick={() => setShowAllLoanCredit(!showAllLoanCredit)}
-                className="w-full text-white/70 hover:text-white hover:bg-white/10"
-              >
-                {showAllLoanCredit ? (
-                  <>
-                    <ChevronUp size={16} className="mr-2" />
-                    {t('show_less')}
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown size={16} className="mr-2" />
-                    +{sortedLoanCredit.length - 2} {t('more')}
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Regular Monthly Payments */}
-      <div>
-        <h2 className="text-white text-lg font-semibold mb-4">{t('monthly_payments')}</h2>
-        <div className="space-y-4">
-          {displayedRegular.length === 0 ? (
-            <Card className="bg-[#294D73] border-none">
-              <CardContent className="p-6 text-center text-white/70">
-                {t('no_monthly_payments')}
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              {displayedRegular.map((bill) => (
-                <PaymentItem
-                  key={bill.id}
-                  bill={bill}
-                  onTogglePaid={handleTogglePaid}
-                  getDaysUntilDue={getDaysUntilDue}
-                />
-              ))}
-              
-              {hasMoreRegular && (
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowAllPayments(!showAllPayments)}
-                  className="w-full text-white/70 hover:text-white hover:bg-white/10"
-                >
-                  {showAllPayments ? (
-                    <>
-                      <ChevronUp size={16} className="mr-2" />
-                      {t('show_less')}
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown size={16} className="mr-2" />
-                      +{sortedRegular.length - 2} {t('more')}
-                    </>
-                  )}
-                </Button>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+      <MonthlyPaymentsHeader onBack={handleBackNavigation} />
+      
+      <MonthlyPaymentsSummary totals={totals} />
+      
+      <MonthlyPaymentsList
+        regularBills={regularBills}
+        loanCreditPayments={loanCreditPayments}
+        showAllPayments={showAllPayments}
+        showAllLoanCredit={showAllLoanCredit}
+        onToggleShowAllPayments={setShowAllPayments}
+        onToggleShowAllLoanCredit={setShowAllLoanCredit}
+        onTogglePaid={handleTogglePaid}
+        getDaysUntilDue={getDaysUntilDue}
+      />
     </div>
   );
 };
