@@ -27,29 +27,38 @@ const Dashboard = () => {
     };
   }, []);
 
-  // Handle returnTo navigation parameter
+  // Handle returnTo navigation parameter - fixed to navigate directly
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const returnTo = urlParams.get('returnTo');
     
     if (returnTo) {
-      // Navigate carousel to the correct view
-      setTimeout(() => {
+      // Navigate carousel to the correct view with proper delay and direct navigation
+      const timer = setTimeout(() => {
         const carousel = document.querySelector('[data-dashboard-carousel]');
         if (carousel) {
           const viewIndex = returnTo === 'balance' ? 0 : 
                            returnTo === 'loans-credits' ? 1 : 
                            returnTo === 'monthly-payments' ? 2 : 0;
           
-          const event = new CustomEvent('navigate-dashboard', {
-            detail: { index: viewIndex }
-          });
-          carousel.dispatchEvent(event);
+          // Use the carousel API directly instead of custom event
+          const emblaApi = (carousel as any).__emblaApi__;
+          if (emblaApi) {
+            emblaApi.scrollTo(viewIndex);
+          } else {
+            // Fallback to custom event if API not available
+            const event = new CustomEvent('navigate-dashboard', {
+              detail: { index: viewIndex }
+            });
+            carousel.dispatchEvent(event);
+          }
         }
-      }, 100);
+      }, 200); // Increased delay to ensure carousel is fully loaded
       
       // Clean up URL
       navigate('/', { replace: true });
+      
+      return () => clearTimeout(timer);
     }
   }, [location.search, navigate]);
   

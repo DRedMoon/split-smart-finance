@@ -17,7 +17,8 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [showAll, setShowAll] = useState(false);
+  const [showAllRegular, setShowAllRegular] = useState(false);
+  const [showAllLoanCredit, setShowAllLoanCredit] = useState(false);
 
   const handleTogglePaid = (billId: number, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -69,10 +70,59 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     navigate('/monthly-payments');
   };
 
-  const displayedBills = showAll ? monthlyBills : monthlyBills.slice(0, 2);
-  
-  const paidBills = monthlyBills.filter((bill: any) => bill.paid);
-  const unpaidBills = monthlyBills.filter((bill: any) => !bill.paid);
+  // Separate loan/credit payments from regular bills
+  const loanCreditPayments = monthlyBills.filter((bill: any) => 
+    bill.category === 'Loan' || bill.category === 'Credit Card' || 
+    bill.type === 'loan_payment' || bill.type === 'credit_payment'
+  );
+
+  const regularBills = monthlyBills.filter((bill: any) => 
+    bill.category !== 'Loan' && bill.category !== 'Credit Card' && 
+    bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
+  );
+
+  // Calculate totals for regular bills only
+  const totalRegularAmount = regularBills.reduce((sum: number, bill: any) => sum + (bill.amount || 0), 0);
+  const paidRegularBills = regularBills.filter((bill: any) => bill.paid);
+  const paidRegularAmount = paidRegularBills.reduce((sum: number, bill: any) => sum + bill.amount, 0);
+
+  // Calculate totals for loan/credit payments only
+  const totalLoanCreditAmount = loanCreditPayments.reduce((sum: number, bill: any) => sum + (bill.amount || 0), 0);
+  const paidLoanCreditBills = loanCreditPayments.filter((bill: any) => bill.paid);
+  const paidLoanCreditAmount = paidLoanCreditBills.reduce((sum: number, bill: any) => sum + bill.amount, 0);
+
+  const displayedRegular = showAllRegular ? regularBills : regularBills.slice(0, 2);
+  const displayedLoanCredit = showAllLoanCredit ? loanCreditPayments : loanCreditPayments.slice(0, 2);
+
+  const renderBillItem = (bill: any) => {
+    const isPaid = bill.paid || false;
+    const isLoanPayment = bill.category === 'Loan' || bill.category === 'Credit Card' || 
+                          bill.type === 'loan_payment' || bill.type === 'credit_payment';
+    
+    return (
+      <div key={bill.id} className={`rounded p-2 ${isPaid ? 'bg-green-500/20 border border-green-500/30' : isLoanPayment ? 'bg-red-500/20 border border-red-500/30' : 'bg-white/10'}`}>
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => handleTogglePaid(bill.id, e)}
+              className={`p-1 h-6 w-6 ${isPaid ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
+            >
+              {isPaid ? <Check size={12} className="text-white" /> : <X size={12} className="text-white" />}
+            </Button>
+            <span className="text-white text-sm font-medium">{bill.name}</span>
+            {isLoanPayment && (
+              <span className="text-xs bg-red-500/30 px-1 py-0.5 rounded text-red-200">
+                {bill.category === 'Credit Card' ? 'Credit' : 'Loan'}
+              </span>
+            )}
+          </div>
+          <span className={`text-sm ${isPaid ? 'text-green-400' : isLoanPayment ? 'text-red-300' : 'text-white/70'}`}>€{bill.amount.toFixed(2)}</span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Card className="bg-[#294D73] border-none">
@@ -91,57 +141,62 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <p className="text-white/70 text-sm">{t('total_bills')}</p>
-            <p className="text-white font-semibold">€{totalBillsAmount.toFixed(2)}</p>
+        {/* Regular Monthly Payments Section */}
+        <div className="mb-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <p className="text-white/70 text-sm">{t('total_bills')}</p>
+              <p className="text-white font-semibold">€{totalRegularAmount.toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-white/70 text-sm">{t('paid')}</p>
+              <p className="text-green-400 font-semibold">€{paidRegularAmount.toFixed(2)}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-white/70 text-sm">{t('paid')}</p>
-            <p className="text-green-400 font-semibold">€{paidBills.reduce((sum: number, bill: any) => sum + bill.amount, 0).toFixed(2)}</p>
-          </div>
+          
+          {regularBills.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {displayedRegular.map(renderBillItem)}
+              {regularBills.length > 2 && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowAllRegular(!showAllRegular)}
+                  className="w-full text-white/70 hover:text-white hover:bg-white/10 text-sm"
+                >
+                  {showAllRegular ? t('show_less') : `+${regularBills.length - 2} ${t('more')}`}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
-        
-        {monthlyBills.length > 0 && (
-          <div className="space-y-2 mb-4">
-            {displayedBills.map((bill: any) => {
-              const isPaid = bill.paid || false;
-              const isLoanPayment = bill.category === 'Loan' || bill.category === 'Credit Card' || 
-                                  bill.type === 'loan_payment' || bill.type === 'credit_payment';
-              
-              return (
-                <div key={bill.id} className={`rounded p-2 ${isPaid ? 'bg-green-500/20 border border-green-500/30' : isLoanPayment ? 'bg-red-500/20 border border-red-500/30' : 'bg-white/10'}`}>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => handleTogglePaid(bill.id, e)}
-                        className={`p-1 h-6 w-6 ${isPaid ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
-                      >
-                        {isPaid ? <Check size={12} className="text-white" /> : <X size={12} className="text-white" />}
-                      </Button>
-                      <span className="text-white text-sm font-medium">{bill.name}</span>
-                      {isLoanPayment && (
-                        <span className="text-xs bg-red-500/30 px-1 py-0.5 rounded text-red-200">
-                          {bill.category === 'Credit Card' ? 'Credit' : 'Loan'}
-                        </span>
-                      )}
-                    </div>
-                    <span className={`text-sm ${isPaid ? 'text-green-400' : isLoanPayment ? 'text-red-300' : 'text-white/70'}`}>€{bill.amount.toFixed(2)}</span>
-                  </div>
-                </div>
-              );
-            })}
-            {monthlyBills.length > 2 && (
-              <Button
-                variant="ghost"
-                onClick={() => setShowAll(!showAll)}
-                className="w-full text-white/70 hover:text-white hover:bg-white/10 text-sm"
-              >
-                {showAll ? t('show_less') : `+${monthlyBills.length - 2} ${t('more')}`}
-              </Button>
-            )}
+
+        {/* Loans & Credits Section */}
+        {loanCreditPayments.length > 0 && (
+          <div className="mb-4">
+            <h3 className="text-white font-medium mb-3">Lainat ja luotot</h3>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-white/70 text-sm">{t('total_bills')}</p>
+                <p className="text-white font-semibold">€{totalLoanCreditAmount.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-white/70 text-sm">{t('paid')}</p>
+                <p className="text-green-400 font-semibold">€{paidLoanCreditAmount.toFixed(2)}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-2 mb-4">
+              {displayedLoanCredit.map(renderBillItem)}
+              {loanCreditPayments.length > 2 && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowAllLoanCredit(!showAllLoanCredit)}
+                  className="w-full text-white/70 hover:text-white hover:bg-white/10 text-sm"
+                >
+                  {showAllLoanCredit ? t('show_less') : `+${loanCreditPayments.length - 2} ${t('more')}`}
+                </Button>
+              )}
+            </div>
           </div>
         )}
         
