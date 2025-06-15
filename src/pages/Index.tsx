@@ -12,6 +12,13 @@ import CategoryManager from '@/components/CategoryManager';
 import ManageLoansCredits from '@/components/ManageLoansCredits';
 import AddLoan from '@/components/AddLoan';
 import EditLoan from '@/components/EditLoan';
+import ProfileSettings from '@/components/ProfileSettings';
+import NotificationSettings from '@/components/NotificationSettings';
+import PrivacySettings from '@/components/PrivacySettings';
+import SecuritySettings from '@/components/SecuritySettings';
+import AppearanceSettings from '@/components/AppearanceSettings';
+import BackupSettings from '@/components/BackupSettings';
+import DataManagement from '@/components/DataManagement';
 import Navigation from '@/components/Navigation';
 
 const Index = () => {
@@ -71,6 +78,13 @@ const Index = () => {
         <Route path="/loans-credits" element={<LoansCredits />} />
         <Route path="/transactions" element={<TransactionHistory />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/profile" element={<ProfileSettings />} />
+        <Route path="/notification-settings" element={<NotificationSettings />} />
+        <Route path="/privacy" element={<PrivacySettings />} />
+        <Route path="/security" element={<SecuritySettings />} />
+        <Route path="/appearance" element={<AppearanceSettings />} />
+        <Route path="/backup-settings" element={<BackupSettings />} />
+        <Route path="/data-management" element={<DataManagement />} />
         <Route path="/create-category" element={<CategoryManager />} />
         <Route path="/manage-loans-credits" element={<ManageLoansCredits />} />
         <Route path="/add-loan" element={<AddLoan />} />

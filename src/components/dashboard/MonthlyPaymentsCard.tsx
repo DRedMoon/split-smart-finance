@@ -21,6 +21,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
 
   const handleTogglePaid = (billId: number, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent navigation when clicking the button
+    event.preventDefault();  // Also prevent default behavior
     
     const data = loadFinancialData();
     if (!data) return;
@@ -63,7 +64,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     }
     
     saveFinancialData(data);
-    // Use a custom event to update the parent component without a full page reload
+    // Use a custom event to update the parent component
     window.dispatchEvent(new CustomEvent('financial-data-updated'));
   };
 

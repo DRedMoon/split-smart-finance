@@ -47,28 +47,28 @@ const MonthlyPayments = () => {
     const bill = financialData.monthlyBills.find(b => b.id === billId);
     if (!bill) return;
 
-    const newPaidStatus = !bill.isPaid;
+    const newPaidStatus = !bill.paid;
     const updatedData = { ...financialData };
     const billIndex = updatedData.monthlyBills.findIndex(b => b.id === billId);
     
     if (billIndex !== -1) {
       if (newPaidStatus) {
         // Check if sufficient balance
-        if (updatedData.currentBalance < bill.amount) {
+        if (updatedData.balance < bill.amount) {
           toast({
             title: t('insufficient_funds'),
-            description: `${t('balance')}: €${updatedData.currentBalance.toFixed(2)}, ${t('required')}: €${bill.amount.toFixed(2)}`,
+            description: `${t('balance')}: €${updatedData.balance.toFixed(2)}, ${t('required')}: €${bill.amount.toFixed(2)}`,
             variant: "destructive"
           });
           return;
         }
         
         // Mark as paid - deduct from balance
-        updatedData.monthlyBills[billIndex].isPaid = true;
-        updatedData.currentBalance -= bill.amount;
+        updatedData.monthlyBills[billIndex].paid = true;
+        updatedData.balance -= bill.amount;
         
         // If it's a loan payment, reduce loan amount
-        if (bill.category === 'Loan' || bill.category === 'Credit Card' || bill.type === 'laina' || bill.type === 'luottokortti') {
+        if (bill.category === 'Loan' || bill.category === 'Credit Card' || bill.type === 'loan_payment' || bill.type === 'credit_payment') {
           const loan = updatedData.loans?.find(l => l.name === bill.name);
           if (loan) {
             loan.currentAmount = Math.max(0, loan.currentAmount - bill.amount);
@@ -82,11 +82,11 @@ const MonthlyPayments = () => {
         });
       } else {
         // Mark as unpaid - add back to balance
-        updatedData.monthlyBills[billIndex].isPaid = false;
-        updatedData.currentBalance += bill.amount;
+        updatedData.monthlyBills[billIndex].paid = false;
+        updatedData.balance += bill.amount;
         
         // If it's a loan payment, add back to the loan amount
-        if (bill.category === 'Loan' || bill.category === 'Credit Card' || bill.type === 'laina' || bill.type === 'luottokortti') {
+        if (bill.category === 'Loan' || bill.category === 'Credit Card' || bill.type === 'loan_payment' || bill.type === 'credit_payment') {
           const loan = updatedData.loans?.find(l => l.name === bill.name);
           if (loan) {
             loan.currentAmount += bill.amount;
@@ -101,6 +101,9 @@ const MonthlyPayments = () => {
       
       saveFinancialData(updatedData);
       setFinancialData(updatedData);
+      
+      // Dispatch event to update dashboard
+      window.dispatchEvent(new CustomEvent('financial-data-updated'));
     }
   };
 
@@ -111,20 +114,18 @@ const MonthlyPayments = () => {
   // Separate loan/credit payments from regular bills
   const loanCreditPayments = (financialData.monthlyBills || []).filter(bill => 
     bill.category === 'Loan' || bill.category === 'Credit Card' || 
-    bill.type === 'laina' || bill.type === 'luottokortti' ||
     bill.type === 'loan_payment' || bill.type === 'credit_payment'
   );
 
   const regularBills = (financialData.monthlyBills || []).filter(bill => 
     bill.category !== 'Loan' && bill.category !== 'Credit Card' && 
-    bill.type !== 'laina' && bill.type !== 'luottokortti' &&
     bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
   );
 
   const sortBills = (bills) => bills.sort((a, b) => {
     // Paid bills go to bottom
-    if (a.isPaid !== b.isPaid) {
-      return a.isPaid ? 1 : -1;
+    if (a.paid !== b.paid) {
+      return a.paid ? 1 : -1;
     }
     // Sort by due date
     return parseInt(a.dueDate) - parseInt(b.dueDate);
@@ -135,11 +136,11 @@ const MonthlyPayments = () => {
 
   // Calculate totals
   const totalRegular = regularBills.reduce((sum, bill) => sum + bill.amount, 0);
-  const paidRegular = regularBills.filter(bill => bill.isPaid).reduce((sum, bill) => sum + bill.amount, 0);
+  const paidRegular = regularBills.filter(bill => bill.paid).reduce((sum, bill) => sum + bill.amount, 0);
   const remainingRegular = totalRegular - paidRegular;
 
   const totalLoanCredit = loanCreditPayments.reduce((sum, bill) => sum + bill.amount, 0);
-  const paidLoanCredit = loanCreditPayments.filter(bill => bill.isPaid).reduce((sum, bill) => sum + bill.amount, 0);
+  const paidLoanCredit = loanCreditPayments.filter(bill => bill.paid).reduce((sum, bill) => sum + bill.amount, 0);
   const remainingLoanCredit = totalLoanCredit - paidLoanCredit;
 
   const displayedRegular = showAllPayments ? sortedRegular : sortedRegular.slice(0, 2);
@@ -175,7 +176,7 @@ const MonthlyPayments = () => {
         {/* Regular Bills Summary */}
         <Card className="bg-[#1a4a6b] border-none">
           <CardContent className="p-4">
-            <h3 className="text-white font-medium mb-3">{t('monthly_summary')}</h3>
+            <h3 className="text-white font-medium mb-3">{t('monthly_payments')}</h3>
             <div className="space-y-2 text-white text-sm">
               <div className="flex justify-between">
                 <span>{t('total_monthly')}:</span>
@@ -197,10 +198,10 @@ const MonthlyPayments = () => {
         {totalLoanCredit > 0 && (
           <Card className="bg-[#1a4a6b] border-none">
             <CardContent className="p-4">
-              <h3 className="text-white font-medium mb-3">Lainat ja luotot</h3>
+              <h3 className="text-white font-medium mb-3">{t('loans_credits')}</h3>
               <div className="space-y-2 text-white text-sm">
                 <div className="flex justify-between">
-                  <span>Yhteensä kuukausittain:</span>
+                  <span>{t('total_monthly')}:</span>
                   <span className="font-bold">€{totalLoanCredit.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
@@ -220,7 +221,7 @@ const MonthlyPayments = () => {
       {/* Loan/Credit Payments */}
       {sortedLoanCredit.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-white text-lg font-semibold mb-4">Lainat ja luotot</h2>
+          <h2 className="text-white text-lg font-semibold mb-4">{t('loans_credits')}</h2>
           <div className="space-y-4">
             {sortedLoanCredit.map((bill) => (
               <PaymentItem

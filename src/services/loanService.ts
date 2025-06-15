@@ -1,4 +1,3 @@
-
 import { loadFinancialData, saveFinancialData, getDefaultFinancialData } from './dataService';
 import { addBill } from './billService';
 import { FinancialData } from './types';
@@ -17,16 +16,17 @@ export const addLoan = (loan: Omit<FinancialData['loans'][0], 'id'>): void => {
   const billType = loan.remaining === 'Credit Card' ? 'credit_payment' : 'loan_payment';
   const billCategory = loan.remaining === 'Credit Card' ? 'Credit Card' : 'Loan';
   
-  // Create bill with all necessary properties
+  // Create bill with all necessary properties - this should work for ALL loan types
   const billData = {
     name: loan.name,
     amount: loan.monthly,
     dueDate: loan.dueDate,
     type: billType,
     paid: false,
-    isPaid: false,
     category: billCategory
   };
+  
+  console.log('Creating monthly bill for loan:', billData); // Debug log
   
   addBill(billData);
   
