@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -11,6 +11,19 @@ import RecentTransactionsCard from './dashboard/RecentTransactionsCard';
 const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Listen for financial data updates
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      setRefreshKey(prev => prev + 1);
+    };
+
+    window.addEventListener('financial-data-updated', handleDataUpdate);
+    return () => {
+      window.removeEventListener('financial-data-updated', handleDataUpdate);
+    };
+  }, []);
   
   const data = loadFinancialData();
   const balance = data?.balance || 0;
@@ -47,6 +60,7 @@ const Dashboard = () => {
 
       {/* Main Carousel */}
       <DashboardCarousel 
+        key={refreshKey}
         balance={balance}
         loans={loans}
         monthlyBills={monthlyBills}
@@ -72,7 +86,7 @@ const Dashboard = () => {
       </div>
 
       {/* This Week's Upcoming Payments */}
-      <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />
+      <Up ngWeekCard filteredWeekPayments={filteredWeekPayments} />
 
       {/* Recent Transactions */}
       <RecentTransactionsCard recentTransactions={recentTransactions} />

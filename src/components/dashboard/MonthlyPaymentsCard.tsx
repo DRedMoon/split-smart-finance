@@ -25,12 +25,12 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     const data = loadFinancialData();
     if (!data) return;
 
-    const billIndex = data.monthlyBills.findIndex(b => b.id === billId);
+    const billIndex = data.monthlyBills.findIndex((b: any) => b.id === billId);
     if (billIndex === -1) return;
 
     const bill = data.monthlyBills[billIndex];
     // Handle both 'paid' and 'isPaid' properties for compatibility
-    const currentPaidStatus = bill.paid || (bill as any).isPaid || false;
+    const currentPaidStatus = bill.paid || bill.isPaid || false;
     const newPaidStatus = !currentPaidStatus;
 
     if (newPaidStatus) {
@@ -46,7 +46,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
       
       // Mark as paid - deduct from balance
       data.monthlyBills[billIndex].paid = true;
-      (data.monthlyBills[billIndex] as any).isPaid = true; // Set both for compatibility
+      data.monthlyBills[billIndex].isPaid = true; // Set both for compatibility
       data.balance -= bill.amount;
       
       toast({
@@ -56,7 +56,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     } else {
       // Mark as unpaid - add back to balance
       data.monthlyBills[billIndex].paid = false;
-      (data.monthlyBills[billIndex] as any).isPaid = false; // Set both for compatibility
+      data.monthlyBills[billIndex].isPaid = false; // Set both for compatibility
       data.balance += bill.amount;
       
       toast({
@@ -66,8 +66,8 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
     }
     
     saveFinancialData(data);
-    // Force a page refresh to update all components with new data
-    window.location.reload();
+    // Use a custom event to update the parent component without a full page reload
+    window.dispatchEvent(new CustomEvent('financial-data-updated'));
   };
 
   const handleNavigateToMonthlyPayments = () => {
@@ -78,8 +78,8 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
   const displayedBills = showAll ? monthlyBills : monthlyBills.slice(0, 2);
   
   // Calculate paid and unpaid bills using both 'paid' and 'isPaid' properties
-  const paidBills = monthlyBills.filter(bill => bill.paid || (bill as any).isPaid);
-  const unpaidBills = monthlyBills.filter(bill => !(bill.paid || (bill as any).isPaid));
+  const paidBills = monthlyBills.filter((bill: any) => bill.paid || bill.isPaid);
+  const unpaidBills = monthlyBills.filter((bill: any) => !(bill.paid || bill.isPaid));
 
   return (
     <Card className="bg-[#294D73] border-none">
@@ -104,15 +104,15 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
             <p className="text-white font-semibold">€{totalBillsAmount.toFixed(2)}</p>
           </div>
           <div>
-            <p className="text-white/70 text-sm">Maksettu</p>
-            <p className="text-green-400 font-semibold">€{paidBills.reduce((sum, bill) => sum + bill.amount, 0).toFixed(2)}</p>
+            <p className="text-white/70 text-sm">{t('paid')}</p>
+            <p className="text-green-400 font-semibold">€{paidBills.reduce((sum: number, bill: any) => sum + bill.amount, 0).toFixed(2)}</p>
           </div>
         </div>
         
         {monthlyBills.length > 0 && (
           <div className="space-y-2 mb-4">
-            {displayedBills.map((bill) => {
-              const isPaid = bill.paid || (bill as any).isPaid || false;
+            {displayedBills.map((bill: any) => {
+              const isPaid = bill.paid || bill.isPaid || false;
               return (
                 <div key={bill.id} className={`rounded p-2 ${isPaid ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/10'}`}>
                   <div className="flex justify-between items-center">
@@ -138,7 +138,7 @@ const MonthlyPaymentsCard = ({ monthlyBills, totalBillsAmount }: MonthlyPayments
                 onClick={() => setShowAll(!showAll)}
                 className="w-full text-white/70 hover:text-white hover:bg-white/10 text-sm"
               >
-                {showAll ? 'Näytä vähemmän' : `+${monthlyBills.length - 2} lisää`}
+                {showAll ? t('show_less') : `+${monthlyBills.length - 2} ${t('more')}`}
               </Button>
             )}
           </div>

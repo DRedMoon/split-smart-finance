@@ -150,7 +150,21 @@ const translations: Translation = {
     deleted_successfully: 'poistettu onnistuneesti',
     maintenance_charge_description: 'Merkitse jos kyseessä on yhtiövastike',
     housing_company_expenditure_description: 'Merkitse jos kyseessä on taloyhtiön meno',
-    monthly_payment_description: 'Merkitse jos kyseessä on kuukausittainen maksu'
+    monthly_payment_description: 'Merkitse jos kyseessä on kuukausittainen maksu',
+    paid: 'Maksettu',
+    paid_off: 'Maksettu',
+    original_amount: 'Alkuperäinen määrä',
+    insufficient_funds: 'Riittämätön saldo',
+    required: 'Vaaditaan',
+    payment_processed: 'Maksu käsitelty',
+    marked_as_paid: 'merkitty maksetuksi',
+    payment_reversed: 'Maksu peruutettu',
+    marked_as_unpaid: 'merkitty maksamattomaksi',
+    no_monthly_payments: 'Ei kuukausimaksuja',
+    show_less: 'Näytä vähemmän',
+    more: 'lisää',
+    monthly_summary: 'Kuukausittainen yhteenveto',
+    total_monthly: 'Yhteensä kuukausittain'
   },
   en: {
     balance: 'Balance',
@@ -283,7 +297,21 @@ const translations: Translation = {
     deleted_successfully: 'deleted successfully',
     maintenance_charge_description: 'Mark if this is a maintenance charge',
     housing_company_expenditure_description: 'Mark if this is a housing company expenditure',
-    monthly_payment_description: 'Mark if this is a monthly payment'
+    monthly_payment_description: 'Mark if this is a monthly payment',
+    paid: 'Paid',
+    paid_off: 'Paid Off',
+    original_amount: 'Original Amount',
+    insufficient_funds: 'Insufficient Funds',
+    required: 'Required',
+    payment_processed: 'Payment Processed',
+    marked_as_paid: 'marked as paid',
+    payment_reversed: 'Payment Reversed',
+    marked_as_unpaid: 'marked as unpaid',
+    no_monthly_payments: 'No monthly payments',
+    show_less: 'Show Less',
+    more: 'more',
+    monthly_summary: 'Monthly Summary',
+    total_monthly: 'Total Monthly'
   }
 };
 
