@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { migrateExistingBillCategories } from '@/services/loanService';
+import { calculateInterestFromPayments } from '@/services/calculationService';
 
 const ManageLoansCredits = () => {
   const navigate = useNavigate();
@@ -43,6 +44,34 @@ const ManageLoansCredits = () => {
     }
   };
 
+  const calculateDisplayRates = (loan) => {
+    const isCredit = loan.remaining === 'Credit Card';
+    
+    if (!isCredit && loan.totalAmount > 0 && loan.monthly > 0 && loan.remaining) {
+      const termMonths = parseInt(loan.remaining.match(/\d+/)?.[0] || '12');
+      if (termMonths > 0) {
+        const calculation = calculateInterestFromPayments(
+          loan.totalAmount,
+          loan.monthly,
+          loan.managementFee || 0,
+          termMonths
+        );
+        
+        return {
+          euriborRate: calculation.euriborEstimate || 0,
+          totalRate: calculation.yearlyRate || 0,
+          personalMargin: loan.personalMargin || 0.5
+        };
+      }
+    }
+    
+    return {
+      euriborRate: loan.euriborRate || 0,
+      totalRate: loan.rate || 0,
+      personalMargin: loan.personalMargin || 0
+    };
+  };
+
   if (!financialData) {
     return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
   }
@@ -66,13 +95,9 @@ const ManageLoansCredits = () => {
         ) : (
           loans.map((loan) => {
             const isCredit = loan.remaining === 'Credit Card';
-            console.log('ManageLoansCredits - Displaying loan:', loan.name, 'exact stored values:', {
-              totalAmount: loan.totalAmount,
-              currentAmount: loan.currentAmount,
-              monthly: loan.monthly,
-              rate: loan.rate,
-              totalPayback: loan.totalPayback
-            });
+            const rates = calculateDisplayRates(loan);
+            
+            console.log('ManageLoansCredits - Displaying loan:', loan.name, 'calculated rates:', rates);
             
             return (
               <Card key={loan.id} className="bg-[#294D73] border-none">
@@ -124,7 +149,7 @@ const ManageLoansCredits = () => {
                     </div>
                     <div>
                       <p className="text-white/70">Korko</p>
-                      <p className="text-white font-medium">{(loan.rate || 0).toFixed(2)}%</p>
+                      <p className="text-white font-medium">{rates.totalRate.toFixed(2)}%</p>
                     </div>
                     <div>
                       <p className="text-white/70">Eräpäivä</p>
@@ -136,16 +161,16 @@ const ManageLoansCredits = () => {
                     </div>
                   </div>
                   
-                  {!isCredit && (loan.euriborRate !== undefined || loan.personalMargin !== undefined) && (
+                  {!isCredit && (
                     <div className="border-t border-white/20 pt-3 mt-3">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <p className="text-white/70">Euribor-korko</p>
-                          <p className="text-white font-medium">{(loan.euriborRate || 0).toFixed(2)}%</p>
+                          <p className="text-white font-medium">{rates.euriborRate.toFixed(2)}%</p>
                         </div>
                         <div>
                           <p className="text-white/70">Marginaali</p>
-                          <p className="text-white font-medium">{(loan.personalMargin || 0).toFixed(2)}%</p>
+                          <p className="text-white font-medium">{rates.personalMargin.toFixed(2)}%</p>
                         </div>
                       </div>
                     </div>
