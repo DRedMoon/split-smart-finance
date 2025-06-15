@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from 'react';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
@@ -18,9 +16,7 @@ export const useFinancialData = (refreshKey: number) => {
   const allTransactions = data?.transactions || [];
   const monthlyBills = data?.monthlyBills || [];
 
-  // Calculate balance following the same logic as recent transactions:
-  // 1. Include all regular transactions (non-recurring) immediately
-  // 2. Include recurring payments only when marked as PAID
+  // Calculate balance: base + all regular transactions + paid bills (but don't double count)
   const regularTransactionSum = allTransactions
     .filter(transaction => {
       // Check if this transaction corresponds to a recurring payment
@@ -28,27 +24,22 @@ export const useFinancialData = (refreshKey: number) => {
         bill.name === transaction.name && Math.abs(bill.amount) === Math.abs(transaction.amount)
       );
       
-      // If no corresponding bill, it's a regular transaction - include it
+      // If no corresponding bill, it's a regular transaction - always include it
       if (!correspondingBill) {
         return true;
       }
       
-      // If there's a corresponding bill, only include if the bill is paid
+      // If there's a corresponding bill, include the transaction only if the bill is paid
+      // This ensures we don't double-count: either the transaction shows (when bill is paid) OR nothing (when unpaid)
       return correspondingBill.paid;
     })
     .reduce((sum, transaction) => sum + transaction.amount, 0);
 
-  // Add paid monthly bills as expenses
-  const paidBillsSum = monthlyBills
-    .filter(bill => bill.paid)
-    .reduce((sum, bill) => sum - bill.amount, 0); // Negative because bills are expenses
-
-  const balance = baseBalance + regularTransactionSum + paidBillsSum;
+  const balance = baseBalance + regularTransactionSum;
 
   console.log('Balance calculation:', {
     baseBalance,
     regularTransactionSum,
-    paidBillsSum,
     totalBalance: balance,
     transactionCount: allTransactions.length,
     allTransactions: allTransactions.map(t => ({ name: t.name, amount: t.amount, date: t.date, id: t.id }))
@@ -59,8 +50,8 @@ export const useFinancialData = (refreshKey: number) => {
   });
 
   // Recent transactions logic - Show ONLY:
-  // 1. Regular transactions (non-recurring)
-  // 2. Recurring payments that are marked as PAID
+  // 1. Regular transactions (non-recurring) - always
+  // 2. Recurring payment transactions - only when their corresponding bill is marked as PAID
   const recentTransactionsFromRegular = allTransactions.filter(transaction => {
     // Check if this transaction corresponds to a recurring payment
     const correspondingBill = monthlyBills.find(bill => 
@@ -72,26 +63,14 @@ export const useFinancialData = (refreshKey: number) => {
       return true;
     }
     
-    // If there's a corresponding bill, only show if the bill is paid
+    // If there's a corresponding bill, only show the transaction if the bill is paid
     return correspondingBill.paid;
   });
 
-  // Add paid monthly bills as negative transactions (expenses)
-  const paidBillTransactions = monthlyBills
-    .filter(bill => bill.paid)
-    .map(bill => ({
-      id: `bill-${bill.id}`,
-      name: bill.name,
-      amount: -bill.amount, // Bills are expenses, so negative
-      date: new Date().toISOString().split('T')[0], // Today's date when paid
-      type: 'expense',
-      category: bill.type || 'bill'
-    }));
+  // DON'T add paid monthly bills as separate transactions - they're already handled above
+  // This prevents the duplication issue
 
-  // Combine and sort all recent transactions
-  const allRecentTransactions = [...recentTransactionsFromRegular, ...paidBillTransactions];
-  
-  const sortedRecentTransactions = allRecentTransactions
+  const sortedRecentTransactions = recentTransactionsFromRegular
     .sort((a, b) => {
       // First sort by date
       const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -135,4 +114,3 @@ export const useFinancialData = (refreshKey: number) => {
     filteredWeekPayments
   };
 };
-
