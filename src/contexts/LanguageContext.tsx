@@ -17,6 +17,10 @@ const translations = {
     loans_credits: 'Lainat ja luotot',
     upcoming: 'Tulevat',
     transactions: 'Tapahtumat',
+    recent_transactions: 'Viimeisimmät tapahtumat',
+    no_transactions: 'Ei tapahtumia',
+    all_transactions: 'Kaikki tapahtumat',
+    upcoming_week: 'Tuleva viikko',
     
     // Payment status
     paid: 'Maksettu',
@@ -26,6 +30,21 @@ const translations = {
     total_debt: 'Velka yhteensä',
     original_amount: 'Alkuperäinen summa',
     current_amount: 'Nykyinen summa',
+    
+    // Categories
+    food: 'Ruoka',
+    food_dining: 'Ruoka ja ravintolat',
+    transport: 'Liikenne',
+    transportation: 'Liikenne',
+    utilities: 'Laskut',
+    shopping: 'Ostokset',
+    loan: 'Laina',
+    salary: 'Palkka',
+    insurance: 'Vakuutus',
+    subscriptions: 'Tilaukset',
+    entertainment: 'Viihde',
+    income: 'Tulo',
+    other: 'Muu',
     
     // General
     total_bills: 'Laskut yhteensä',
@@ -121,6 +140,10 @@ const translations = {
     loans_credits: 'Loans & Credits',
     upcoming: 'Upcoming',
     transactions: 'Transactions',
+    recent_transactions: 'Recent Transactions',
+    no_transactions: 'No transactions',
+    all_transactions: 'All Transactions',
+    upcoming_week: 'Upcoming Week',
     
     // Payment status
     paid: 'Paid',
@@ -130,6 +153,21 @@ const translations = {
     total_debt: 'Total Debt',
     original_amount: 'Original Amount',
     current_amount: 'Current Amount',
+    
+    // Categories
+    food: 'Food',
+    food_dining: 'Food & Dining',
+    transport: 'Transport',
+    transportation: 'Transportation',
+    utilities: 'Utilities',
+    shopping: 'Shopping',
+    loan: 'Loan',
+    salary: 'Salary',
+    insurance: 'Insurance',
+    subscriptions: 'Subscriptions',
+    entertainment: 'Entertainment',
+    income: 'Income',
+    other: 'Other',
     
     // General
     total_bills: 'Total Bills',

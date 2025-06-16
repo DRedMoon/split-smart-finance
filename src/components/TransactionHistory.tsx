@@ -34,7 +34,7 @@ const TransactionHistory = () => {
   };
 
   if (!financialData) {
-    return <div className="p-4 text-white">Ladataan...</div>;
+    return <div className="p-4 text-white">{t('loading')}</div>;
   }
 
   const filteredTransactions = financialData.transactions.filter(transaction => {
@@ -143,7 +143,7 @@ const TransactionHistory = () => {
         {filteredTransactions.length === 0 ? (
           <Card className="bg-[#294D73] border-none">
             <CardContent className="p-6 text-center text-white/70">
-              Ei tapahtumia löytynyt
+              {t('no_transactions')}
             </CardContent>
           </Card>
         ) : (
@@ -158,7 +158,7 @@ const TransactionHistory = () => {
                     <div>
                       <div className="font-medium text-white">{transaction.name}</div>
                       <div className="text-sm text-white/60">
-                        {transaction.date} • {transaction.category}
+                        {transaction.date} • {t(transaction.category)}
                       </div>
                     </div>
                   </div>
@@ -170,7 +170,7 @@ const TransactionHistory = () => {
                         {transaction.amount > 0 ? '+' : ''}€{Math.abs(transaction.amount).toFixed(2)}
                       </div>
                       <Badge variant="outline" className="text-xs border-white/30 text-white/70">
-                        {transaction.type === 'income' ? 'Tulo' : transaction.type === 'expense' ? 'Kulu' : 'Laina'}
+                        {transaction.type === 'income' ? t('income') : transaction.type === 'expense' ? 'Kulu' : t('loan')}
                       </Badge>
                     </div>
                     <DropdownMenu>
@@ -248,10 +248,10 @@ const TransactionHistory = () => {
             </div>
             <div className="flex space-x-2">
               <Button onClick={handleSaveEdit} className="flex-1 bg-white text-[#294D73] hover:bg-white/90">
-                Tallenna
+                {t('save')}
               </Button>
               <Button onClick={() => setEditingTransaction(null)} variant="outline" className="flex-1 border-white/30 text-white hover:bg-white/10">
-                Peruuta
+                {t('cancel')}
               </Button>
             </div>
           </div>

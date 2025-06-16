@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
@@ -16,41 +17,38 @@ export const useFinancialData = (refreshKey: number) => {
   const allTransactions = data?.transactions || [];
   const monthlyBills = data?.monthlyBills || [];
 
-  // Calculate balance: base + all regular transactions + paid bills (but don't double count)
-  const regularTransactionSum = allTransactions
-    .filter(transaction => {
-      // Check if this transaction corresponds to a recurring payment
-      const correspondingBill = monthlyBills.find(bill => 
-        bill.name === transaction.name && Math.abs(bill.amount) === Math.abs(transaction.amount)
-      );
-      
-      // If no corresponding bill, it's a regular transaction - always include it
-      if (!correspondingBill) {
-        return true;
-      }
-      
-      // If there's a corresponding bill, include the transaction only if the bill is paid
-      // This ensures we don't double-count: either the transaction shows (when bill is paid) OR nothing (when unpaid)
-      return correspondingBill.paid;
-    })
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
+  // Simplified balance calculation:
+  // 1. Start with base balance
+  // 2. Add all regular transactions (non-recurring)
+  // 3. For recurring payments: balance is adjusted when bill is marked paid/unpaid via PaymentToggleLogic
+  // 4. DON'T double-count by adding paid bills here - they're already reflected in baseBalance
+  const regularTransactions = allTransactions.filter(transaction => {
+    // Check if this transaction corresponds to a recurring payment
+    const correspondingBill = monthlyBills.find(bill => 
+      bill.name === transaction.name && Math.abs(bill.amount) === Math.abs(transaction.amount)
+    );
+    
+    // Only include transactions that don't have corresponding bills (i.e., regular transactions)
+    return !correspondingBill;
+  });
 
+  const regularTransactionSum = regularTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
   const balance = baseBalance + regularTransactionSum;
 
   console.log('Balance calculation:', {
     baseBalance,
     regularTransactionSum,
     totalBalance: balance,
-    transactionCount: allTransactions.length,
-    allTransactions: allTransactions.map(t => ({ name: t.name, amount: t.amount, date: t.date, id: t.id }))
+    regularTransactionCount: regularTransactions.length,
+    recurringBillCount: monthlyBills.length
   });
 
   console.log('Monthly bills data:', {
     monthlyBills: monthlyBills.map(b => ({ name: b.name, amount: b.amount, paid: b.paid, id: b.id }))
   });
 
-  // Recent transactions logic - Show ONLY:
-  // 1. Regular transactions (non-recurring) - always
+  // Recent transactions logic - Show:
+  // 1. All regular transactions (non-recurring)
   // 2. Recurring payment transactions - only when their corresponding bill is marked as PAID
   const recentTransactionsFromRegular = allTransactions.filter(transaction => {
     // Check if this transaction corresponds to a recurring payment
@@ -66,9 +64,6 @@ export const useFinancialData = (refreshKey: number) => {
     // If there's a corresponding bill, only show the transaction if the bill is paid
     return correspondingBill.paid;
   });
-
-  // DON'T add paid monthly bills as separate transactions - they're already handled above
-  // This prevents the duplication issue
 
   const sortedRecentTransactions = recentTransactionsFromRegular
     .sort((a, b) => {
