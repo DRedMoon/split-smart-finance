@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 type Language = 'fi' | 'en';
@@ -131,7 +130,60 @@ const translations = {
     loading: 'Ladataan...',
     no_data: 'Ei tietoja',
     success: 'Onnistui',
-    failed: 'Epäonnistui'
+    failed: 'Epäonnistui',
+    
+    // New translations for enhanced features
+    search_transactions: 'Hae tapahtumia...',
+    filter_by_type: 'Suodata tyypillä',
+    date_range: 'Aikaväli',
+    last_week: 'Viime viikko',
+    last_month: 'Viime kuukausi', 
+    last_quarter: 'Viime neljännes',
+    last_year: 'Viime vuosi',
+    from_date: 'Alkaen',
+    to_date: 'Päättyen',
+    showing_transactions: 'Näytetään {count} / {total} tapahtumaa',
+    no_transactions_found: 'Ei tapahtumia löytynyt',
+    transaction_updated: 'Tapahtuma päivitetty',
+    transaction_deleted: 'Tapahtuma poistettu',
+    failed_to_update_transaction: 'Tapahtuman päivittäminen epäonnistui',
+    failed_to_delete_transaction: 'Tapahtuman poistaminen epäonnistui',
+    confirm_delete_transaction: 'Haluatko varmasti poistaa tämän tapahtuman?',
+    transactions_exported: 'Tapahtumat viety',
+    edit_transaction: 'Muokkaa tapahtumaa',
+    expense: 'Kulu',
+    expenses: 'Kulut',
+    
+    // Category management
+    edit_category: 'Muokkaa kategoriaa',
+    category_details: 'Kategorian tiedot',
+    category_name: 'Kategorian nimi',
+    enter_category_name: 'Syötä kategorian nimi',
+    category_description_placeholder: 'Kuvaus kategorialle...',
+    category_color: 'Kategorian väri',
+    maintenance_charge: 'Hoitovastike',
+    maintenance_charge_description: 'Taloyhtiön hoitovastike',
+    housing_company_expenditure: 'Taloyhtiön meno',
+    housing_company_expenditure_description: 'Taloyhtiön yhteinen meno',
+    monthly_payment_description: 'Kuukausittain toistuva maksu',
+    save_changes: 'Tallenna muutokset',
+    delete_category: 'Poista kategoria',
+    category_updated: 'Kategoria päivitetty',
+    category_deleted: 'Kategoria poistettu',
+    updated_successfully: 'päivitetty onnistuneesti',
+    deleted_successfully: 'poistettu onnistuneesti',
+    category_name_required: 'Kategorian nimi vaaditaan',
+    confirm_delete_category: 'Haluatko varmasti poistaa kategorian',
+    
+    // Category creator additions
+    create_edit_category: 'Luo/muokkaa kategoriaa',
+    existing_categories: 'Olemassa olevat kategoriat',
+    no_categories: 'Ei kategorioita',
+    create_new_category: 'Luo uusi kategoria',
+    create_category: 'Luo kategoria',
+    category_created: 'Kategoria luotu',
+    created_successfully: 'luotu onnistuneesti',
+    optional: 'valinnainen'
   },
   en: {
     // Dashboard
@@ -254,7 +306,60 @@ const translations = {
     loading: 'Loading...',
     no_data: 'No data',
     success: 'Success',
-    failed: 'Failed'
+    failed: 'Failed',
+    
+    // New translations for enhanced features
+    search_transactions: 'Search transactions...',
+    filter_by_type: 'Filter by type',
+    date_range: 'Date Range',
+    last_week: 'Last Week',
+    last_month: 'Last Month',
+    last_quarter: 'Last Quarter', 
+    last_year: 'Last Year',
+    from_date: 'From',
+    to_date: 'To',
+    showing_transactions: 'Showing {count} of {total} transactions',
+    no_transactions_found: 'No transactions found',
+    transaction_updated: 'Transaction Updated',
+    transaction_deleted: 'Transaction Deleted',
+    failed_to_update_transaction: 'Failed to update transaction',
+    failed_to_delete_transaction: 'Failed to delete transaction',
+    confirm_delete_transaction: 'Are you sure you want to delete this transaction?',
+    transactions_exported: 'Transactions Exported',
+    edit_transaction: 'Edit Transaction',
+    expense: 'Expense',
+    expenses: 'Expenses',
+    
+    // Category management
+    edit_category: 'Edit Category',
+    category_details: 'Category Details',
+    category_name: 'Category Name',
+    enter_category_name: 'Enter category name',
+    category_description_placeholder: 'Description for category...',
+    category_color: 'Category Color',
+    maintenance_charge: 'Maintenance Charge',
+    maintenance_charge_description: 'Housing company maintenance charge',
+    housing_company_expenditure: 'Housing Company Expenditure',
+    housing_company_expenditure_description: 'Housing company shared expense',
+    monthly_payment_description: 'Monthly recurring payment', 
+    save_changes: 'Save Changes',
+    delete_category: 'Delete Category',
+    category_updated: 'Category Updated',
+    category_deleted: 'Category Deleted',
+    updated_successfully: 'updated successfully',
+    deleted_successfully: 'deleted successfully',
+    category_name_required: 'Category name is required',
+    confirm_delete_category: 'Are you sure you want to delete category',
+    
+    // Category creator additions
+    create_edit_category: 'Create/Edit Category',
+    existing_categories: 'Existing Categories',
+    no_categories: 'No categories',
+    create_new_category: 'Create New Category',
+    create_category: 'Create Category',
+    category_created: 'Category Created',
+    created_successfully: 'created successfully',
+    optional: 'optional'
   }
 } as const;
 

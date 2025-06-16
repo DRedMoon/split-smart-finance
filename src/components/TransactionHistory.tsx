@@ -1,31 +1,44 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Search, MoreHorizontal, Edit, Trash } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, Plus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { loadFinancialData, updateTransaction, deleteTransaction, type FinancialData } from '@/services/storageService';
 import { toast } from '@/hooks/use-toast';
+import TransactionFilters from './transaction-history/TransactionFilters';
+import TransactionItem from './transaction-history/TransactionItem';
 
 const TransactionHistory = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [filter, setFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
   const [financialData, setFinancialData] = useState<FinancialData | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [editForm, setEditForm] = useState({ name: '', amount: '', category: '' });
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [dateRange, setDateRange] = useState({
+    start: '',
+    end: new Date().toISOString().split('T')[0]
+  });
 
   useEffect(() => {
     const data = loadFinancialData();
     setFinancialData(data);
+    
+    // Set default start date to 30 days ago
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    setDateRange(prev => ({
+      ...prev,
+      start: thirtyDaysAgo.toISOString().split('T')[0]
+    }));
   }, []);
 
   const refreshData = () => {
@@ -40,25 +53,17 @@ const TransactionHistory = () => {
   const filteredTransactions = financialData.transactions.filter(transaction => {
     const matchesFilter = filter === 'all' || transaction.type === filter;
     const matchesSearch = transaction.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
+    
+    let matchesDate = true;
+    if (dateRange.start && dateRange.end) {
+      const transactionDate = new Date(transaction.date);
+      const startDate = new Date(dateRange.start);
+      const endDate = new Date(dateRange.end);
+      matchesDate = transactionDate >= startDate && transactionDate <= endDate;
+    }
+    
+    return matchesFilter && matchesSearch && matchesDate;
   });
-
-  const getCategoryEmoji = (category: string) => {
-    const emojis: { [key: string]: string } = {
-      food: '🍔',
-      transport: '🚗',
-      utilities: '💡',
-      shopping: '🛍️',
-      loan: '🏦',
-      salary: '💰',
-      insurance: '🛡️',
-      subscriptions: '📺',
-      entertainment: '🎬',
-      income: '💰',
-      other: '📝'
-    };
-    return emojis[category] || '📝';
-  };
 
   const handleEditTransaction = (transaction: any) => {
     setEditingTransaction(transaction);
@@ -74,27 +79,63 @@ const TransactionHistory = () => {
       const amount = parseFloat(editForm.amount);
       const updatedAmount = editingTransaction.type === 'income' ? amount : -amount;
       
-      updateTransaction(editingTransaction.id, {
-        name: editForm.name,
-        amount: updatedAmount,
-        category: editForm.category
-      });
-      
-      setEditingTransaction(null);
-      refreshData();
-      toast({
-        title: "Tapahtuma päivitetty",
-        description: "Tapahtuma on päivitetty onnistuneesti.",
-      });
+      try {
+        updateTransaction(editingTransaction.id, {
+          name: editForm.name,
+          amount: updatedAmount,
+          category: editForm.category
+        });
+        
+        setEditingTransaction(null);
+        refreshData();
+        toast({
+          title: t('success'),
+          description: t('transaction_updated'),
+        });
+      } catch (error) {
+        toast({
+          title: t('error'),
+          description: t('failed_to_update_transaction'),
+          variant: "destructive"
+        });
+      }
     }
   };
 
   const handleDeleteTransaction = (id: number) => {
-    deleteTransaction(id);
-    refreshData();
+    if (confirm(t('confirm_delete_transaction'))) {
+      try {
+        deleteTransaction(id);
+        refreshData();
+        toast({
+          title: t('success'),
+          description: t('transaction_deleted'),
+        });
+      } catch (error) {
+        toast({
+          title: t('error'),
+          description: t('failed_to_delete_transaction'),
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  const handleExportTransactions = () => {
+    const dataStr = JSON.stringify(filteredTransactions, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `transactions-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
     toast({
-      title: "Tapahtuma poistettu",
-      description: "Tapahtuma on poistettu onnistuneesti.",
+      title: t('success'),
+      description: t('transactions_exported'),
     });
   };
 
@@ -108,95 +149,45 @@ const TransactionHistory = () => {
           </Button>
           <h1 className="text-2xl font-bold text-white">{t('all_transactions')}</h1>
         </div>
-        <Button onClick={() => navigate('/add')} size="sm" className="bg-[#294D73] hover:bg-[#1f3a5f]">
-          <Plus size={16} />
-        </Button>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="space-y-4 mb-6">
-        <div className="relative">
-          <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40" />
-          <Input
-            placeholder="Hae tapahtumia..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-[#294D73] border-white/20 text-white placeholder:text-white/50"
-          />
+        <div className="flex space-x-2">
+          <Button onClick={handleExportTransactions} size="sm" variant="outline" className="border-white/30 text-white hover:bg-white/10">
+            <Download size={16} />
+          </Button>
+          <Button onClick={() => navigate('/add')} size="sm" className="bg-[#294D73] hover:bg-[#1f3a5f]">
+            <Plus size={16} />
+          </Button>
         </div>
-        
-        <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="bg-[#294D73] border-white/20 text-white">
-            <SelectValue placeholder="Suodata tyypillä" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Kaikki Tapahtumat</SelectItem>
-            <SelectItem value="expense">Kulut</SelectItem>
-            <SelectItem value="income">Tulot</SelectItem>
-            <SelectItem value="loan">Lainat</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
-      {/* Transaction History */}
+      {/* Filters */}
+      <TransactionFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        filter={filter}
+        onFilterChange={setFilter}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+      />
+
+      {/* Results Summary */}
+      <div className="mb-4 text-white/70 text-sm">
+        {t('showing_transactions', { count: filteredTransactions.length, total: financialData.transactions.length })}
+      </div>
+
+      {/* Transaction List */}
       <div className="space-y-2">
         {filteredTransactions.length === 0 ? (
-          <Card className="bg-[#294D73] border-none">
-            <CardContent className="p-6 text-center text-white/70">
-              {t('no_transactions')}
-            </CardContent>
-          </Card>
+          <div className="text-center text-white/70 py-8">
+            {t('no_transactions_found')}
+          </div>
         ) : (
           filteredTransactions.map(transaction => (
-            <Card key={transaction.id} className="bg-[#294D73] border-none">
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">
-                      {getCategoryEmoji(transaction.category)}
-                    </div>
-                    <div>
-                      <div className="font-medium text-white">{transaction.name}</div>
-                      <div className="text-sm text-white/60">
-                        {transaction.date} • {t(transaction.category)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-right">
-                      <div className={`font-bold ${
-                        transaction.amount > 0 ? 'text-green-400' : 'text-red-400'
-                      }`}>
-                        {transaction.amount > 0 ? '+' : ''}€{Math.abs(transaction.amount).toFixed(2)}
-                      </div>
-                      <Badge variant="outline" className="text-xs border-white/30 text-white/70">
-                        {transaction.type === 'income' ? t('income') : transaction.type === 'expense' ? 'Kulu' : t('loan')}
-                      </Badge>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleEditTransaction(transaction)}>
-                          <Edit size={16} className="mr-2" />
-                          {t('edit')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteTransaction(transaction.id)}
-                          className="text-red-600"
-                        >
-                          <Trash size={16} className="mr-2" />
-                          {t('delete')}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <TransactionItem
+              key={transaction.id}
+              transaction={transaction}
+              onEdit={handleEditTransaction}
+              onDelete={handleDeleteTransaction}
+            />
           ))
         )}
       </div>
@@ -205,11 +196,11 @@ const TransactionHistory = () => {
       <Dialog open={!!editingTransaction} onOpenChange={() => setEditingTransaction(null)}>
         <DialogContent className="bg-[#294D73] border-none text-white">
           <DialogHeader>
-            <DialogTitle>Muokkaa Tapahtumaa</DialogTitle>
+            <DialogTitle>{t('edit_transaction')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="editName">Nimi</Label>
+              <Label htmlFor="editName">{t('name')}</Label>
               <Input
                 id="editName"
                 value={editForm.name}
@@ -218,7 +209,7 @@ const TransactionHistory = () => {
               />
             </div>
             <div>
-              <Label htmlFor="editAmount">Summa</Label>
+              <Label htmlFor="editAmount">{t('amount')}</Label>
               <Input
                 id="editAmount"
                 type="number"
@@ -229,7 +220,7 @@ const TransactionHistory = () => {
               />
             </div>
             <div>
-              <Label htmlFor="editCategory">Kategoria</Label>
+              <Label htmlFor="editCategory">{t('category')}</Label>
               <Select value={editForm.category} onValueChange={(value) => setEditForm(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger className="bg-white/10 border-white/20 text-white">
                   <SelectValue />
