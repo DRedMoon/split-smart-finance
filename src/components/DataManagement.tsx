@@ -1,105 +1,25 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, AlertTriangle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { loadFinancialData, saveFinancialData, clearAllData, type FinancialData } from '@/services/storageService';
-import { useToast } from '@/hooks/use-toast';
+import DataExport from './data-management/DataExport';
+import DataImport from './data-management/DataImport';
 
 const DataManagement = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { toast } = useToast();
-  const [financialData, setFinancialData] = useState<FinancialData | null>(null);
+  const [activeTab, setActiveTab] = useState('export');
 
-  useEffect(() => {
-    const data = loadFinancialData();
-    setFinancialData(data);
-  }, []);
-
-  const refreshData = () => {
-    const data = loadFinancialData();
-    setFinancialData(data);
+  const handleImportComplete = () => {
+    // Refresh the page or update state to reflect imported data
+    window.location.reload();
   };
-
-  const deleteTransaction = (id: number) => {
-    if (!financialData) return;
-    
-    const updatedData = { ...financialData };
-    const transaction = updatedData.transactions.find(t => t.id === id);
-    
-    if (transaction) {
-      updatedData.transactions = updatedData.transactions.filter(t => t.id !== id);
-      // Recalculate balance
-      updatedData.balance = updatedData.transactions.reduce((sum, t) => sum + t.amount, 0);
-      saveFinancialData(updatedData);
-      refreshData();
-      
-      toast({
-        title: t('transaction_deleted'),
-        description: `${transaction.name} ${t('item_deleted')}`,
-      });
-    }
-  };
-
-  const deleteLoan = (id: number) => {
-    if (!financialData) return;
-    
-    const updatedData = { ...financialData };
-    const loan = updatedData.loans.find(l => l.id === id);
-    
-    if (loan) {
-      updatedData.loans = updatedData.loans.filter(l => l.id !== id);
-      // Also remove associated monthly bill
-      updatedData.monthlyBills = updatedData.monthlyBills.filter(bill => bill.name !== loan.name);
-      saveFinancialData(updatedData);
-      refreshData();
-      
-      toast({
-        title: t('loan_deleted'),
-        description: `${loan.name} ${t('item_deleted')}`,
-      });
-    }
-  };
-
-  const deleteMonthlyBill = (id: number) => {
-    if (!financialData) return;
-    
-    const updatedData = { ...financialData };
-    const bill = updatedData.monthlyBills.find(b => b.id === id);
-    
-    if (bill) {
-      updatedData.monthlyBills = updatedData.monthlyBills.filter(b => b.id !== id);
-      saveFinancialData(updatedData);
-      refreshData();
-      
-      toast({
-        title: t('monthly_payment_deleted'),
-        description: `${bill.name} ${t('item_deleted')}`,
-      });
-    }
-  };
-
-  const handleClearAllData = () => {
-    if (confirm(t('confirm_delete_all'))) {
-      clearAllData();
-      refreshData();
-      toast({
-        title: t('all_data_deleted'),
-        description: t('app_reset'),
-      });
-    }
-  };
-
-  if (!financialData) {
-    return <div className="p-4 text-white bg-[#192E45] min-h-screen">{t('loading')}</div>;
-  }
 
   return (
-    <div className="p-4 pb-20 bg-[#192E45] min-h-screen">
+    <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">
       {/* Header */}
       <div className="flex items-center space-x-3 mb-6">
         <Button variant="ghost" size="sm" onClick={() => navigate('/settings')} className="text-white hover:bg-white/10">
@@ -108,107 +28,68 @@ const DataManagement = () => {
         <h1 className="text-2xl font-bold text-white">{t('data_management')}</h1>
       </div>
 
-      {/* Transactions */}
+      {/* Overview Card */}
       <Card className="mb-6 bg-[#294D73] border-none">
         <CardHeader>
-          <CardTitle className="text-white">{t('transactions')} ({financialData.transactions.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {financialData.transactions.length === 0 ? (
-            <div className="text-white/70 text-center py-4">{t('no_transactions')}</div>
-          ) : (
-            financialData.transactions.map(transaction => (
-              <div key={transaction.id} className="flex items-center justify-between p-3 bg-white/10 rounded-lg">
-                <div>
-                  <div className="font-medium text-white">{transaction.name}</div>
-                  <div className="text-sm text-white/70">{transaction.date} • €{Math.abs(transaction.amount)}</div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteTransaction(transaction.id)}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                >
-                  <Trash2 size={16} />
-                </Button>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Loans */}
-      <Card className="mb-6 bg-[#294D73] border-none">
-        <CardHeader>
-          <CardTitle className="text-white">{t('loans')} ({financialData.loans.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {financialData.loans.length === 0 ? (
-            <div className="text-white/70 text-center py-4">{t('no_loans')}</div>
-          ) : (
-            financialData.loans.map(loan => (
-              <div key={loan.id} className="flex items-center justify-between p-3 bg-white/10 rounded-lg">
-                <div>
-                  <div className="font-medium text-white">{loan.name}</div>
-                  <div className="text-sm text-white/70">€{loan.currentAmount} • €{loan.monthly}{t('per_month')}</div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteLoan(loan.id)}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                >
-                  <Trash2 size={16} />
-                </Button>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Monthly Bills */}
-      <Card className="mb-6 bg-[#294D73] border-none">
-        <CardHeader>
-          <CardTitle className="text-white">{t('monthly_payments')} ({financialData.monthlyBills.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {financialData.monthlyBills.length === 0 ? (
-            <div className="text-white/70 text-center py-4">{t('no_monthly_payments')}</div>
-          ) : (
-            financialData.monthlyBills.map(bill => (
-              <div key={bill.id} className="flex items-center justify-between p-3 bg-white/10 rounded-lg">
-                <div>
-                  <div className="font-medium text-white">{bill.name}</div>
-                  <div className="text-sm text-white/70">€{bill.amount} • {bill.dueDate}</div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteMonthlyBill(bill.id)}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                >
-                  <Trash2 size={16} />
-                </Button>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Danger Zone */}
-      <Card className="bg-red-900/20 border-red-500/30">
-        <CardHeader>
-        <CardTitle className="text-red-400 flex items-center space-x-2">
-          <AlertTriangle size={20} />
-          <span>{t('danger_zone')}</span>
-        </CardTitle>
+          <CardTitle className="text-white">{t('backup_and_restore')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <Button
-            onClick={handleClearAllData}
-            className="w-full bg-red-600 hover:bg-red-700 text-white"
+          <div className="text-white/70 text-sm">
+            {t('backup_restore_description')}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 bg-[#294D73] border-none">
+          <TabsTrigger 
+            value="export" 
+            className="data-[state=active]:bg-[#192E45] data-[state=active]:text-white text-white/70"
           >
-            {t('delete_all_data')}
+            <Download size={16} className="mr-2" />
+            {t('export')}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="import" 
+            className="data-[state=active]:bg-[#192E45] data-[state=active]:text-white text-white/70"
+          >
+            <Upload size={16} className="mr-2" />
+            {t('data_import')}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="export" className="space-y-4">
+          <DataExport />
+        </TabsContent>
+
+        <TabsContent value="import" className="space-y-4">
+          <DataImport onImportComplete={handleImportComplete} />
+        </TabsContent>
+      </Tabs>
+
+      {/* Quick Actions */}
+      <Card className="mt-6 bg-[#294D73] border-none">
+        <CardHeader>
+          <CardTitle className="text-white">{t('quick_actions')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button
+            variant="outline"
+            className="w-full justify-start border-white/20 text-white hover:bg-white/10"
+            onClick={() => setActiveTab('export')}
+          >
+            <Download size={16} className="mr-2" />
+            {t('create_backup')}
+          </Button>
+          
+          <Button
+            variant="outline"
+            className="w-full justify-start border-white/20 text-white hover:bg-white/10"
+            onClick={() => setActiveTab('import')}
+          >
+            <Upload size={16} className="mr-2" />
+            {t('restore_from_backup')}
           </Button>
         </CardContent>
       </Card>
