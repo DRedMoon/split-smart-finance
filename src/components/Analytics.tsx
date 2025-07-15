@@ -1,15 +1,25 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, BarChart3, TrendingUp, Calendar } from 'lucide-react';
+import { ArrowLeft, BarChart3, TrendingUp, Calendar, Target, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { loadFinancialData, type FinancialData } from '@/services/storageService';
+import { forecastingService } from '@/services/forecastingService';
+
+// Existing components
 import ExpenseChart from './analytics/ExpenseChart';
 import CategoryChart from './analytics/CategoryChart';
 import MonthlyComparisonChart from './analytics/MonthlyComparisonChart';
 import AnalyticsOverview from './analytics/AnalyticsOverview';
+
+// New forecasting components
+import ForecastChart from './analytics/ForecastChart';
+import FinancialHealthCard from './analytics/FinancialHealthCard';
+import SpendingPatternsCard from './analytics/SpendingPatternsCard';
+import CashFlowChart from './analytics/CashFlowChart';
 
 const Analytics = React.memo(() => {
   const navigate = useNavigate();
@@ -198,26 +208,32 @@ const Analytics = React.memo(() => {
       {/* Overview Stats */}
       <AnalyticsOverview {...overviewStats} />
 
-      {/* Charts */}
-      <main className="space-y-6">
-        {/* Expense Trend */}
-        <ExpenseChart 
-          data={expenseData} 
-          title={t('expense_trend')} 
-        />
+      {/* Tabbed Interface */}
+      <Tabs defaultValue="historical" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 bg-[#294D73]">
+          <TabsTrigger value="historical" className="text-white data-[state=active]:bg-[#192E45]">
+            {t('historical_data')}
+          </TabsTrigger>
+          <TabsTrigger value="forecasting" className="text-white data-[state=active]:bg-[#192E45]">
+            {t('forecasting')}
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Category Breakdown */}
-        <CategoryChart 
-          data={categoryData} 
-          title={t('category_breakdown')} 
-        />
+        <TabsContent value="historical" className="space-y-6">
+          <ExpenseChart data={expenseData} title={t('expense_trend')} />
+          <CategoryChart data={categoryData} title={t('category_breakdown')} />
+          <MonthlyComparisonChart data={comparisonData} title={t('income_vs_expenses')} />
+        </TabsContent>
 
-        {/* Monthly Comparison */}
-        <MonthlyComparisonChart 
-          data={comparisonData} 
-          title={t('income_vs_expenses')} 
-        />
-      </main>
+        <TabsContent value="forecasting" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <FinancialHealthCard healthScore={forecastingService.calculateFinancialHealthScore()} />
+            <SpendingPatternsCard patterns={forecastingService.analyzeSpendingPatterns()} />
+          </div>
+          <ForecastChart data={forecastingService.generateExpenseForecast(6)} title={t('expense_forecast')} />
+          <CashFlowChart projections={forecastingService.generateCashFlowProjection(12)} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 });
