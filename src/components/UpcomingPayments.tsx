@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { loadFinancialData, getThisWeekUpcomingPayments, type FinancialData } from '@/services/storageService';
+import { isPaymentPaidForMonth, migratePaymentDataToMonthSpecific } from '@/utils/paymentUtils';
 
 // Normalize payment type to have consistent properties
 type NormalizedPayment = {
@@ -27,8 +28,11 @@ const UpcomingPayments = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
-    const data = loadFinancialData();
-    setFinancialData(data);
+    let data = loadFinancialData();
+    if (data) {
+      data = migratePaymentDataToMonthSpecific(data);
+      setFinancialData(data);
+    }
   }, []);
 
   const getUpcomingPayments = (view: 'week' | 'month' | 'all'): NormalizedPayment[] => {
@@ -46,19 +50,19 @@ const UpcomingPayments = () => {
         break;
       case 'all':
         return financialData.monthlyBills
-          .filter(bill => !bill.paid)
+          .filter(bill => !isPaymentPaidForMonth(bill, currentYear, currentMonth))
           .map(bill => ({
             id: bill.id,
             name: bill.name,
             amount: bill.amount,
             dueDate: bill.dueDate,
             type: bill.type,
-            isPaid: bill.paid
+            isPaid: isPaymentPaidForMonth(bill, currentYear, currentMonth)
           }));
     }
 
     return financialData.monthlyBills.filter(bill => {
-      if (bill.paid) return false;
+      if (isPaymentPaidForMonth(bill, currentYear, currentMonth)) return false;
       
       const dayMatch = bill.dueDate.match(/\d+/);
       if (!dayMatch) return false;
@@ -77,7 +81,7 @@ const UpcomingPayments = () => {
       amount: bill.amount,
       dueDate: bill.dueDate,
       type: bill.type,
-      isPaid: bill.paid
+      isPaid: isPaymentPaidForMonth(bill, currentYear, currentMonth)
     }));
   };
 
@@ -112,7 +116,7 @@ const UpcomingPayments = () => {
         amount: bill.amount,
         dueDate: bill.dueDate,
         type: bill.type,
-        isPaid: bill.paid
+        isPaid: isPaymentPaidForMonth(bill, nextYear, nextMonth)
       }));
 
     return [...loanPayments, ...regularBills];

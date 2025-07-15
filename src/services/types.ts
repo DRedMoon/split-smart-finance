@@ -24,9 +24,15 @@ export interface FinancialData {
     amount: number;
     dueDate: string;
     type: string;
-    paid: boolean;
+    paid: boolean; // Legacy field for backward compatibility
     isPaid?: boolean;
     category?: string;
+    paymentHistory?: {
+      [monthYear: string]: {
+        paid: boolean;
+        paidDate?: string;
+      };
+    };
   }>;
   transactions: Array<{
     id: number;

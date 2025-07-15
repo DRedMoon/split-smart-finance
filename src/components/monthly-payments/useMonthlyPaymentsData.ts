@@ -1,5 +1,6 @@
 
 import { useMemo } from 'react';
+import { isPaymentPaidForMonth } from '@/utils/paymentUtils';
 
 export const useMonthlyPaymentsData = (financialData: any) => {
   return useMemo(() => {
@@ -17,6 +18,10 @@ export const useMonthlyPaymentsData = (financialData: any) => {
         }
       };
     }
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
 
     // Get all loans to ensure we have all loan payments
     const allLoans = financialData?.loans || [];
@@ -65,13 +70,13 @@ export const useMonthlyPaymentsData = (financialData: any) => {
     console.log('useMonthlyPaymentsData - Final loan/credit payments:', loanCreditPayments);
     console.log('useMonthlyPaymentsData - Regular bills:', regularBills);
 
-    // Calculate totals
+    // Calculate totals using month-specific payment status
     const totalRegular = regularBills.reduce((sum: number, bill: any) => sum + bill.amount, 0);
-    const paidRegular = regularBills.filter((bill: any) => bill.paid).reduce((sum: number, bill: any) => sum + bill.amount, 0);
+    const paidRegular = regularBills.filter((bill: any) => isPaymentPaidForMonth(bill, currentYear, currentMonth)).reduce((sum: number, bill: any) => sum + bill.amount, 0);
     const remainingRegular = totalRegular - paidRegular;
 
     const totalLoanCredit = loanCreditPayments.reduce((sum: number, bill: any) => sum + bill.amount, 0);
-    const paidLoanCredit = loanCreditPayments.filter((bill: any) => bill.paid).reduce((sum: number, bill: any) => sum + bill.amount, 0);
+    const paidLoanCredit = loanCreditPayments.filter((bill: any) => isPaymentPaidForMonth(bill, currentYear, currentMonth)).reduce((sum: number, bill: any) => sum + bill.amount, 0);
     const remainingLoanCredit = totalLoanCredit - paidLoanCredit;
 
     return {

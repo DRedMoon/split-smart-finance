@@ -1,6 +1,7 @@
 
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
 import { useToast } from '@/hooks/use-toast';
+import { getCurrentMonthYear, isPaymentPaidForMonth, setPaymentStatusForMonth, migratePaymentDataToMonthSpecific } from '@/utils/paymentUtils';
 
 export const usePaymentToggleLogic = () => {
   const { toast } = useToast();
@@ -20,7 +21,7 @@ export const usePaymentToggleLogic = () => {
     
     console.log('PaymentToggleLogic - Toggling payment for bill ID:', billId);
     
-    const data = loadFinancialData();
+    let data = loadFinancialData();
     if (!data) {
       toast({
         title: "Error",
@@ -30,9 +31,16 @@ export const usePaymentToggleLogic = () => {
       return;
     }
 
+    // Migrate data to month-specific format
+    data = migratePaymentDataToMonthSpecific(data);
+
     // Calculate the actual current balance including transactions
     const currentBalance = calculateCurrentBalance(data);
     console.log('PaymentToggleLogic - Current calculated balance:', currentBalance);
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
 
     // Handle loan payment bills (generated from loans)
     if (typeof billId === 'string' && billId.startsWith('loan-')) {
@@ -71,7 +79,8 @@ export const usePaymentToggleLogic = () => {
       }
 
       const bill = data.monthlyBills[billIndex];
-      const newPaidStatus = !bill.paid;
+      const currentPaidStatus = isPaymentPaidForMonth(bill, currentYear, currentMonth);
+      const newPaidStatus = !currentPaidStatus;
 
       if (newPaidStatus) {
         if (currentBalance < bill.amount) {
@@ -83,7 +92,7 @@ export const usePaymentToggleLogic = () => {
           return;
         }
         
-        data.monthlyBills[billIndex].paid = true;
+        setPaymentStatusForMonth(data.monthlyBills[billIndex], currentYear, currentMonth, true);
         data.balance -= bill.amount;
         
         // Update loan current amount
@@ -98,7 +107,7 @@ export const usePaymentToggleLogic = () => {
           description: `${bill.name} merkitty maksetuksi`
         });
       } else {
-        data.monthlyBills[billIndex].paid = false;
+        setPaymentStatusForMonth(data.monthlyBills[billIndex], currentYear, currentMonth, false);
         data.balance += bill.amount;
         
         // Restore loan current amount
@@ -125,7 +134,8 @@ export const usePaymentToggleLogic = () => {
       }
 
       const bill = data.monthlyBills[billIndex];
-      const newPaidStatus = !bill.paid;
+      const currentPaidStatus = isPaymentPaidForMonth(bill, currentYear, currentMonth);
+      const newPaidStatus = !currentPaidStatus;
 
       console.log('PaymentToggleLogic - Processing regular bill payment for:', bill.name, 'New status:', newPaidStatus);
 
@@ -139,7 +149,7 @@ export const usePaymentToggleLogic = () => {
           return;
         }
         
-        data.monthlyBills[billIndex].paid = true;
+        setPaymentStatusForMonth(data.monthlyBills[billIndex], currentYear, currentMonth, true);
         data.balance -= bill.amount;
         
         toast({
@@ -147,7 +157,7 @@ export const usePaymentToggleLogic = () => {
           description: `${bill.name} merkitty maksetuksi`
         });
       } else {
-        data.monthlyBills[billIndex].paid = false;
+        setPaymentStatusForMonth(data.monthlyBills[billIndex], currentYear, currentMonth, false);
         data.balance += bill.amount;
         
         toast({

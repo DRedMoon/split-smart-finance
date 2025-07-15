@@ -1,6 +1,7 @@
 
 import { useCallback } from 'react';
 import { saveFinancialData } from '@/services/storageService';
+import { getCurrentMonthYear, isPaymentPaidForMonth, setPaymentStatusForMonth, migratePaymentDataToMonthSpecific } from '@/utils/paymentUtils';
 
 export const usePaymentToggleHandler = (financialData: any, setFinancialData: any, toast: any) => {
   const calculateCurrentBalance = (data: any) => {
@@ -15,11 +16,18 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
 
     console.log('🔄 Toggle payment request for ID:', billId, 'Type:', typeof billId);
     
-    const updatedData = { ...financialData };
+    let updatedData = { ...financialData };
+    
+    // Migrate data to month-specific format
+    updatedData = migratePaymentDataToMonthSpecific(updatedData);
     
     // Calculate the actual current balance including transactions
     const currentBalance = calculateCurrentBalance(updatedData);
     console.log('🔄 Current calculated balance:', currentBalance);
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
 
     // Handle loan payments with improved ID matching
     if ((typeof billId === 'string' && billId.startsWith('loan-')) || 
@@ -80,9 +88,10 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
       }
 
       const bill = updatedData.monthlyBills[billIndex];
-      const newPaidStatus = !bill.paid;
+      const currentPaidStatus = isPaymentPaidForMonth(bill, currentYear, currentMonth);
+      const newPaidStatus = !currentPaidStatus;
 
-      console.log('💰 Toggling loan payment status:', bill.name, 'from', bill.paid, 'to', newPaidStatus);
+      console.log('💰 Toggling loan payment status:', bill.name, 'from', currentPaidStatus, 'to', newPaidStatus);
 
       if (newPaidStatus) {
         if (currentBalance < bill.amount) {
@@ -94,7 +103,7 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
           return;
         }
         
-        updatedData.monthlyBills[billIndex].paid = true;
+        setPaymentStatusForMonth(updatedData.monthlyBills[billIndex], currentYear, currentMonth, true);
         updatedData.balance -= bill.amount;
         
         // Update loan amount using exact ID match
@@ -110,7 +119,7 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
           description: `${bill.name} merkitty maksetuksi`
         });
       } else {
-        updatedData.monthlyBills[billIndex].paid = false;
+        setPaymentStatusForMonth(updatedData.monthlyBills[billIndex], currentYear, currentMonth, false);
         updatedData.balance += bill.amount;
         
         const loanToUpdate = updatedData.loans.find((l: any) => l.id.toString() === targetLoan.id.toString());
@@ -133,7 +142,8 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
       }
 
       const bill = updatedData.monthlyBills[billIndex];
-      const newPaidStatus = !bill.paid;
+      const currentPaidStatus = isPaymentPaidForMonth(bill, currentYear, currentMonth);
+      const newPaidStatus = !currentPaidStatus;
 
       console.log('📄 Processing regular bill payment for:', bill.name, 'New status:', newPaidStatus);
 
@@ -147,7 +157,7 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
           return;
         }
         
-        updatedData.monthlyBills[billIndex].paid = true;
+        setPaymentStatusForMonth(updatedData.monthlyBills[billIndex], currentYear, currentMonth, true);
         updatedData.balance -= bill.amount;
         
         toast({
@@ -155,7 +165,7 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
           description: `${bill.name} merkitty maksetuksi`
         });
       } else {
-        updatedData.monthlyBills[billIndex].paid = false;
+        setPaymentStatusForMonth(updatedData.monthlyBills[billIndex], currentYear, currentMonth, false);
         updatedData.balance += bill.amount;
         
         toast({

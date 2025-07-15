@@ -1,5 +1,6 @@
 
 import { FinancialData } from './types';
+import { migratePaymentDataToMonthSpecific } from '@/utils/paymentUtils';
 import { toast } from '@/hooks/use-toast';
 
 const STORAGE_KEY = 'financial-data';
@@ -19,7 +20,13 @@ export const saveFinancialData = (data: FinancialData): void => {
 export const loadFinancialData = (): FinancialData | null => {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : null;
+    if (data) {
+      let parsedData = JSON.parse(data);
+      // Migrate to month-specific payment tracking if needed
+      parsedData = migratePaymentDataToMonthSpecific(parsedData);
+      return parsedData;
+    }
+    return null;
   } catch (error) {
     toast({
       title: "Load Error",

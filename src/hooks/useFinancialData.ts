@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
+import { isPaymentPaidForMonth } from '@/utils/paymentUtils';
 
 export const useFinancialData = (refreshKey: number) => {
   const [data, setData] = useState(null);
@@ -10,6 +11,10 @@ export const useFinancialData = (refreshKey: number) => {
     const financialData = loadFinancialData();
     setData(financialData);
   }, [refreshKey]);
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
 
   // Safe data loading with fallbacks
   const baseBalance = data?.balance || 0;
@@ -49,7 +54,7 @@ export const useFinancialData = (refreshKey: number) => {
 
   // Recent transactions logic - Show:
   // 1. All regular transactions (non-recurring)
-  // 2. Recurring payment transactions - only when their corresponding bill is marked as PAID
+  // 2. Recurring payment transactions - only when their corresponding bill is marked as PAID for current month
   const recentTransactionsFromRegular = allTransactions.filter(transaction => {
     // Check if this transaction corresponds to a recurring payment
     const correspondingBill = monthlyBills.find(bill => 
@@ -61,8 +66,8 @@ export const useFinancialData = (refreshKey: number) => {
       return true;
     }
     
-    // If there's a corresponding bill, only show the transaction if the bill is paid
-    return correspondingBill.paid;
+    // If there's a corresponding bill, only show the transaction if the bill is paid for current month
+    return isPaymentPaidForMonth(correspondingBill, currentYear, currentMonth);
   });
 
   const sortedRecentTransactions = recentTransactionsFromRegular
@@ -95,7 +100,8 @@ export const useFinancialData = (refreshKey: number) => {
     bill.type !== 'laina' && 
     bill.type !== 'luottokortti' && 
     bill.type !== 'loan_payment' && 
-    bill.type !== 'credit_payment'
+    bill.type !== 'credit_payment' &&
+    !isPaymentPaidForMonth(bill, currentYear, currentMonth)
   );
 
   return {
