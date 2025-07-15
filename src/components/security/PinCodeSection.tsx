@@ -27,8 +27,8 @@ const PinCodeSection: React.FC<PinCodeSectionProps> = ({
   const handlePinToggle = (enabled: boolean) => {
     if (enabled && pin.length !== 4) {
       toast({
-        title: "Virhe",
-        description: "PIN-koodin tulee olla 4 numeroa",
+        title: t('error'),
+        description: t('pin_error'),
         variant: "destructive"
       });
       return;
@@ -37,14 +37,14 @@ const PinCodeSection: React.FC<PinCodeSectionProps> = ({
     if (enabled) {
       localStorage.setItem('app-pin', pin);
       toast({
-        title: "PIN käytössä",
-        description: "PIN-koodi on asetettu onnistuneesti",
+        title: t('pin_enabled'),
+        description: t('pin_set_successfully'),
       });
     } else {
       localStorage.removeItem('app-pin');
       toast({
-        title: "PIN poistettu",
-        description: "PIN-koodi on poistettu käytöstä",
+        title: t('pin_disabled'),
+        description: t('pin_disabled_description'),
       });
     }
     
@@ -61,7 +61,7 @@ const PinCodeSection: React.FC<PinCodeSectionProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label htmlFor="pin" className="text-white">PIN-koodi (4 numeroa)</Label>
+          <Label htmlFor="pin" className="text-white">{t('pin_code_4_digits')}</Label>
           <Input
             id="pin"
             type="password"
@@ -75,7 +75,7 @@ const PinCodeSection: React.FC<PinCodeSectionProps> = ({
         <div className="flex items-center justify-between">
           <div className="text-white">
             <div className="font-medium">{t('enable_pin')}</div>
-            <div className="text-sm text-white/70">Suojaa sovellus PIN-koodilla</div>
+            <div className="text-sm text-white/70">{t('protect_with_pin')}</div>
           </div>
           <Switch 
             checked={pinEnabled} 

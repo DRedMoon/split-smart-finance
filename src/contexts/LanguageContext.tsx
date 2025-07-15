@@ -278,7 +278,71 @@ const translations = {
     browser_does_not_support_folder_selection: 'Selaimesi ei tue kansion valintaa',
     folder_selection_failed: 'Kansion valinta epäonnistui',
     backup_downloaded_to_device: 'Varmuuskopio on ladattu laitteellesi',
-    backup_setting_updated: 'Varmuuskopioasetus päivitetty'
+    backup_setting_updated: 'Varmuuskopioasetus päivitetty',
+    
+    // Profile Settings (new)
+    profile_settings: 'Profiiliasetukset',
+    profile_information: 'Profiilitiedot',
+    change_picture: 'Vaihda kuva',
+    name: 'Nimi',
+    email: 'Sähköposti',
+    enter_name: 'Syötä nimesi',
+    enter_email: 'Syötä sähköpostiosoitteesi',
+    profile_updated: 'Profiili päivitetty',
+    profile_saved_successfully: 'Profiilitiedot on tallennettu onnistuneesti',
+
+    // Data Management (new)
+    per_month: '/kk',
+    danger_zone: 'Vaaravyöhyke',
+    delete_all_data: 'Poista kaikki tiedot',
+    item_deleted: 'on poistettu',
+    loan_deleted: 'Laina poistettu',
+    monthly_payment_deleted: 'Kuukausimaksu poistettu',
+    confirm_delete_all: 'Haluatko varmasti poistaa kaikki tiedot? Tätä toimintoa ei voi peruuttaa.',
+    app_reset: 'Sovellus on nollattu',
+
+    // Security Settings (new)
+    pin_code_4_digits: 'PIN-koodi (4 numeroa)',
+    enable_pin: 'Ota PIN käyttöön',
+    protect_with_pin: 'Suojaa sovellus PIN-koodilla',
+    enable_fingerprint: 'Ota sormenjälki käyttöön',
+    use_fingerprint_login: 'Käytä sormenjälkeä kirjautumiseen',
+    two_factor_auth: 'Kaksivaiheinen tunnistus',
+    use_authenticator: 'Käytä authenticator-sovellusta',
+    security_actions: 'Turvatoiminnot',
+    check_security: 'Tarkista turvallisuus',
+    manage_data: 'Hallitse tietoja',
+    
+    // Security Messages (new)
+    pin_error: 'PIN-koodin tulee olla 4 numeroa',
+    pin_enabled: 'PIN käytössä',
+    pin_set_successfully: 'PIN-koodi on asetettu onnistuneesti',
+    pin_disabled: 'PIN poistettu',
+    pin_disabled_description: 'PIN-koodi on poistettu käytöstä',
+    fingerprint_not_supported: 'Sormenjälkitunnistus ei ole tuettu tässä selaimessa',
+    fingerprint_enabled: 'Sormenjälki käytössä',
+    fingerprint_activated: 'Sormenjälkitunnistus on aktivoitu',
+    fingerprint_disabled: 'Sormenjälki pois käytöstä',
+    fingerprint_disabled_description: 'Sormenjälkitunnistus on poistettu käytöstä',
+    fingerprint_setup_failed: 'Sormenjälkitunnistuksen asetus epäonnistui',
+    two_factor_enabled: '2FA käytössä',
+    scan_qr_code: 'Skannaa QR-koodi authenticator-sovelluksella',
+    two_factor_disabled: '2FA pois käytöstä',
+    two_factor_disabled_description: 'Kaksivaiheinen tunnistus on poistettu käytöstä',
+    two_factor_setup: '2FA Asetus:',
+    download_authenticator: 'Lataa authenticator-sovellus (esim. Aegis, Google Authenticator)',
+    scan_or_enter_key: 'Skannaa QR-koodi tai syötä avain manuaalisesti:',
+    enter_6_digit_code: 'Syötä 6-numeroinen koodi authenticator-sovelluksesta',
+    qr_code_url: 'QR-koodi URL:',
+    password_change_coming: 'Salasanan vaihto -toiminto tulossa seuraavassa päivityksessä',
+    pin_active: 'PIN-koodi käytössä',
+    fingerprint_active: 'Sormenjälki käytössä',
+    two_factor_active: '2FA käytössä',
+    no_security_features: 'Ei turvallisuustoimia käytössä',
+
+    // AddExpense additional translations (new)
+    due_date_required: 'Eräpäivä vaaditaan tälle kategorialle',
+    select_day: 'Valitse päivä'
   },
   en: {
     // Dashboard
@@ -549,7 +613,69 @@ const translations = {
     browser_does_not_support_folder_selection: 'Your browser does not support folder selection',
     folder_selection_failed: 'Folder selection failed',
     backup_downloaded_to_device: 'Backup has been downloaded to your device',
-    backup_setting_updated: 'Backup Setting Updated'
+    backup_setting_updated: 'Backup Setting Updated',
+    
+    // Profile Settings (new)
+    profile_settings: 'Profile Settings',
+    profile_information: 'Profile Information',
+    change_picture: 'Change Picture',
+    enter_name: 'Enter your name',
+    enter_email: 'Enter your email address',
+    profile_updated: 'Profile Updated',
+    profile_saved_successfully: 'Profile information has been saved successfully',
+
+    // Data Management (new)
+    per_month: '/mo',
+    danger_zone: 'Danger Zone',
+    delete_all_data: 'Delete All Data',
+    item_deleted: 'has been deleted',
+    loan_deleted: 'Loan Deleted',
+    monthly_payment_deleted: 'Monthly Payment Deleted',
+    confirm_delete_all: 'Are you sure you want to delete all data? This action cannot be undone.',
+    app_reset: 'Application has been reset',
+
+    // Security Settings (new)
+    pin_code_4_digits: 'PIN Code (4 digits)',
+    enable_pin: 'Enable PIN',
+    protect_with_pin: 'Protect app with PIN code',
+    enable_fingerprint: 'Enable Fingerprint',
+    use_fingerprint_login: 'Use fingerprint for login',
+    two_factor_auth: 'Two-Factor Authentication',
+    use_authenticator: 'Use authenticator app',
+    security_actions: 'Security Actions',
+    check_security: 'Check Security',
+    manage_data: 'Manage Data',
+    
+    // Security Messages (new)
+    pin_error: 'PIN code must be 4 digits',
+    pin_enabled: 'PIN Enabled',
+    pin_set_successfully: 'PIN code has been set successfully',
+    pin_disabled: 'PIN Disabled',
+    pin_disabled_description: 'PIN code has been disabled',
+    fingerprint_not_supported: 'Fingerprint authentication is not supported in this browser',
+    fingerprint_enabled: 'Fingerprint Enabled',
+    fingerprint_activated: 'Fingerprint authentication has been activated',
+    fingerprint_disabled: 'Fingerprint Disabled',
+    fingerprint_disabled_description: 'Fingerprint authentication has been disabled',
+    fingerprint_setup_failed: 'Fingerprint setup failed',
+    two_factor_enabled: '2FA Enabled',
+    scan_qr_code: 'Scan QR code with authenticator app',
+    two_factor_disabled: '2FA Disabled',
+    two_factor_disabled_description: 'Two-factor authentication has been disabled',
+    two_factor_setup: '2FA Setup:',
+    download_authenticator: 'Download authenticator app (e.g. Aegis, Google Authenticator)',
+    scan_or_enter_key: 'Scan QR code or enter key manually:',
+    enter_6_digit_code: 'Enter 6-digit code from authenticator app',
+    qr_code_url: 'QR Code URL:',
+    password_change_coming: 'Password change feature coming in the next update',
+    pin_active: 'PIN code active',
+    fingerprint_active: 'Fingerprint active',
+    two_factor_active: '2FA active',
+    no_security_features: 'No security features enabled',
+
+    // AddExpense additional translations (new)
+    due_date_required: 'Due date is required for this category',
+    select_day: 'Select day'
   }
 } as const;
 

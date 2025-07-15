@@ -71,7 +71,7 @@ const AddExpense = () => {
     if (requiresDueDate(quickData.category) && !quickData.dueDate) {
       toast({
         title: t('error'),
-        description: 'Eräpäivä vaaditaan tälle kategorialle',
+        description: t('due_date_required'),
         variant: "destructive"
       });
       return;
@@ -250,8 +250,8 @@ const AddExpense = () => {
             <DueDatePicker
               value={quickData.dueDate}
               onChange={(value) => setQuickData(prev => ({ ...prev, dueDate: value }))}
-              label="Eräpäivä"
-              placeholder="Valitse päivä"
+              label={t('due_date')}
+              placeholder={t('select_day')}
             />
           )}
 

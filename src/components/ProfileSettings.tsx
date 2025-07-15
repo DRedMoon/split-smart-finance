@@ -8,10 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState({
     name: '',
@@ -36,8 +38,8 @@ const ProfileSettings = () => {
       data.profile = profile;
       saveFinancialData(data);
       toast({
-        title: "Profiili päivitetty",
-        description: "Profiilitiedot on tallennettu onnistuneesti",
+        title: t('profile_updated'),
+        description: t('profile_saved_successfully'),
       });
     }
   };
@@ -60,12 +62,12 @@ const ProfileSettings = () => {
         <Button variant="ghost" size="sm" onClick={() => navigate('/settings')} className="text-white hover:bg-white/10">
           <ArrowLeft size={20} />
         </Button>
-        <h1 className="text-2xl font-bold text-white">Profiiliasetukset</h1>
+        <h1 className="text-2xl font-bold text-white">{t('profile_settings')}</h1>
       </div>
 
       <Card className="bg-[#294D73] border-none">
         <CardHeader>
-          <CardTitle className="text-white">Profiilitiedot</CardTitle>
+          <CardTitle className="text-white">{t('profile_information')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Profile Picture */}
@@ -83,37 +85,37 @@ const ProfileSettings = () => {
               className="border-white/30 text-white hover:bg-white/10"
             >
               <Camera size={16} className="mr-2" />
-              Vaihda kuva
+              {t('change_picture')}
             </Button>
           </div>
 
           {/* Name */}
           <div>
-            <Label htmlFor="name" className="text-white">Nimi</Label>
+            <Label htmlFor="name" className="text-white">{t('name')}</Label>
             <Input
               id="name"
               value={profile.name}
               onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
               className="bg-white/10 border-white/20 text-white mt-2"
-              placeholder="Syötä nimesi"
+              placeholder={t('enter_name')}
             />
           </div>
 
           {/* Email */}
           <div>
-            <Label htmlFor="email" className="text-white">Sähköposti</Label>
+            <Label htmlFor="email" className="text-white">{t('email')}</Label>
             <Input
               id="email"
               type="email"
               value={profile.email}
               onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
               className="bg-white/10 border-white/20 text-white mt-2"
-              placeholder="Syötä sähköpostiosoitteesi"
+              placeholder={t('enter_email')}
             />
           </div>
 
           <Button onClick={handleSave} className="w-full bg-white text-[#294D73]">
-            Tallenna muutokset
+            {t('save_changes')}
           </Button>
 
           <input

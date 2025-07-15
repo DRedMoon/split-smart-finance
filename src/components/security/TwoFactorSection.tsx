@@ -49,8 +49,8 @@ const TwoFactorSection: React.FC<TwoFactorSectionProps> = ({
       localStorage.setItem('2fa-secret', secret);
       onTwoFactorToggle(true);
       toast({
-        title: "2FA käytössä",
-        description: "Skannaa QR-koodi authenticator-sovelluksella",
+        title: t('two_factor_enabled'),
+        description: t('scan_qr_code'),
       });
     } else {
       localStorage.removeItem('2fa-enabled');
@@ -58,8 +58,8 @@ const TwoFactorSection: React.FC<TwoFactorSectionProps> = ({
       onTwoFactorToggle(false);
       onSecretGenerated('', '');
       toast({
-        title: "2FA pois käytöstä",
-        description: "Kaksivaiheinen tunnistus on poistettu käytöstä",
+        title: t('two_factor_disabled'),
+        description: t('two_factor_disabled_description'),
       });
     }
   };
@@ -75,8 +75,8 @@ const TwoFactorSection: React.FC<TwoFactorSectionProps> = ({
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="text-white">
-            <div className="font-medium">Kaksivaiheinen tunnistus</div>
-            <div className="text-sm text-white/70">Käytä authenticator-sovellusta</div>
+            <div className="font-medium">{t('two_factor_auth')}</div>
+            <div className="text-sm text-white/70">{t('use_authenticator')}</div>
           </div>
           <Switch 
             checked={twoFactorEnabled} 
@@ -86,18 +86,18 @@ const TwoFactorSection: React.FC<TwoFactorSectionProps> = ({
         
         {twoFactorEnabled && twoFactorSecret && (
           <div className="mt-4 p-4 bg-white/10 rounded-lg">
-            <h4 className="text-white font-semibold mb-2">2FA Asetus:</h4>
+            <h4 className="text-white font-semibold mb-2">{t('two_factor_setup')}</h4>
             <div className="text-white text-sm space-y-2">
-              <p>1. Lataa authenticator-sovellus (esim. Aegis, Google Authenticator)</p>
-              <p>2. Skannaa QR-koodi tai syötä avain manuaalisesti:</p>
+              <p>1. {t('download_authenticator')}</p>
+              <p>2. {t('scan_or_enter_key')}</p>
               <div className="font-mono text-xs bg-black/20 p-2 rounded break-all">
                 {twoFactorSecret}
               </div>
-              <p>3. Syötä 6-numeroinen koodi authenticator-sovelluksesta</p>
+              <p>3. {t('enter_6_digit_code')}</p>
             </div>
             {qrCode && (
               <div className="mt-2 text-xs text-white/70">
-                QR-koodi URL: <span className="break-all">{qrCode}</span>
+                {t('qr_code_url')} <span className="break-all">{qrCode}</span>
               </div>
             )}
           </div>

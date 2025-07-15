@@ -22,8 +22,8 @@ const BiometricSection: React.FC<BiometricSectionProps> = ({
     if (enabled) {
       if (!window.PublicKeyCredential) {
         toast({
-          title: "Ei tuettu",
-          description: "Sormenjälkitunnistus ei ole tuettu tässä selaimessa",
+          title: t('not_supported'),
+          description: t('fingerprint_not_supported'),
           variant: "destructive"
         });
         return;
@@ -52,14 +52,14 @@ const BiometricSection: React.FC<BiometricSectionProps> = ({
           localStorage.setItem('fingerprint-credential', JSON.stringify(credential.id));
           onFingerprintToggle(true);
           toast({
-            title: "Sormenjälki käytössä",
-            description: "Sormenjälkitunnistus on aktivoitu",
+            title: t('fingerprint_enabled'),
+            description: t('fingerprint_activated'),
           });
         }
       } catch (error) {
         toast({
-          title: "Virhe",
-          description: "Sormenjälkitunnistuksen asetus epäonnistui",
+          title: t('error'),
+          description: t('fingerprint_setup_failed'),
           variant: "destructive"
         });
       }
@@ -68,8 +68,8 @@ const BiometricSection: React.FC<BiometricSectionProps> = ({
       localStorage.removeItem('fingerprint-credential');
       onFingerprintToggle(false);
       toast({
-        title: "Sormenjälki pois käytöstä",
-        description: "Sormenjälkitunnistus on poistettu käytöstä",
+        title: t('fingerprint_disabled'),
+        description: t('fingerprint_disabled_description'),
       });
     }
   };
@@ -86,7 +86,7 @@ const BiometricSection: React.FC<BiometricSectionProps> = ({
         <div className="flex items-center justify-between">
           <div className="text-white">
             <div className="font-medium">{t('enable_fingerprint')}</div>
-            <div className="text-sm text-white/70">Käytä sormenjälkeä kirjautumiseen</div>
+            <div className="text-sm text-white/70">{t('use_fingerprint_login')}</div>
           </div>
           <Switch 
             checked={fingerprintEnabled} 
