@@ -30,8 +30,8 @@ const PrivacySettings = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="text-white/80 space-y-3">
-          <p>Tämä sovellus tallentaa tietosi paikallisesti laitteellesi. Mitään tietoja ei lähetetä ulkoisille palvelimille.</p>
-          <p>Käytämme vain välttämättömiä evästeitä sovelluksen toiminnallisuuden varmistamiseksi.</p>
+          <p>{t('app_stores_data_locally')}</p>
+          <p>{t('only_essential_cookies')}</p>
         </CardContent>
       </Card>
 
@@ -46,15 +46,15 @@ const PrivacySettings = () => {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="text-white">
-              <div className="font-medium">Analytiikka</div>
-              <div className="text-sm text-white/70">Käyttötietojen kerääminen</div>
+              <div className="font-medium">{t('analytics')}</div>
+              <div className="text-sm text-white/70">{t('usage_data_collection')}</div>
             </div>
             <Switch defaultChecked={false} />
           </div>
           <div className="flex items-center justify-between">
             <div className="text-white">
-              <div className="font-medium">Virheraportit</div>
-              <div className="text-sm text-white/70">Automaattiset virheraportti</div>
+              <div className="font-medium">{t('error_reports')}</div>
+              <div className="text-sm text-white/70">{t('automatic_error_reports')}</div>
             </div>
             <Switch defaultChecked={true} />
           </div>
@@ -66,21 +66,21 @@ const PrivacySettings = () => {
         <CardHeader>
           <CardTitle className="text-white flex items-center space-x-2">
             <Eye size={20} />
-            <span>Näkyvyysasetukset</span>
+            <span>{t('visibility_settings')}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="text-white">
-              <div className="font-medium">Piilota saldot</div>
-              <div className="text-sm text-white/70">Piilota saldot taustasovelluksessa</div>
+              <div className="font-medium">{t('hide_balances')}</div>
+              <div className="text-sm text-white/70">{t('hide_balances_background')}</div>
             </div>
             <Switch defaultChecked={false} />
           </div>
           <div className="flex items-center justify-between">
             <div className="text-white">
-              <div className="font-medium">Näyttökuvasuojaus</div>
-              <div className="text-sm text-white/70">Estä näyttökuvien ottaminen</div>
+              <div className="font-medium">{t('screenshot_protection')}</div>
+              <div className="text-sm text-white/70">{t('prevent_screenshots')}</div>
             </div>
             <Switch defaultChecked={false} />
           </div>

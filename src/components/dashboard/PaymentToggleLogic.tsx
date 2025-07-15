@@ -36,7 +36,11 @@ export const usePaymentToggleLogic = () => {
       const loan = data.loans.find((l: any) => l.id === loanId);
       
       if (!loan) {
-        console.error('Loan not found for ID:', loanId);
+        toast({
+          title: 'Error',
+          description: `Loan not found for ID: ${loanId}`,
+          variant: "destructive"
+        });
         return;
       }
 
@@ -108,7 +112,11 @@ export const usePaymentToggleLogic = () => {
       // Handle regular monthly bills
       const billIndex = data.monthlyBills.findIndex((b: any) => b.id === billId);
       if (billIndex === -1) {
-        console.error('Bill not found for ID:', billId);
+        toast({
+          title: 'Error',
+          description: `Bill not found for ID: ${billId}`,
+          variant: "destructive"
+        });
         return;
       }
 

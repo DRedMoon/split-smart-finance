@@ -50,8 +50,7 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
       }
       
       if (!targetLoan) {
-        console.error('❌ Loan not found for ID:', loanIdFromBill);
-        console.log('📋 Available loan IDs:', updatedData.loans.map((l: any) => ({ id: l.id.toString(), name: l.name })));
+        toast.error(`Loan not found for ID: ${loanIdFromBill}`);
         return;
       }
 
@@ -129,8 +128,7 @@ export const usePaymentToggleHandler = (financialData: any, setFinancialData: an
       // Handle regular monthly bills
       const billIndex = updatedData.monthlyBills.findIndex((b: any) => b.id === billId);
       if (billIndex === -1) {
-        console.error('❌ Bill not found for ID:', billId);
-        console.log('📋 Available bills:', updatedData.monthlyBills.map((b: any) => ({ id: b.id, name: b.name })));
+        toast.error(`Bill not found for ID: ${billId}`);
         return;
       }
 

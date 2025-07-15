@@ -88,7 +88,7 @@ export const useFinancialData = (refreshKey: number) => {
   try {
     thisWeekPayments = getThisWeekUpcomingPayments();
   } catch (error) {
-    console.error('Error getting upcoming payments:', error);
+    // Silently handle error - upcoming payments are not critical
   }
 
   const filteredWeekPayments = thisWeekPayments.filter(bill => 
