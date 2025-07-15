@@ -171,7 +171,7 @@ const TransactionHistory = () => {
 
       {/* Results Summary */}
       <div className="mb-4 text-white/70 text-sm">
-        {t('showing_transactions', { count: filteredTransactions.length, total: financialData.transactions.length })}
+        {t('showing_transactions')}: {filteredTransactions.length} / {financialData.transactions.length}
       </div>
 
       {/* Transaction List */}

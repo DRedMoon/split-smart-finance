@@ -38,7 +38,10 @@ const EditCategory = () => {
       if (data?.categories) {
         const existingCategory = data.categories.find(cat => cat.id === parseInt(categoryId));
         if (existingCategory) {
-          setCategory(existingCategory);
+          setCategory({
+            ...existingCategory,
+            requiresDueDate: existingCategory.requiresDueDate || false
+          });
         } else {
           toast({
             title: t('error'),
