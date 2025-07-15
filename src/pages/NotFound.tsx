@@ -1,14 +1,16 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { toast } from '@/hooks/use-toast';
 
 const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
+    toast({
+      title: "Page Not Found",
+      description: `The page "${location.pathname}" does not exist.`,
+      variant: "destructive",
+    });
   }, [location.pathname]);
 
   return (

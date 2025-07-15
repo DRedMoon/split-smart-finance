@@ -22,7 +22,11 @@ export const usePaymentToggleLogic = () => {
     
     const data = loadFinancialData();
     if (!data) {
-      console.error('No financial data found');
+      toast({
+        title: "Error",
+        description: "Could not load financial data. Please try again.",
+        variant: "destructive",
+      });
       return;
     }
 

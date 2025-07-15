@@ -1,5 +1,6 @@
 
 import { FinancialData } from './types';
+import { toast } from '@/hooks/use-toast';
 
 const STORAGE_KEY = 'financial-data';
 
@@ -7,7 +8,11 @@ export const saveFinancialData = (data: FinancialData): void => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (error) {
-    console.error('Error saving financial data:', error);
+    toast({
+      title: "Save Error",
+      description: "Failed to save financial data. Please try again.",
+      variant: "destructive",
+    });
   }
 };
 
@@ -16,7 +21,11 @@ export const loadFinancialData = (): FinancialData | null => {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.error('Error loading financial data:', error);
+    toast({
+      title: "Load Error",
+      description: "Failed to load financial data. Using default settings.",
+      variant: "destructive",
+    });
     return null;
   }
 };
@@ -57,7 +66,11 @@ export const clearAllData = (): void => {
     const defaultData = getDefaultFinancialData();
     saveFinancialData(defaultData);
   } catch (error) {
-    console.error('Error clearing data:', error);
+    toast({
+      title: "Clear Data Error",
+      description: "Failed to clear all data. Please try again.",
+      variant: "destructive",
+    });
   }
 };
 

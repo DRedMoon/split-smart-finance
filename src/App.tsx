@@ -33,7 +33,10 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('App Error:', error, errorInfo);
+    // Log error for debugging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('App Error:', error, errorInfo);
+    }
   }
 
   render() {

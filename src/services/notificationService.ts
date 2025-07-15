@@ -1,12 +1,17 @@
 
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { toast } from '@/hooks/use-toast';
 
 export const initializeNotifications = async (): Promise<boolean> => {
   try {
     const permission = await LocalNotifications.requestPermissions();
     return permission.display === 'granted';
   } catch (error) {
-    console.error('Error initializing notifications:', error);
+    toast({
+      title: "Notification Error",
+      description: "Failed to initialize notifications. Please check your settings.",
+      variant: "destructive",
+    });
     return false;
   }
 };
@@ -28,7 +33,11 @@ export const schedulePaymentNotifications = async (payments: Array<{ name: strin
 
     await LocalNotifications.schedule({ notifications });
   } catch (error) {
-    console.error('Error scheduling notifications:', error);
+    toast({
+      title: "Notification Error",
+      description: "Failed to schedule notifications. Please try again.",
+      variant: "destructive",
+    });
   }
 };
 
@@ -46,6 +55,10 @@ export const showNotification = async (title: string, body: string) => {
       }]
     });
   } catch (error) {
-    console.error('Error showing notification:', error);
+    toast({
+      title: "Notification Error",
+      description: "Failed to show notification. Please check your settings.",
+      variant: "destructive",
+    });
   }
 };

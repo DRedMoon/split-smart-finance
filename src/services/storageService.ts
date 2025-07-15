@@ -12,13 +12,18 @@ import { loadFinancialData, saveFinancialData, getDefaultFinancialData } from '.
 import { addTransaction } from './transactionService';
 import { addBill } from './billService';
 import { FinancialData } from './types';
+import { toast } from '@/hooks/use-toast';
 
 // Add missing functions
 export const addIncome = (income: Omit<FinancialData['transactions'][0], 'id'>): void => {
   try {
     addTransaction(income);
   } catch (error) {
-    console.error('Error adding income:', error);
+    toast({
+      title: "Add Income Error",
+      description: "Failed to add income. Please try again.",
+      variant: "destructive",
+    });
   }
 };
 
@@ -26,7 +31,11 @@ export const addMonthlyBill = (bill: Omit<FinancialData['monthlyBills'][0], 'id'
   try {
     addBill(bill);
   } catch (error) {
-    console.error('Error adding monthly bill:', error);
+    toast({
+      title: "Add Bill Error",
+      description: "Failed to add monthly bill. Please try again.",
+      variant: "destructive",
+    });
   }
 };
 
@@ -49,7 +58,7 @@ export const logError = (error: Error, context?: string): void => {
       localStorage.setItem('error-logs', JSON.stringify(existingLogs));
     }
   } catch (err) {
-    console.error('Error logging error:', err);
+    // Silent fail for error logging to avoid infinite loops
   }
 };
 
@@ -71,7 +80,7 @@ export const logAnalytics = (event: string, data?: any): void => {
       localStorage.setItem('analytics-logs', JSON.stringify(existingAnalytics));
     }
   } catch (error) {
-    console.error('Error logging analytics:', error);
+    // Silent fail for analytics logging to avoid infinite loops
   }
 };
 
@@ -105,7 +114,11 @@ export const performAutomaticBackup = (): void => {
       localStorage.setItem('last-backup', now.toISOString());
     }
   } catch (error) {
-    console.error('Error performing automatic backup:', error);
+    toast({
+      title: "Backup Error",
+      description: "Automatic backup failed. Please try manual backup.",
+      variant: "destructive",
+    });
   }
 };
 
@@ -121,7 +134,11 @@ export const updateCategory = (categoryId: number, updates: Partial<FinancialDat
       }
     }
   } catch (error) {
-    console.error('Error updating category:', error);
+    toast({
+      title: "Update Error",
+      description: "Failed to update category. Please try again.",
+      variant: "destructive",
+    });
   }
 };
 
@@ -133,7 +150,11 @@ export const deleteCategory = (categoryId: number): void => {
       saveFinancialData(data);
     }
   } catch (error) {
-    console.error('Error deleting category:', error);
+    toast({
+      title: "Delete Error",
+      description: "Failed to delete category. Please try again.",
+      variant: "destructive",
+    });
   }
 };
 
@@ -168,7 +189,11 @@ export const getThisWeekUpcomingPayments = () => {
       return dueDate >= today && dueDate <= nextWeek;
     });
   } catch (error) {
-    console.error('Error getting this week upcoming payments:', error);
+    toast({
+      title: "Load Error",
+      description: "Failed to load upcoming payments. Please try again.",
+      variant: "destructive",
+    });
     return [];
   }
 };
