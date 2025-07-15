@@ -55,7 +55,7 @@ const DataManagement = () => {
             className="data-[state=active]:bg-[#192E45] data-[state=active]:text-white text-white/70"
           >
             <Upload size={16} className="mr-2" />
-            {t('data_import')}
+            {t('import_data')}
           </TabsTrigger>
         </TabsList>
 
