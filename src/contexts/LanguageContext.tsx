@@ -342,7 +342,48 @@ const translations = {
 
     // AddExpense additional translations (new)
     due_date_required: 'Eräpäivä vaaditaan tälle kategorialle',
-    select_day: 'Valitse päivä'
+    select_day: 'Valitse päivä',
+
+    // Additional internationalization
+    due_date_required_short: 'Eräpäivä vaaditaan',
+    show_due_date_picker: 'Näytä eräpäivän valitsin tätä kategoriaa käytettäessä',
+    this_week: 'Tämä viikko',
+    year: 'Vuosi',
+    no_payments_for_year: 'Ei maksuja vuodelle',
+    loans_and_credits: 'Lainat ja luotot',
+    no_payments: 'Ei maksuja',
+    this_week_colon: 'Tällä viikolla:',
+    month_colon: 'Kuukausi:',
+    year_colon: 'Vuosi',
+    type: 'Tyyppi',
+    loan_name: 'Lainan nimi',
+    total_loan_amount: 'Lainan kokonaissumma',
+    remaining_amount: 'Jäljellä maksettava summa',
+    monthly_payment_euro: 'Kuukausimaksu (€)',
+    maintenance_fee_euro: 'Hoitokulu (€)',
+    euribor_rate_percent: 'Euribor-korko (%)',
+    personal_margin_percent: 'Henkilökohtainen marginaali (%)',
+    months_remaining: 'Kuukausia jäljellä',
+    months_placeholder: '60 kuukautta',
+    annual_interest_percent: 'Vuosikorko (%)',
+    minimum_payment_percent_fi: 'Vähimmäismaksuprosentti (%)',
+    calculated_from_payment_data: 'Laskettu maksutiedoistasi:',
+    estimated_euribor: 'Arvioitu Euribor: ',
+    estimated_margin: 'Arvioitu marginaali: ',
+    
+    // Month names
+    january: 'Tammikuu',
+    february: 'Helmikuu',
+    march: 'Maaliskuu',
+    april: 'Huhtikuu',
+    may: 'Toukokuu',
+    june: 'Kesäkuu',
+    july: 'Heinäkuu',
+    august: 'Elokuu',
+    september: 'Syyskuu',
+    october: 'Lokakuu',
+    november: 'Marraskuu',
+    december: 'Joulukuu',
   },
   en: {
     // Dashboard
@@ -675,7 +716,47 @@ const translations = {
 
     // AddExpense additional translations (new)
     due_date_required: 'Due date is required for this category',
-    select_day: 'Select day'
+    select_day: 'Select day',
+
+    // Additional internationalization
+    due_date_required_short: 'Due date required',
+    show_due_date_picker: 'Show due date picker when using this category',
+    this_week: 'This week',
+    no_payments_for_year: 'No payments for year',
+    loans_and_credits: 'Loans and credits',
+    no_payments: 'No payments',
+    this_week_colon: 'This week:',
+    month_colon: 'Month:',
+    year_colon: 'Year',
+    type: 'Type',
+    loan_name: 'Loan name',
+    total_loan_amount: 'Total loan amount',
+    remaining_amount: 'Remaining amount',
+    monthly_payment_euro: 'Monthly payment (€)',
+    maintenance_fee_euro: 'Maintenance fee (€)',
+    euribor_rate_percent: 'Euribor rate (%)',
+    personal_margin_percent: 'Personal margin (%)',
+    months_remaining: 'Months remaining',
+    months_placeholder: '60 months',
+    annual_interest_percent: 'Annual interest (%)',
+    minimum_payment_percent_en: 'Minimum payment percent (%)',
+    calculated_from_payment_data: 'Calculated from your payment data:',
+    estimated_euribor: 'Estimated Euribor: ',
+    estimated_margin: 'Estimated margin: ',
+    
+    // Month names
+    january: 'January',
+    february: 'February',
+    march: 'March',
+    april: 'April',
+    may: 'May',
+    june: 'June',
+    july: 'July',
+    august: 'August',
+    september: 'September',
+    october: 'October',
+    november: 'November',
+    december: 'December',
   }
 } as const;
 

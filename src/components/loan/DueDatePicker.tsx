@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -11,6 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DueDatePickerProps {
   value: string;
@@ -19,8 +19,12 @@ interface DueDatePickerProps {
   placeholder?: string;
 }
 
-const DueDatePicker = ({ value, onChange, label = "Eräpäivä", placeholder = "Valitse päivä" }: DueDatePickerProps) => {
+const DueDatePicker = ({ value, onChange, label, placeholder }: DueDatePickerProps) => {
+  const { t } = useLanguage();
   const [date, setDate] = React.useState<Date | undefined>();
+
+  const displayLabel = label || t('due_date');
+  const displayPlaceholder = placeholder || t('select_day');
 
   // Convert string day to date for display
   React.useEffect(() => {
@@ -41,7 +45,7 @@ const DueDatePicker = ({ value, onChange, label = "Eräpäivä", placeholder = "
 
   return (
     <div>
-      <Label className="text-white">{label}</Label>
+      <Label className="text-white">{displayLabel}</Label>
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -52,7 +56,7 @@ const DueDatePicker = ({ value, onChange, label = "Eräpäivä", placeholder = "
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {value ? `${value}.` : <span>{placeholder}</span>}
+            {value ? `${value}.` : <span>{displayPlaceholder}</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">

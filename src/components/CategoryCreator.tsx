@@ -161,7 +161,7 @@ const CategoryCreator = () => {
                   )}
                   {category.requiresDueDate && (
                     <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-1 rounded">
-                      Eräpäivä vaaditaan
+                      {t('due_date_required_short')}
                     </span>
                   )}
                 </div>
@@ -257,8 +257,8 @@ const CategoryCreator = () => {
 
             <div className="flex items-center justify-between">
               <div className="text-white">
-                <div className="font-medium">Eräpäivä vaaditaan</div>
-                <div className="text-sm text-white/70">Näytä eräpäivän valitsin tätä kategoriaa käytettäessä</div>
+                <div className="font-medium">{t('due_date_required_short')}</div>
+                <div className="text-sm text-white/70">{t('show_due_date_picker')}</div>
               </div>
               <Switch 
                 checked={newCategory.requiresDueDate}

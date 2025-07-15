@@ -37,7 +37,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
   return (
     <>
       <div>
-        <Label htmlFor="loan-type" className="text-white">Tyyppi</Label>
+        <Label htmlFor="loan-type" className="text-white">{t('type')}</Label>
         <Select 
           value={isCredit ? 'credit' : 'loan'} 
           onValueChange={(value) => {
@@ -54,29 +54,29 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="loan">Laina</SelectItem>
-            <SelectItem value="credit">Luottokortti</SelectItem>
+            <SelectItem value="loan">{t('loan')}</SelectItem>
+            <SelectItem value="credit">{t('credit_card')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div>
         <Label htmlFor="loan-name" className="text-white">
-          {isCredit ? 'Luottokortin nimi' : 'Lainan nimi'}
+          {isCredit ? t('credit_card_name') : t('loan_name')}
         </Label>
         <Input
           id="loan-name"
           value={loanData.name}
           onChange={(e) => setLoanData(prev => ({ ...prev, name: e.target.value }))}
           className="bg-white/10 border-white/20 text-white mt-2"
-          placeholder={isCredit ? 'Luottokortin nimi' : 'Lainan nimi'}
+          placeholder={isCredit ? t('credit_card_name') : t('loan_name')}
         />
       </div>
       
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="total-amount" className="text-white">
-            {isCredit ? 'Luottoraja' : 'Lainan kokonaissumma'}
+            {isCredit ? t('credit_limit') : t('total_loan_amount')}
           </Label>
           <Input
             id="total-amount"
@@ -90,7 +90,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
         
         <div>
           <Label htmlFor="current-amount" className="text-white">
-            {isCredit ? 'Käytetty luotto' : 'Jäljellä maksettava summa'}
+            {isCredit ? t('used_credit') : t('remaining_amount')}
           </Label>
           <Input
             id="current-amount"
@@ -105,7 +105,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="monthly-payment" className="text-white">Kuukausimaksu (€)</Label>
+          <Label htmlFor="monthly-payment" className="text-white">{t('monthly_payment_euro')}</Label>
           <Input
             id="monthly-payment"
             type="text"
@@ -117,7 +117,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
         </div>
         
         <div>
-          <Label htmlFor="management-fee" className="text-white">Hoitokulu (€)</Label>
+          <Label htmlFor="management-fee" className="text-white">{t('maintenance_fee_euro')}</Label>
           <Input
             id="management-fee"
             type="text"
@@ -133,7 +133,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
         <>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="euribor-rate" className="text-white">Euribor-korko (%)</Label>
+              <Label htmlFor="euribor-rate" className="text-white">{t('euribor_rate_percent')}</Label>
               <Input
                 id="euribor-rate"
                 type="text"
@@ -145,7 +145,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
             </div>
             
             <div>
-              <Label htmlFor="personal-margin" className="text-white">Henkilökohtainen marginaali (%)</Label>
+              <Label htmlFor="personal-margin" className="text-white">{t('personal_margin_percent')}</Label>
               <Input
                 id="personal-margin"
                 type="text"
@@ -158,13 +158,13 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
           </div>
 
           <div>
-            <Label htmlFor="remaining-months" className="text-white">Kuukausia jäljellä</Label>
+            <Label htmlFor="remaining-months" className="text-white">{t('months_remaining')}</Label>
             <Input
               id="remaining-months"
               value={loanData.remaining}
               onChange={(e) => setLoanData(prev => ({ ...prev, remaining: e.target.value }))}
               className="bg-white/10 border-white/20 text-white mt-2"
-              placeholder="60 kuukautta"
+              placeholder={t('months_placeholder')}
             />
           </div>
         </>
@@ -173,7 +173,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
       {isCredit && (
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="credit-interest" className="text-white">Vuosikorko (%)</Label>
+            <Label htmlFor="credit-interest" className="text-white">{t('annual_interest_percent')}</Label>
             <Input
               id="credit-interest"
               type="text"
@@ -185,7 +185,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
           </div>
           
           <div>
-            <Label htmlFor="minimum-percent" className="text-white">Vähimmäismaksuprosentti (%)</Label>
+            <Label htmlFor="minimum-percent" className="text-white">{t('minimum_payment_percent_fi')}</Label>
             <Input
               id="minimum-percent"
               type="text"
@@ -201,20 +201,20 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
       <DueDatePicker
         value={loanData.dueDate}
         onChange={(value) => setLoanData(prev => ({ ...prev, dueDate: value }))}
-        label="Eräpäivä"
-        placeholder="Valitse päivä"
+        label={t('due_date')}
+        placeholder={t('select_day')}
       />
 
       {calculatedValues.estimatedEuribor > 0 && calculatedValues.estimatedMargin > 0.1 && (
         <div className="bg-blue-500/20 p-3 rounded border border-blue-500/30">
-          <p className="text-white text-sm font-medium mb-2">Laskettu maksutiedoistasi:</p>
+          <p className="text-white text-sm font-medium mb-2">{t('calculated_from_payment_data')}</p>
           <div className="grid grid-cols-2 gap-2 text-xs text-white/80">
             <div>
-              <span>Arvioitu Euribor: </span>
+              <span>{t('estimated_euribor')}</span>
               <span className="font-medium">{calculatedValues.estimatedEuribor.toFixed(2)}%</span>
             </div>
             <div>
-              <span>Arvioitu marginaali: </span>
+              <span>{t('estimated_margin')}</span>
               <span className="font-medium">{calculatedValues.estimatedMargin.toFixed(2)}%</span>
             </div>
           </div>

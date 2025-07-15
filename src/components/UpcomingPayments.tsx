@@ -185,14 +185,14 @@ const UpcomingPayments = () => {
 
   const getMonthName = (month: number) => {
     const months = [
-      'Tammikuu', 'Helmikuu', 'Maaliskuu', 'Huhtikuu', 'Toukokuu', 'Kesäkuu',
-      'Heinäkuu', 'Elokuu', 'Syyskuu', 'Lokakuu', 'Marraskuu', 'Joulukuu'
+      t('january'), t('february'), t('march'), t('april'), t('may'), t('june'),
+      t('july'), t('august'), t('september'), t('october'), t('november'), t('december')
     ];
     return months[month];
   };
 
   if (!financialData) {
-    return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
+    return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">{t('loading')}</div>;
   }
 
   const upcomingPayments = currentView === 'month' && currentMonth !== new Date().getMonth() 
@@ -243,7 +243,7 @@ const UpcomingPayments = () => {
           onClick={() => setCurrentView('week')}
           className={currentView === 'week' ? 'bg-[#294D73]' : 'border-white/20 text-white hover:bg-white/10'}
         >
-          Tämä viikko
+          {t('this_week')}
         </Button>
         <Button 
           variant={currentView === 'month' ? 'default' : 'outline'}
@@ -251,7 +251,7 @@ const UpcomingPayments = () => {
           onClick={() => setCurrentView('month')}
           className={currentView === 'month' ? 'bg-[#294D73]' : 'border-white/20 text-white hover:bg-white/10'}
         >
-          Kuukausi
+          {t('month')}
         </Button>
         <Button 
           variant={currentView === 'yearly' ? 'default' : 'outline'}
@@ -259,7 +259,7 @@ const UpcomingPayments = () => {
           onClick={() => setCurrentView('yearly')}
           className={currentView === 'yearly' ? 'bg-[#294D73]' : 'border-white/20 text-white hover:bg-white/10'}
         >
-          Vuosi
+          {t('year')}
         </Button>
       </div>
 
@@ -283,7 +283,7 @@ const UpcomingPayments = () => {
             <Card className="bg-[#294D73] border-none">
               <CardContent className="p-4">
                 <div className="text-white/70 text-center py-4">
-                  Ei maksuja vuodelle {new Date().getFullYear()}
+                  {t('no_payments_for_year')} {new Date().getFullYear()}
                 </div>
               </CardContent>
             </Card>
@@ -302,7 +302,7 @@ const UpcomingPayments = () => {
                   {/* Loan/Credit Payments for this month */}
                   {monthData.loanCreditPayments.length > 0 && (
                     <div className="space-y-2">
-                      <div className="text-sm font-medium text-white/80">Lainat ja luotot</div>
+                      <div className="text-sm font-medium text-white/80">{t('loans_and_credits')}</div>
                       {monthData.loanCreditPayments.map(bill => (
                         <div key={bill.id} className="flex justify-between items-center p-3 bg-red-500/20 rounded-lg border border-red-500/30">
                           <div>
@@ -323,7 +323,7 @@ const UpcomingPayments = () => {
                   {/* Regular Bills for this month */}
                   {monthData.regularBills.length > 0 && (
                     <div className="space-y-2">
-                      <div className="text-sm font-medium text-white/80">Kuukausimaksut</div>
+                      <div className="text-sm font-medium text-white/80">{t('monthly_payments')}</div>
                       {monthData.regularBills.map(bill => (
                         <div key={bill.id} className="flex justify-between items-center p-3 bg-white/10 rounded-lg">
                           <div className="flex items-center space-x-3">
@@ -357,7 +357,7 @@ const UpcomingPayments = () => {
               <CardHeader>
                 <CardTitle className="text-white flex items-center space-x-2">
                   <Calendar size={20} />
-                  <span>Lainat ja luotot</span>
+                  <span>{t('loans_and_credits')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -387,7 +387,7 @@ const UpcomingPayments = () => {
             <CardContent className="space-y-3">
               {regularBills.length === 0 ? (
                 <div className="text-white/70 text-center py-4">
-                  Ei maksuja
+                  {t('no_payments')}
                 </div>
               ) : (
                 regularBills.map(bill => (
@@ -419,9 +419,9 @@ const UpcomingPayments = () => {
         <CardContent className="p-4">
           <div className="flex justify-between items-center text-white">
             <span className="text-lg">
-              {currentView === 'week' && 'Tällä viikolla:'}
+              {currentView === 'week' && t('this_week_colon')}
               {currentView === 'month' && `${getMonthName(currentMonth)}:`}
-              {currentView === 'yearly' && `Vuosi ${new Date().getFullYear()}:`}
+              {currentView === 'yearly' && `${t('year_colon')} ${new Date().getFullYear()}:`}
             </span>
             <span className="text-xl font-bold text-orange-300">
               €{totalAmount.toFixed(2)}
