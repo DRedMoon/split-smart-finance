@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, BarChart3, TrendingUp, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import CategoryChart from './analytics/CategoryChart';
 import MonthlyComparisonChart from './analytics/MonthlyComparisonChart';
 import AnalyticsOverview from './analytics/AnalyticsOverview';
 
-const Analytics = () => {
+const Analytics = React.memo(() => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [financialData, setFinancialData] = useState<FinancialData | null>(null);
@@ -24,7 +24,7 @@ const Analytics = () => {
     }
   }, []);
 
-  const processExpenseData = () => {
+  const processExpenseData = useCallback(() => {
     if (!financialData?.transactions) return [];
     
     const months = parseInt(selectedPeriod);
@@ -44,9 +44,9 @@ const Analytics = () => {
       month: `${month}-01`,
       amount
     })).sort((a, b) => a.month.localeCompare(b.month));
-  };
+  }, [financialData, selectedPeriod]);
 
-  const processCategoryData = () => {
+  const processCategoryData = useCallback(() => {
     if (!financialData?.transactions) return [];
     
     const months = parseInt(selectedPeriod);
@@ -66,9 +66,9 @@ const Analytics = () => {
       name,
       value
     })).sort((a, b) => b.value - a.value);
-  };
+  }, [financialData, selectedPeriod]);
 
-  const processMonthlyComparisonData = () => {
+  const processMonthlyComparisonData = useCallback(() => {
     if (!financialData?.transactions) return [];
     
     const months = parseInt(selectedPeriod);
@@ -96,9 +96,9 @@ const Analytics = () => {
       month: `${month}-01`,
       ...data
     })).sort((a, b) => a.month.localeCompare(b.month));
-  };
+  }, [financialData, selectedPeriod]);
 
-  const calculateOverviewStats = () => {
+  const calculateOverviewStats = useCallback(() => {
     if (!financialData?.transactions) {
       return {
         totalExpenses: 0,
@@ -140,7 +140,7 @@ const Analytics = () => {
       mostExpensiveCategory,
       savingsRate
     };
-  };
+  }, [financialData, selectedPeriod]);
 
   if (!financialData) {
     return (
@@ -150,42 +150,56 @@ const Analytics = () => {
     );
   }
 
-  const expenseData = processExpenseData();
-  const categoryData = processCategoryData();
-  const comparisonData = processMonthlyComparisonData();
-  const overviewStats = calculateOverviewStats();
+  // Memoized data processing for better performance
+  const expenseData = useMemo(() => processExpenseData(), [processExpenseData]);
+  const categoryData = useMemo(() => processCategoryData(), [processCategoryData]);
+  const comparisonData = useMemo(() => processMonthlyComparisonData(), [processMonthlyComparisonData]);
+  const overviewStats = useMemo(() => calculateOverviewStats(), [calculateOverviewStats]);
 
   return (
     <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <header className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-white hover:bg-white/10">
-            <ArrowLeft size={20} />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/')} 
+            className="text-white hover:bg-white/10 focus:ring-2 focus:ring-white/50"
+            aria-label={t('back_to_home')}
+          >
+            <ArrowLeft size={20} aria-hidden="true" />
           </Button>
           <h1 className="text-2xl font-bold text-white flex items-center space-x-2">
-            <BarChart3 size={24} />
+            <BarChart3 size={24} aria-hidden="true" />
             <span>{t('analytics')}</span>
           </h1>
         </div>
         
-        <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-          <SelectTrigger className="w-32 bg-[#294D73] border-none text-white">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="3">3 {t('months')}</SelectItem>
-            <SelectItem value="6">6 {t('months')}</SelectItem>
-            <SelectItem value="12">12 {t('months')}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        <div className="flex items-center space-x-2">
+          <label htmlFor="period-select" className="sr-only">{t('select_time_period')}</label>
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <SelectTrigger 
+              id="period-select"
+              className="w-32 bg-[#294D73] border-none text-white focus:ring-2 focus:ring-white/50"
+              aria-label={t('select_time_period')}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="3">3 {t('months')}</SelectItem>
+              <SelectItem value="6">6 {t('months')}</SelectItem>
+              <SelectItem value="12">12 {t('months')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </header>
 
       {/* Overview Stats */}
       <AnalyticsOverview {...overviewStats} />
 
       {/* Charts */}
-      <div className="space-y-6">
+      <main className="space-y-6">
         {/* Expense Trend */}
         <ExpenseChart 
           data={expenseData} 
@@ -203,9 +217,9 @@ const Analytics = () => {
           data={comparisonData} 
           title={t('income_vs_expenses')} 
         />
-      </div>
+      </main>
     </div>
   );
-};
+});
 
 export default Analytics;

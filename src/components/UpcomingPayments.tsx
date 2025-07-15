@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,7 +35,7 @@ const UpcomingPayments = () => {
     }
   }, []);
 
-  const getUpcomingPayments = (view: 'week' | 'month'): NormalizedPayment[] => {
+  const getUpcomingPayments = useCallback((view: 'week' | 'month'): NormalizedPayment[] => {
     if (!financialData?.monthlyBills) return [];
 
     const today = new Date();
@@ -72,9 +72,9 @@ const UpcomingPayments = () => {
       type: bill.type,
       isPaid: isPaymentPaidForMonth(bill, currentYear, currentMonth)
     }));
-  };
+  }, [financialData, currentYear, currentMonth]);
 
-  const getYearlyUpcomingPayments = () => {
+  const getYearlyUpcomingPayments = useCallback(() => {
     if (!financialData?.monthlyBills) return [];
 
     const today = new Date();
@@ -126,9 +126,9 @@ const UpcomingPayments = () => {
     }
 
     return monthlyData;
-  };
+  }, [financialData]);
 
-  const getNextMonthPayments = (): NormalizedPayment[] => {
+  const getNextMonthPayments = useCallback((): NormalizedPayment[] => {
     if (!financialData) return [];
     
     const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
@@ -163,9 +163,9 @@ const UpcomingPayments = () => {
       }));
 
     return [...loanPayments, ...regularBills];
-  };
+  }, [financialData, currentMonth, currentYear]);
 
-  const navigateMonth = (direction: 'prev' | 'next') => {
+  const navigateMonth = useCallback((direction: 'prev' | 'next') => {
     if (direction === 'next') {
       if (currentMonth === 11) {
         setCurrentMonth(0);
@@ -181,67 +181,92 @@ const UpcomingPayments = () => {
         setCurrentMonth(currentMonth - 1);
       }
     }
-  };
+  }, [currentMonth, currentYear]);
 
-  const getMonthName = (month: number) => {
+  const getMonthName = useCallback((month: number) => {
     const months = [
       t('january'), t('february'), t('march'), t('april'), t('may'), t('june'),
       t('july'), t('august'), t('september'), t('october'), t('november'), t('december')
     ];
     return months[month];
-  };
+  }, [t]);
 
   if (!financialData) {
     return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">{t('loading')}</div>;
   }
 
-  const upcomingPayments = currentView === 'month' && currentMonth !== new Date().getMonth() 
-    ? getNextMonthPayments() 
-    : currentView === 'yearly' 
-    ? [] 
-    : getUpcomingPayments(currentView);
+  // Memoized calculations for better performance
+  const upcomingPayments = useMemo(() => {
+    return currentView === 'month' && currentMonth !== new Date().getMonth() 
+      ? getNextMonthPayments() 
+      : currentView === 'yearly' 
+      ? [] 
+      : getUpcomingPayments(currentView);
+  }, [currentView, currentMonth, getNextMonthPayments, getUpcomingPayments]);
 
-  const yearlyData = currentView === 'yearly' ? getYearlyUpcomingPayments() : [];
+  const yearlyData = useMemo(() => {
+    return currentView === 'yearly' ? getYearlyUpcomingPayments() : [];
+  }, [currentView, getYearlyUpcomingPayments]);
 
-  // Separate loan/credit payments from regular bills
-  const loanCreditPayments = upcomingPayments.filter(bill => 
-    bill.category === 'Loan' || bill.category === 'Credit Card' || 
-    bill.type === 'laina' || bill.type === 'luottokortti' ||
-    bill.type === 'loan_payment' || bill.type === 'credit_payment'
-  );
+  // Separate loan/credit payments from regular bills - memoized
+  const { loanCreditPayments, regularBills } = useMemo(() => {
+    const loanCredit = upcomingPayments.filter(bill => 
+      bill.category === 'Loan' || bill.category === 'Credit Card' || 
+      bill.type === 'laina' || bill.type === 'luottokortti' ||
+      bill.type === 'loan_payment' || bill.type === 'credit_payment'
+    );
 
-  const regularBills = upcomingPayments.filter(bill => 
-    bill.category !== 'Loan' && bill.category !== 'Credit Card' && 
-    bill.type !== 'laina' && bill.type !== 'luottokortti' &&
-    bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
-  );
+    const regular = upcomingPayments.filter(bill => 
+      bill.category !== 'Loan' && bill.category !== 'Credit Card' && 
+      bill.type !== 'laina' && bill.type !== 'luottokortti' &&
+      bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
+    );
 
-  const totalAmount = currentView === 'yearly' 
-    ? yearlyData.reduce((sum, monthData) => sum + monthData.totalAmount, 0)
-    : upcomingPayments.reduce((sum, bill) => sum + bill.amount, 0);
+    return { loanCreditPayments: loanCredit, regularBills: regular };
+  }, [upcomingPayments]);
+
+  const totalAmount = useMemo(() => {
+    return currentView === 'yearly' 
+      ? yearlyData.reduce((sum, monthData) => sum + monthData.totalAmount, 0)
+      : upcomingPayments.reduce((sum, bill) => sum + bill.amount, 0);
+  }, [currentView, yearlyData, upcomingPayments]);
 
   return (
     <div className="p-4 pb-20 bg-[#192E45] min-h-screen max-w-md mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <header className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-white hover:bg-white/10">
-            <ArrowLeft size={20} />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/')} 
+            className="text-white hover:bg-white/10 focus:ring-2 focus:ring-white/50"
+            aria-label={t('back_to_home')}
+          >
+            <ArrowLeft size={20} aria-hidden="true" />
           </Button>
           <h1 className="text-2xl font-bold text-white">{t('upcoming')}</h1>
         </div>
-        <Button onClick={() => navigate('/add')} size="sm" className="bg-[#294D73] hover:bg-[#1f3a5f]">
-          <Plus size={16} />
+        <Button 
+          onClick={() => navigate('/add')} 
+          size="sm" 
+          className="bg-[#294D73] hover:bg-[#1f3a5f] focus:ring-2 focus:ring-white/50"
+          aria-label={t('add_new_payment')}
+        >
+          <Plus size={16} aria-hidden="true" />
         </Button>
-      </div>
+      </header>
 
       {/* View Toggle */}
-      <div className="flex space-x-2 mb-6">
+      <div className="flex space-x-2 mb-6" role="tablist" aria-label={t('view_options')}>
         <Button 
           variant={currentView === 'week' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setCurrentView('week')}
           className={currentView === 'week' ? 'bg-[#294D73]' : 'border-white/20 text-white hover:bg-white/10'}
+          role="tab"
+          aria-selected={currentView === 'week'}
+          aria-controls="payment-content"
         >
           {t('this_week')}
         </Button>
@@ -250,6 +275,9 @@ const UpcomingPayments = () => {
           size="sm"
           onClick={() => setCurrentView('month')}
           className={currentView === 'month' ? 'bg-[#294D73]' : 'border-white/20 text-white hover:bg-white/10'}
+          role="tab"
+          aria-selected={currentView === 'month'}
+          aria-controls="payment-content"
         >
           {t('month')}
         </Button>
@@ -258,6 +286,9 @@ const UpcomingPayments = () => {
           size="sm"
           onClick={() => setCurrentView('yearly')}
           className={currentView === 'yearly' ? 'bg-[#294D73]' : 'border-white/20 text-white hover:bg-white/10'}
+          role="tab"
+          aria-selected={currentView === 'yearly'}
+          aria-controls="payment-content"
         >
           {t('year')}
         </Button>
@@ -265,29 +296,45 @@ const UpcomingPayments = () => {
 
       {/* Month Navigation (only for month view) */}
       {currentView === 'month' && (
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" size="sm" onClick={() => navigateMonth('prev')} className="text-white hover:bg-white/10">
-            <ChevronLeft size={16} />
+        <div className="flex items-center justify-between mb-4" role="navigation" aria-label={t('month_navigation')}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigateMonth('prev')} 
+            className="text-white hover:bg-white/10 focus:ring-2 focus:ring-white/50"
+            aria-label={t('previous_month')}
+          >
+            <ChevronLeft size={16} aria-hidden="true" />
           </Button>
-          <h2 className="text-white font-semibold">{getMonthName(currentMonth)} {currentYear}</h2>
-          <Button variant="ghost" size="sm" onClick={() => navigateMonth('next')} className="text-white hover:bg-white/10">
-            <ChevronRight size={16} />
+          <h2 className="text-white font-semibold" aria-live="polite">
+            {getMonthName(currentMonth)} {currentYear}
+          </h2>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigateMonth('next')} 
+            className="text-white hover:bg-white/10 focus:ring-2 focus:ring-white/50"
+            aria-label={t('next_month')}
+          >
+            <ChevronRight size={16} aria-hidden="true" />
           </Button>
         </div>
       )}
 
-      {/* Yearly View */}
-      {currentView === 'yearly' ? (
-        <div className="space-y-6">
-          {yearlyData.length === 0 ? (
-            <Card className="bg-[#294D73] border-none">
-              <CardContent className="p-4">
-                <div className="text-white/70 text-center py-4">
-                  {t('no_payments_for_year')} {new Date().getFullYear()}
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
+      {/* Main Content */}
+      <main id="payment-content" tabIndex={-1}>
+        {/* Yearly View */}
+        {currentView === 'yearly' ? (
+          <div className="space-y-6">
+            {yearlyData.length === 0 ? (
+              <Card className="bg-[#294D73] border-none">
+                <CardContent className="p-4">
+                  <div className="text-white/70 text-center py-4" role="status">
+                    {t('no_payments_for_year')} {new Date().getFullYear()}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
             yearlyData.map(monthData => (
               <Card key={`${monthData.year}-${monthData.month}`} className="bg-[#294D73] border-none">
                 <CardHeader>
@@ -411,8 +458,9 @@ const UpcomingPayments = () => {
               )}
             </CardContent>
           </Card>
-        </>
-      )}
+          </>
+        )}
+      </main>
 
       {/* Summary */}
       <Card className="mt-6 bg-[#294D73] border-none">
@@ -423,7 +471,7 @@ const UpcomingPayments = () => {
               {currentView === 'month' && `${getMonthName(currentMonth)}:`}
               {currentView === 'yearly' && `${t('year_colon')} ${new Date().getFullYear()}:`}
             </span>
-            <span className="text-xl font-bold text-orange-300">
+            <span className="text-xl font-bold text-orange-300" aria-label={`${t('total_amount')} €${totalAmount.toFixed(2)}`}>
               €{totalAmount.toFixed(2)}
             </span>
           </div>

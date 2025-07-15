@@ -10,7 +10,7 @@ interface DashboardContentProps {
   sortedRecentTransactions: any[];
 }
 
-const DashboardContent = ({ 
+const DashboardContent = React.memo(({ 
   isBalanceView, 
   filteredWeekPayments, 
   sortedRecentTransactions 
@@ -36,6 +36,6 @@ const DashboardContent = ({
       </div>
     </>
   );
-};
+});
 
 export default DashboardContent;

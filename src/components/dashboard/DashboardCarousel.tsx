@@ -17,7 +17,7 @@ interface DashboardCarouselProps {
   currentSlide?: number;
 }
 
-const DashboardCarousel = ({ 
+const DashboardCarousel = React.memo(({ 
   balance, 
   loans, 
   monthlyBills, 
@@ -56,6 +56,8 @@ const DashboardCarousel = ({
           loop: true,
           startIndex: initialSlide,
         }}
+        role="region"
+        aria-label="Dashboard cards carousel"
       >
         <CarouselContent>
           <CarouselItem>
@@ -80,6 +82,6 @@ const DashboardCarousel = ({
       </Carousel>
     </div>
   );
-};
+});
 
 export default DashboardCarousel;
