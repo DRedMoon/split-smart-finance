@@ -32,11 +32,16 @@ const Dashboard = () => {
     filteredWeekPayments
   } = useFinancialData(refreshKey);
   
-  // Listen for financial data updates
+  // Listen for financial data updates and reschedule notifications
   useEffect(() => {
     const handleDataUpdate = () => {
       console.log('Dashboard - Financial data updated, refreshing...');
       setRefreshKey(prev => prev + 1);
+      
+      // Update notifications when payment data changes
+      import('@/services/notificationService').then(({ notificationService }) => {
+        notificationService.onPaymentDataUpdated().catch(console.error);
+      });
     };
 
     window.addEventListener('financial-data-updated', handleDataUpdate);
