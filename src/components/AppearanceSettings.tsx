@@ -63,8 +63,8 @@ const AppearanceSettings = () => {
     }
     
     toast({
-      title: 'Asetus päivitetty',
-      description: `${key} päivitetty onnistuneesti`
+      title: t('setting_updated'),
+      description: `${key} ${t('updated_successfully')}`
     });
   };
 
@@ -88,23 +88,23 @@ const AppearanceSettings = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-white font-medium mb-2 block">Fonttikoko</label>
+            <label className="text-white font-medium mb-2 block">{t('font_size')}</label>
             <Select value={settings.fontSize} onValueChange={(value: 'small' | 'medium' | 'large') => handleSettingChange('fontSize', value)}>
               <SelectTrigger className="bg-white/10 border-white/20 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="small">Pieni</SelectItem>
-                <SelectItem value="medium">Keskikokoinen</SelectItem>
-                <SelectItem value="large">Suuri</SelectItem>
+                <SelectItem value="small">{t('small')}</SelectItem>
+                <SelectItem value="medium">{t('medium')}</SelectItem>
+                <SelectItem value="large">{t('large')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="flex items-center justify-between">
             <div className="text-white">
-              <div className="font-medium">Korkea kontrasti</div>
-              <div className="text-sm text-white/70">Parempi näkyvyys</div>
+              <div className="font-medium">{t('high_contrast')}</div>
+              <div className="text-sm text-white/70">{t('better_visibility')}</div>
             </div>
             <Switch 
               checked={settings.highContrast}
@@ -124,7 +124,7 @@ const AppearanceSettings = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <label className="text-white font-medium mb-3 block">Näytön kirkkaus: {settings.screenBrightness}%</label>
+            <label className="text-white font-medium mb-3 block">{t('screen_brightness')}: {settings.screenBrightness}%</label>
             <Slider
               value={[settings.screenBrightness]}
               onValueChange={(value) => handleSettingChange('screenBrightness', value[0])}
@@ -136,25 +136,25 @@ const AppearanceSettings = () => {
           </div>
           
           <div>
-            <label className="text-white font-medium mb-2 block">Näytön aikakatkaisu</label>
+            <label className="text-white font-medium mb-2 block">{t('screen_timeout')}</label>
             <Select value={settings.screenTimeout.toString()} onValueChange={(value) => handleSettingChange('screenTimeout', parseInt(value))}>
               <SelectTrigger className="bg-white/10 border-white/20 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="15">15 sekuntia</SelectItem>
-                <SelectItem value="30">30 sekuntia</SelectItem>
-                <SelectItem value="60">1 minuutti</SelectItem>
-                <SelectItem value="300">5 minuuttia</SelectItem>
-                <SelectItem value="0">Ei koskaan</SelectItem>
+                <SelectItem value="15">{t('seconds_15')}</SelectItem>
+                <SelectItem value="30">{t('seconds_30')}</SelectItem>
+                <SelectItem value="60">{t('minute_1')}</SelectItem>
+                <SelectItem value="300">{t('minutes_5')}</SelectItem>
+                <SelectItem value="0">{t('never')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="flex items-center justify-between">
             <div className="text-white">
-              <div className="font-medium">Saldo lukitusnäytössä</div>
-              <div className="text-sm text-white/70">Näytä saldo lukitusnäytössä</div>
+              <div className="font-medium">{t('balance_on_lock_screen')}</div>
+              <div className="text-sm text-white/70">{t('show_balance_on_lock_screen')}</div>
             </div>
             <Switch 
               checked={settings.showBalanceOnLockScreen}
@@ -164,8 +164,8 @@ const AppearanceSettings = () => {
           
           <div className="flex items-center justify-between">
             <div className="text-white">
-              <div className="font-medium">Animaatiot</div>
-              <div className="text-sm text-white/70">Käytä siirtymäanimaatioita</div>
+              <div className="font-medium">{t('animations')}</div>
+              <div className="text-sm text-white/70">{t('use_transition_animations')}</div>
             </div>
             <Switch 
               checked={settings.animationsEnabled}
@@ -180,19 +180,19 @@ const AppearanceSettings = () => {
         <CardHeader>
           <CardTitle className="text-white flex items-center space-x-2">
             <Palette size={20} />
-            <span>Teema</span>
+            <span>{t('theme')}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-white font-medium mb-2 block">Sovelluksen teema</label>
+            <label className="text-white font-medium mb-2 block">{t('app_theme')}</label>
             <Select value={settings.theme} onValueChange={(value: 'light' | 'dark') => handleSettingChange('theme', value)}>
               <SelectTrigger className="bg-white/10 border-white/20 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="light">Vaalea</SelectItem>
-                <SelectItem value="dark">Tumma</SelectItem>
+                <SelectItem value="light">{t('light')}</SelectItem>
+                <SelectItem value="dark">{t('dark')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
