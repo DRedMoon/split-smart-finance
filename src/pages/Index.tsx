@@ -20,6 +20,7 @@ import AppearanceSettings from '@/components/AppearanceSettings';
 import BackupSettings from '@/components/BackupSettings';
 import DataManagement from '@/components/DataManagement';
 import Navigation from '@/components/Navigation';
+import Analytics from '@/components/Analytics';
 
 const Index = () => {
   const location = useLocation();
@@ -77,6 +78,7 @@ const Index = () => {
         <Route path="/upcoming" element={<UpcomingPayments />} />
         <Route path="/loans-credits" element={<LoansCredits />} />
         <Route path="/transactions" element={<TransactionHistory />} />
+        <Route path="/analytics" element={<Analytics />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/profile" element={<ProfileSettings />} />
         <Route path="/notification-settings" element={<NotificationSettings />} />

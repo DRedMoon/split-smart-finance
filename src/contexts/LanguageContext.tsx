@@ -384,6 +384,18 @@ const translations = {
     october: 'Lokakuu',
     november: 'Marraskuu',
     december: 'Joulukuu',
+    
+    // Analytics
+    analytics_fi: 'Analytiikka',
+    months: 'kuukautta',
+    total_expenses: 'Kulut yhteensä',
+    total_income: 'Tulot yhteensä',
+    monthly_average: 'Kuukausikeskiarvo',
+    savings_rate: 'Säästöprosentti',
+    expense_trend: 'Kulutussuuntaus',
+    category_breakdown: 'Kategoriajakauma',
+    income_vs_expenses: 'Tulot vs. kulut',
+    expenses_fi: 'Kulut',
   },
   en: {
     // Dashboard
@@ -586,7 +598,7 @@ const translations = {
     privacy_policy: 'Privacy Policy',
     app_stores_data_locally: 'This app stores your data locally on your device. No data is sent to external servers.',
     only_essential_cookies: 'We only use essential cookies to ensure app functionality.',
-    analytics: 'Analytics',
+    analytics_dashboard: 'Analytics',
     usage_data_collection: 'Usage data collection',
     error_reports: 'Error reports',
     automatic_error_reports: 'Automatic error reports',
@@ -757,6 +769,18 @@ const translations = {
     october: 'October',
     november: 'November',
     december: 'December',
+    
+    // Analytics
+    analytics_en: 'Analytics',
+    months: 'months',
+    total_expenses: 'Total Expenses',
+    total_income: 'Total Income',
+    monthly_average: 'Monthly Average',
+    savings_rate: 'Savings Rate',
+    expense_trend: 'Expense Trend',
+    category_breakdown: 'Category Breakdown',
+    income_vs_expenses: 'Income vs. Expenses',
+    expenses_en: 'Expenses',
   }
 } as const;
 

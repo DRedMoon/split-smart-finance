@@ -13,7 +13,7 @@ const Navigation = () => {
     { path: '/', icon: Home, label: t('home') },
     { path: '/upcoming', icon: Calendar, label: t('upcoming') },
     { path: '/add', icon: Plus, label: t('add'), special: true },
-    { path: '/transactions', icon: BarChart3, label: t('history') },
+    { path: '/analytics', icon: BarChart3, label: t('analytics_dashboard') },
     { path: '/settings', icon: Settings, label: t('settings') }
   ];
 
