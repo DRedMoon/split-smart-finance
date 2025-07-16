@@ -86,24 +86,25 @@ const AddExpense = () => {
         type: 'expense'
       });
 
-      // Add to monthly bills if marked as recurring or if it's a recurring payment category
+      // Only add to monthly bills if it's explicitly marked as recurring AND it's a bill-type category
       const data = loadFinancialData();
       const categoryData = data?.categories?.find(cat => 
         cat.name.toLowerCase().replace(/\s+/g, '_') === quickData.category
       );
 
-      const recurringCategories = ['insurance', 'subscription', 'bill', 'maintenance_charge', 'hoitovastike', 'housing_company_expenditure'];
-      const isAutoRecurring = categoryData?.isMonthlyPayment || 
-                             categoryData?.isMaintenanceCharge || 
-                             categoryData?.isHousingCompanyExpenditure ||
-                             recurringCategories.includes(quickData.category);
+      // Only these categories should be added to monthly bills
+      const billCategories = ['insurance', 'subscription', 'bill', 'maintenance_charge', 'hoitovastike', 'housing_company_expenditure'];
+      const isBillCategory = categoryData?.isMonthlyPayment || 
+                            categoryData?.isMaintenanceCharge || 
+                            categoryData?.isHousingCompanyExpenditure ||
+                            billCategories.includes(quickData.category);
 
-      if (quickData.isRecurring || isAutoRecurring) {
-        // Add to monthly bills with user-specified due date or default
+      // Only add to monthly bills if it's both recurring AND a bill-type category
+      if (quickData.isRecurring && isBillCategory) {
         addMonthlyBill({
           name: quickData.name,
           amount: quickData.amount,
-          dueDate: quickData.dueDate || '15th', // Use user's due date or default
+          dueDate: quickData.dueDate || '15th',
           type: quickData.category,
           paid: false
         });

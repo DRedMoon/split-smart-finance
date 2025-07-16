@@ -192,7 +192,7 @@ const UpcomingPayments = () => {
   }, [t]);
 
   if (!financialData) {
-    return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">{t('loading')}</div>;
+    return <div className="p-4 text-sidebar-foreground bg-sidebar min-h-screen max-w-md mx-auto">{t('loading')}</div>;
   }
 
   // Memoized calculations for better performance
@@ -236,7 +236,7 @@ const UpcomingPayments = () => {
   }, [currentView, yearlyData, upcomingPayments]);
 
   return (
-    <div className="p-4 pb-20 bg-[#192E45] min-h-screen max-w-md mx-auto">
+    <div className="p-4 pb-20 bg-sidebar min-h-screen max-w-md mx-auto">
       {/* Header */}
       <header className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">

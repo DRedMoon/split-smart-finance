@@ -1,4 +1,10 @@
 
+export interface LoanPaymentBreakdown {
+  principal: number;  // lyhennys
+  interest: number;   // korko
+  managementFee: number; // tilinhoitopalkkio
+}
+
 export interface FinancialData {
   balance: number;
   loans: Array<{
@@ -17,6 +23,7 @@ export interface FinancialData {
     lastPayment: string;
     totalPayback: number;
     yearlyInterestRate: number;
+    paymentBreakdown?: LoanPaymentBreakdown;
   }>;
   monthlyBills: Array<{
     id: number;

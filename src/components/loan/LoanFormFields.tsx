@@ -37,7 +37,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
   return (
     <>
       <div>
-        <Label htmlFor="loan-type" className="text-white">{t('type')}</Label>
+        <Label htmlFor="loan-type" className="text-card-foreground">{t('type')}</Label>
         <Select 
           value={isCredit ? 'credit' : 'loan'} 
           onValueChange={(value) => {
@@ -50,7 +50,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
             }
           }}
         >
-          <SelectTrigger className="bg-white/10 border-white/20 text-white mt-2">
+          <SelectTrigger className="bg-card/10 border-border/20 text-card-foreground mt-2">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -61,21 +61,21 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
       </div>
 
       <div>
-        <Label htmlFor="loan-name" className="text-white">
+        <Label htmlFor="loan-name" className="text-card-foreground">
           {isCredit ? t('credit_card_name') : t('loan_name')}
         </Label>
         <Input
           id="loan-name"
           value={loanData.name}
           onChange={(e) => setLoanData(prev => ({ ...prev, name: e.target.value }))}
-          className="bg-white/10 border-white/20 text-white mt-2"
+          className="bg-card/10 border-border/20 text-card-foreground mt-2"
           placeholder={isCredit ? t('credit_card_name') : t('loan_name')}
         />
       </div>
       
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="total-amount" className="text-white">
+          <Label htmlFor="total-amount" className="text-card-foreground">
             {isCredit ? t('credit_limit') : t('total_loan_amount')}
           </Label>
           <Input
@@ -83,13 +83,13 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
             type="text"
             value={formatDisplayValue(loanData.totalAmount)}
             onChange={(e) => handleNumberInput('totalAmount', e.target.value)}
-            className="bg-white/10 border-white/20 text-white mt-2"
+            className="bg-card/10 border-border/20 text-card-foreground mt-2"
             placeholder="15000"
           />
         </div>
         
         <div>
-          <Label htmlFor="current-amount" className="text-white">
+          <Label htmlFor="current-amount" className="text-card-foreground">
             {isCredit ? t('used_credit') : t('remaining_amount')}
           </Label>
           <Input
@@ -97,7 +97,7 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
             type="text"
             value={formatDisplayValue(loanData.currentAmount)}
             onChange={(e) => handleNumberInput('currentAmount', e.target.value)}
-            className="bg-white/10 border-white/20 text-white mt-2"
+            className="bg-card/10 border-border/20 text-card-foreground mt-2"
             placeholder="12000"
           />
         </div>
@@ -105,25 +105,25 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="monthly-payment" className="text-white">{t('monthly_payment_euro')}</Label>
+          <Label htmlFor="monthly-payment" className="text-card-foreground">{t('monthly_payment_euro')}</Label>
           <Input
             id="monthly-payment"
             type="text"
             value={formatDisplayValue(loanData.monthly)}
             onChange={(e) => handleNumberInput('monthly', e.target.value)}
-            className="bg-white/10 border-white/20 text-white mt-2"
+            className="bg-card/10 border-border/20 text-card-foreground mt-2"
             placeholder="881"
           />
         </div>
         
         <div>
-          <Label htmlFor="management-fee" className="text-white">{t('maintenance_fee_euro')}</Label>
+          <Label htmlFor="management-fee" className="text-card-foreground">{t('maintenance_fee_euro')}</Label>
           <Input
             id="management-fee"
             type="text"
             value={formatDisplayValue(loanData.managementFee)}
             onChange={(e) => handleNumberInput('managementFee', e.target.value)}
-            className="bg-white/10 border-white/20 text-white mt-2"
+            className="bg-card/10 border-border/20 text-card-foreground mt-2"
             placeholder="2.5"
           />
         </div>
@@ -133,39 +133,39 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
         <>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="euribor-rate" className="text-white">{t('euribor_rate_percent')}</Label>
-              <Input
-                id="euribor-rate"
-                type="text"
-                value={formatDisplayValue(loanData.euriborRate)}
-                onChange={(e) => handleNumberInput('euriborRate', e.target.value)}
-                className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="3.75"
-              />
+            <Label htmlFor="euribor-rate" className="text-card-foreground">{t('euribor_rate_percent')}</Label>
+            <Input
+              id="euribor-rate"
+              type="text"
+              value={formatDisplayValue(loanData.euriborRate)}
+              onChange={(e) => handleNumberInput('euriborRate', e.target.value)}
+              className="bg-card/10 border-border/20 text-card-foreground mt-2"
+              placeholder="3.75"
+            />
             </div>
             
             <div>
-              <Label htmlFor="personal-margin" className="text-white">{t('personal_margin_percent')}</Label>
-              <Input
-                id="personal-margin"
-                type="text"
-                value={formatDisplayValue(loanData.personalMargin)}
-                onChange={(e) => handleNumberInput('personalMargin', e.target.value)}
-                className="bg-white/10 border-white/20 text-white mt-2"
-                placeholder="0.5"
-              />
+            <Label htmlFor="personal-margin" className="text-card-foreground">{t('personal_margin_percent')}</Label>
+            <Input
+              id="personal-margin"
+              type="text"
+              value={formatDisplayValue(loanData.personalMargin)}
+              onChange={(e) => handleNumberInput('personalMargin', e.target.value)}
+              className="bg-card/10 border-border/20 text-card-foreground mt-2"
+              placeholder="0.5"
+            />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="remaining-months" className="text-white">{t('months_remaining')}</Label>
-            <Input
-              id="remaining-months"
-              value={loanData.remaining}
-              onChange={(e) => setLoanData(prev => ({ ...prev, remaining: e.target.value }))}
-              className="bg-white/10 border-white/20 text-white mt-2"
-              placeholder={t('months_placeholder')}
-            />
+          <Label htmlFor="remaining-months" className="text-card-foreground">{t('months_remaining')}</Label>
+          <Input
+            id="remaining-months"
+            value={loanData.remaining}
+            onChange={(e) => setLoanData(prev => ({ ...prev, remaining: e.target.value }))}
+            className="bg-card/10 border-border/20 text-card-foreground mt-2"
+            placeholder={t('months_placeholder')}
+          />
           </div>
         </>
       )}
@@ -173,25 +173,25 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
       {isCredit && (
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="credit-interest" className="text-white">{t('annual_interest_percent')}</Label>
+            <Label htmlFor="credit-interest" className="text-card-foreground">{t('annual_interest_percent')}</Label>
             <Input
               id="credit-interest"
               type="text"
               value={formatDisplayValue(loanData.rate)}
               onChange={(e) => handleNumberInput('rate', e.target.value)}
-              className="bg-white/10 border-white/20 text-white mt-2"
+              className="bg-card/10 border-border/20 text-card-foreground mt-2"
               placeholder="15.5"
             />
           </div>
           
           <div>
-            <Label htmlFor="minimum-percent" className="text-white">{t('minimum_payment_percent_fi')}</Label>
+            <Label htmlFor="minimum-percent" className="text-card-foreground">{t('minimum_payment_percent_fi')}</Label>
             <Input
               id="minimum-percent"
               type="text"
               value={formatDisplayValue(loanData.minimumPercent)}
               onChange={(e) => handleNumberInput('minimumPercent', e.target.value)}
-              className="bg-white/10 border-white/20 text-white mt-2"
+              className="bg-card/10 border-border/20 text-card-foreground mt-2"
               placeholder="3.0"
             />
           </div>
@@ -205,10 +205,63 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
         placeholder={t('select_day')}
       />
 
+      {/* Payment Breakdown Section */}
+      <div className="bg-card/30 p-4 rounded-lg border border-border/30">
+        <h3 className="text-card-foreground font-medium mb-3">{t('payment_breakdown')}</h3>
+        
+        <div className="grid grid-cols-1 gap-3">
+          <div>
+            <Label htmlFor="principal-amount" className="text-card-foreground text-sm">
+              {t('principal_amount')} ({t('lyhennys')})
+            </Label>
+            <Input
+              id="principal-amount"
+              type="text"
+              value={formatDisplayValue(loanData.principalAmount)}
+              onChange={(e) => handleNumberInput('principalAmount', e.target.value)}
+              className="bg-card/10 border-border/20 text-card-foreground mt-1"
+              placeholder="500"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="interest-amount" className="text-card-foreground text-sm">
+              {t('interest_amount')} ({t('korko')})
+            </Label>
+            <Input
+              id="interest-amount"
+              type="text"
+              value={formatDisplayValue(loanData.interestAmount)}
+              onChange={(e) => handleNumberInput('interestAmount', e.target.value)}
+              className="bg-card/10 border-border/20 text-card-foreground mt-1"
+              placeholder="455.5"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="management-fee-amount" className="text-card-foreground text-sm">
+              {t('management_fee')} ({t('tilinhoitopalkkio')})
+            </Label>
+            <Input
+              id="management-fee-amount"
+              type="text"
+              value={formatDisplayValue(loanData.managementFeeAmount)}
+              onChange={(e) => handleNumberInput('managementFeeAmount', e.target.value)}
+              className="bg-card/10 border-border/20 text-card-foreground mt-1"
+              placeholder="2.50"
+            />
+          </div>
+        </div>
+        
+        <div className="mt-3 p-2 bg-muted/20 rounded text-xs text-muted-foreground">
+          {t('payment_breakdown_help')}
+        </div>
+      </div>
+
       {calculatedValues.estimatedEuribor > 0 && calculatedValues.estimatedMargin > 0.1 && (
-        <div className="bg-blue-500/20 p-3 rounded border border-blue-500/30">
-          <p className="text-white text-sm font-medium mb-2">{t('calculated_from_payment_data')}</p>
-          <div className="grid grid-cols-2 gap-2 text-xs text-white/80">
+        <div className="bg-info/20 p-3 rounded border border-info/30">
+          <p className="text-card-foreground text-sm font-medium mb-2">{t('calculated_from_payment_data')}</p>
+          <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
             <div>
               <span>{t('estimated_euribor')}</span>
               <span className="font-medium">{calculatedValues.estimatedEuribor.toFixed(2)}%</span>

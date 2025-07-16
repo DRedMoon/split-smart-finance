@@ -27,7 +27,11 @@ const AddLoan = () => {
     managementFee: '',
     minimumPercent: '3',
     remaining: '',
-    dueDate: ''
+    dueDate: '',
+    // New detailed payment breakdown
+    principalAmount: '',
+    interestAmount: '',
+    managementFeeAmount: ''
   });
 
   const [calculatedValues, setCalculatedValues] = useState({
@@ -116,7 +120,13 @@ const AddLoan = () => {
       dueDate: loanData.dueDate,
       lastPayment: new Date().toISOString().split('T')[0],
       totalPayback: totalPayback,
-      yearlyInterestRate: finalRate // Also store as yearlyInterestRate for compatibility
+      yearlyInterestRate: finalRate, // Also store as yearlyInterestRate for compatibility
+      // New detailed payment breakdown
+      paymentBreakdown: {
+        principal: getNumericValue(loanData.principalAmount) || 0,
+        interest: getNumericValue(loanData.interestAmount) || 0,
+        managementFee: getNumericValue(loanData.managementFeeAmount) || 0
+      }
     };
 
     console.log('AddLoan - Storing loan data with correct rate:', loanToAdd);
@@ -131,19 +141,19 @@ const AddLoan = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-md mx-auto">
+    <div className="min-h-screen bg-sidebar p-4 pb-20 max-w-md mx-auto">
       <div className="flex items-center space-x-3 mb-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/loans-credits')} className="text-white hover:bg-white/10">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/loans-credits')} className="text-sidebar-foreground hover:bg-sidebar-accent">
           <ArrowLeft size={20} />
         </Button>
-        <h1 className="text-2xl font-bold text-white">{t('add_loan')}</h1>
+        <h1 className="text-2xl font-bold text-sidebar-foreground">{t('add_loan')}</h1>
       </div>
 
       <LoanCalculationDisplay calculatedValues={calculatedValues} />
 
-      <Card className="bg-[#294D73] border-none">
+      <Card className="bg-card border-none">
         <CardHeader>
-          <CardTitle className="text-white">{t('add_loan')}</CardTitle>
+          <CardTitle className="text-card-foreground">{t('add_loan')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <LoanFormFields 
@@ -154,7 +164,7 @@ const AddLoan = () => {
             setIsCredit={setIsCredit}
           />
           
-          <Button onClick={handleAddLoan} className="w-full bg-white text-[#294D73]">
+          <Button onClick={handleAddLoan} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
             <Plus size={16} className="mr-2" />
             {t('add_loan')}
           </Button>
