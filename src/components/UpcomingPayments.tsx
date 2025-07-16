@@ -27,6 +27,7 @@ const UpcomingPayments = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
+  // Load financial data
   useEffect(() => {
     let data = loadFinancialData();
     if (data) {
@@ -35,6 +36,7 @@ const UpcomingPayments = () => {
     }
   }, []);
 
+  // All helper functions - always defined
   const getUpcomingPayments = useCallback((view: 'week' | 'month'): NormalizedPayment[] => {
     if (!financialData?.monthlyBills) return [];
 
@@ -46,7 +48,7 @@ const UpcomingPayments = () => {
         endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
         break;
       case 'month':
-        endDate = new Date(currentYear, currentMonth + 1, 0); // Last day of current month
+        endDate = new Date(currentYear, currentMonth + 1, 0);
         break;
     }
 
@@ -74,6 +76,41 @@ const UpcomingPayments = () => {
     }));
   }, [financialData, currentYear, currentMonth]);
 
+  const getNextMonthPayments = useCallback((): NormalizedPayment[] => {
+    if (!financialData) return [];
+    
+    const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+    const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+    
+    const loanPayments: NormalizedPayment[] = (financialData.loans || [])
+      .filter(loan => loan.currentAmount > 0)
+      .map(loan => ({
+        id: `loan-${loan.id}`,
+        name: loan.name,
+        amount: loan.monthly,
+        dueDate: loan.dueDate,
+        category: loan.remaining === 'Credit Card' ? 'Credit Card' : 'Loan',
+        type: loan.remaining === 'Credit Card' ? 'credit_payment' : 'loan_payment',
+        isPaid: false
+      }));
+
+    const regularBills: NormalizedPayment[] = (financialData.monthlyBills || [])
+      .filter(bill => 
+        bill.type !== 'laina' && bill.type !== 'luottokortti' && 
+        bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
+      )
+      .map(bill => ({
+        id: bill.id,
+        name: bill.name,
+        amount: bill.amount,
+        dueDate: bill.dueDate,
+        type: bill.type,
+        isPaid: isPaymentPaidForMonth(bill, nextYear, nextMonth)
+      }));
+
+    return [...loanPayments, ...regularBills];
+  }, [financialData, currentMonth, currentYear]);
+
   const getYearlyUpcomingPayments = useCallback(() => {
     if (!financialData?.monthlyBills) return [];
 
@@ -82,7 +119,6 @@ const UpcomingPayments = () => {
     const currentMonth = today.getMonth();
     const monthlyData: Array<{ month: number; year: number; regularBills: NormalizedPayment[]; loanCreditPayments: NormalizedPayment[]; totalAmount: number }> = [];
 
-    // Generate data for remaining months of the year
     for (let month = currentMonth; month < 12; month++) {
       const regularBills: NormalizedPayment[] = (financialData.monthlyBills || [])
         .filter(bill => 
@@ -113,7 +149,6 @@ const UpcomingPayments = () => {
 
       const totalAmount = [...regularBills, ...loanCreditPayments].reduce((sum, bill) => sum + bill.amount, 0);
 
-      // Only include months that have unpaid bills
       if (regularBills.length > 0 || loanCreditPayments.length > 0) {
         monthlyData.push({
           month,
@@ -127,43 +162,6 @@ const UpcomingPayments = () => {
 
     return monthlyData;
   }, [financialData]);
-
-  const getNextMonthPayments = useCallback((): NormalizedPayment[] => {
-    if (!financialData) return [];
-    
-    const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
-    const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
-    
-    // Include loan/credit payments that still have amounts remaining
-    const loanPayments: NormalizedPayment[] = (financialData.loans || [])
-      .filter(loan => loan.currentAmount > 0)
-      .map(loan => ({
-        id: `loan-${loan.id}`,
-        name: loan.name,
-        amount: loan.monthly,
-        dueDate: loan.dueDate,
-        category: loan.remaining === 'Credit Card' ? 'Credit Card' : 'Loan',
-        type: loan.remaining === 'Credit Card' ? 'credit_payment' : 'loan_payment',
-        isPaid: false
-      }));
-
-    // Regular monthly bills
-    const regularBills: NormalizedPayment[] = (financialData.monthlyBills || [])
-      .filter(bill => 
-        bill.type !== 'laina' && bill.type !== 'luottokortti' && 
-        bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
-      )
-      .map(bill => ({
-        id: bill.id,
-        name: bill.name,
-        amount: bill.amount,
-        dueDate: bill.dueDate,
-        type: bill.type,
-        isPaid: isPaymentPaidForMonth(bill, nextYear, nextMonth)
-      }));
-
-    return [...loanPayments, ...regularBills];
-  }, [financialData, currentMonth, currentYear]);
 
   const navigateMonth = useCallback((direction: 'prev' | 'next') => {
     if (direction === 'next') {
@@ -191,12 +189,10 @@ const UpcomingPayments = () => {
     return months[month];
   }, [t]);
 
-  if (!financialData) {
-    return <div className="p-4 text-sidebar-foreground bg-sidebar min-h-screen max-w-md mx-auto">{t('loading')}</div>;
-  }
-
-  // Memoized calculations for better performance - always execute hooks in same order
+  // All hooks must be called before any conditional returns
   const upcomingPayments = useMemo(() => {
+    if (!financialData) return [];
+    
     if (currentView === 'yearly') {
       return [];
     }
@@ -206,16 +202,13 @@ const UpcomingPayments = () => {
     }
     
     return getUpcomingPayments(currentView);
-  }, [currentView, currentMonth, getNextMonthPayments, getUpcomingPayments]);
+  }, [financialData, currentView, currentMonth, getNextMonthPayments, getUpcomingPayments]);
 
   const yearlyData = useMemo(() => {
-    if (currentView === 'yearly') {
-      return getYearlyUpcomingPayments();
-    }
-    return [];
-  }, [currentView, getYearlyUpcomingPayments]);
+    if (!financialData || currentView !== 'yearly') return [];
+    return getYearlyUpcomingPayments();
+  }, [financialData, currentView, getYearlyUpcomingPayments]);
 
-  // Separate loan/credit payments from regular bills - always execute
   const loanCreditPayments = useMemo(() => {
     return upcomingPayments.filter(bill => 
       bill.category === 'Loan' || bill.category === 'Credit Card' || 
@@ -238,6 +231,11 @@ const UpcomingPayments = () => {
     }
     return upcomingPayments.reduce((sum, bill) => sum + bill.amount, 0);
   }, [currentView, yearlyData, upcomingPayments]);
+
+  // Show loading only after all hooks are called
+  if (!financialData) {
+    return <div className="p-4 text-sidebar-foreground bg-sidebar min-h-screen max-w-md mx-auto">{t('loading')}</div>;
+  }
 
   return (
     <div className="p-4 pb-20 bg-sidebar min-h-screen max-w-md mx-auto">
