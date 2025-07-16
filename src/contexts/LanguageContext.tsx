@@ -396,6 +396,41 @@ const translations = {
     category_breakdown: 'Kategoriajakauma',
     income_vs_expenses: 'Tulot vs. kulut',
     expenses_fi: 'Kulut',
+    expense_forecast: 'Kulutusennuste',
+    historical_data: 'Historiatiedot',
+    forecasting: 'Ennustaminen',
+    select_time_period: 'Valitse ajanjakso',
+    
+    // Quick Add and Forms
+    quick_add: 'Pikalisäys',
+    expense_added: 'Kulu lisätty',
+    income_added: 'Tulo lisätty',
+    expense_name: 'Kulujen nimi',
+    income_name: 'Tulojen nimi',
+    sum: 'Summa',
+    select_category: 'Valitse kategoria',
+    recurring_payment: 'Toistuva maksu',
+    add_expense: 'Lisää kulu',
+    add_income: 'Lisää tulo',
+    add_loan: 'Lisää laina',
+    loan_added: 'Laina lisätty',
+    
+    // Additional Categories
+    bill: 'Lasku',
+    subscription: 'Tilaus',
+    paycheck: 'Palkka',
+    loan_repayment: 'Lainan lyhennys',
+    credit_repayment: 'Luottokortin maksu',
+    credit_purchase: 'Luottokorttiostos',
+    
+    // Navigation and UI
+    back_to_home: 'Takaisin kotiin',
+    add_new_payment: 'Lisää uusi maksu',
+    view_options: 'Näkymävaihtoehdot',
+    month_navigation: 'Kuukausinavigointi',
+    previous_month: 'Edellinen kuukausi',
+    next_month: 'Seuraava kuukausi',
+    total_amount: 'Kokonaissumma',
     
     // Data Management
     data_management_fi: 'Tietojen hallinta',
@@ -650,7 +685,7 @@ const translations = {
     privacy_policy: 'Privacy Policy',
     app_stores_data_locally: 'This app stores your data locally on your device. No data is sent to external servers.',
     only_essential_cookies: 'We only use essential cookies to ensure app functionality.',
-    analytics_dashboard: 'Analytics',
+    analytics: 'Analytics',
     usage_data_collection: 'Usage data collection',
     error_reports: 'Error reports',
     automatic_error_reports: 'Automatic error reports',
@@ -833,6 +868,41 @@ const translations = {
     category_breakdown: 'Category Breakdown',
     income_vs_expenses: 'Income vs. Expenses',
     expenses_en: 'Expenses',
+    expense_forecast: 'Expense Forecast',
+    historical_data: 'Historical Data',
+    forecasting: 'Forecasting',
+    select_time_period: 'Select Time Period',
+    
+    // Quick Add and Forms
+    quick_add: 'Quick Add',
+    expense_added: 'Expense Added',
+    income_added: 'Income Added',
+    expense_name: 'Expense Name',
+    income_name: 'Income Name',
+    sum: 'Amount',
+    select_category: 'Select Category',
+    recurring_payment: 'Recurring Payment',
+    add_expense: 'Add Expense',
+    add_income: 'Add Income',
+    add_loan: 'Add Loan',
+    loan_added: 'Loan Added',
+    
+    // Additional Categories
+    bill: 'Bill',
+    subscription: 'Subscription',
+    paycheck: 'Paycheck',
+    loan_repayment: 'Loan Repayment',
+    credit_repayment: 'Credit Payment',
+    credit_purchase: 'Credit Purchase',
+    
+    // Navigation and UI
+    back_to_home: 'Back to Home',
+    add_new_payment: 'Add New Payment',
+    view_options: 'View Options',
+    month_navigation: 'Month Navigation',
+    previous_month: 'Previous Month',
+    next_month: 'Next Month',
+    total_amount: 'Total Amount',
     
     // Data Management
     data_management_en: 'Data Management',
@@ -884,7 +954,7 @@ const translations = {
     quick_actions: 'Quick Actions',
     create_backup: 'Create Backup',
     restore_from_backup: 'Restore from Backup',
-    retry: 'Try Again',
+    retry: 'Retry',
   }
 } as const;
 
