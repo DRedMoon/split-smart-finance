@@ -14,7 +14,14 @@ const NotificationSettings = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { toast } = useToast();
-  const [isEnabled, setIsEnabled] = useState(false);
+  const [notifications, setNotifications] = useState({
+    monthlyBills: false,
+    loanPayments: false,
+    creditReminders: false,
+    upcomingPayments: false,
+    lowBalanceAlerts: false,
+    backupReminders: false
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [scheduledCount, setScheduledCount] = useState(0);
   const [hasPermission, setHasPermission] = useState(false);
@@ -25,11 +32,20 @@ const NotificationSettings = () => {
 
   const checkNotificationStatus = async () => {
     try {
-      const enabled = notificationService.isNotificationsEnabled();
       const permission = await notificationService.checkPermissions();
       const scheduled = await notificationService.getScheduledNotifications();
       
-      setIsEnabled(enabled);
+      // Load individual notification preferences
+      const savedNotifications = {
+        monthlyBills: localStorage.getItem('notif-monthly-bills') === 'true',
+        loanPayments: localStorage.getItem('notif-loan-payments') === 'true',
+        creditReminders: localStorage.getItem('notif-credit-reminders') === 'true',
+        upcomingPayments: localStorage.getItem('notif-upcoming-payments') === 'true',
+        lowBalanceAlerts: localStorage.getItem('notif-low-balance') === 'true',
+        backupReminders: localStorage.getItem('notif-backup-reminders') === 'true'
+      };
+      
+      setNotifications(savedNotifications);
       setHasPermission(permission);
       setScheduledCount(scheduled.length);
     } catch (error) {
@@ -37,38 +53,47 @@ const NotificationSettings = () => {
     }
   };
 
-  const toggleNotifications = async () => {
+  const toggleNotification = async (type: keyof typeof notifications) => {
     setIsLoading(true);
     try {
-      if (isEnabled) {
-        await notificationService.disableNotifications();
-        setIsEnabled(false);
-        setScheduledCount(0);
-        toast({
-          title: t('notifications_disabled'),
-          description: t('payment_reminders_disabled'),
-        });
-      } else {
-        const success = await notificationService.enableNotifications();
-        if (success) {
-          setIsEnabled(true);
+      const newValue = !notifications[type];
+      
+      // Request permission if trying to enable and don't have it
+      if (newValue && !hasPermission) {
+        const permission = await notificationService.checkPermissions();
+        if (!permission) {
+          const success = await notificationService.enableNotifications();
+          if (!success) {
+            toast({
+              title: t('permission_denied'),
+              description: t('notification_permission_required'),
+              variant: 'destructive'
+            });
+            setIsLoading(false);
+            return;
+          }
           setHasPermission(true);
-          const scheduled = await notificationService.getScheduledNotifications();
-          setScheduledCount(scheduled.length);
-          toast({
-            title: t('notifications_enabled'),
-            description: t('payment_reminders_enabled'),
-          });
-        } else {
-          toast({
-            title: t('permission_denied'),
-            description: t('notification_permission_required'),
-            variant: 'destructive'
-          });
         }
       }
+      
+      // Update local state and storage
+      const updatedNotifications = { ...notifications, [type]: newValue };
+      setNotifications(updatedNotifications);
+      localStorage.setItem(`notif-${type.replace(/([A-Z])/g, '-$1').toLowerCase()}`, newValue.toString());
+      
+      // Reschedule notifications if enabling
+      if (newValue) {
+        await notificationService.schedulePaymentReminders();
+        const scheduled = await notificationService.getScheduledNotifications();
+        setScheduledCount(scheduled.length);
+      }
+      
+      toast({
+        title: newValue ? t('notification_enabled') : t('notification_disabled'),
+        description: `${t(type)} ${newValue ? t('enabled') : t('disabled')}`,
+      });
     } catch (error) {
-      console.error('Error toggling notifications:', error);
+      console.error('Error toggling notification:', error);
       toast({
         title: t('error'),
         description: t('notification_error'),
@@ -115,69 +140,46 @@ const NotificationSettings = () => {
           <CardHeader>
             <CardTitle className="text-white flex items-center space-x-2">
               <Bell size={20} />
-              <span>{t('payment_reminders')}</span>
+              <span>{t('notification_status')}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="text-white font-medium">{t('enable_notifications')}</div>
-                <div className="text-white/70 text-sm">{t('get_reminded_about_payments')}</div>
+            <div className="flex items-center justify-between pt-4 border-t border-white/10">
+              <div className="flex items-center space-x-2">
+                {hasPermission ? (
+                  <CheckCircle size={16} className="text-green-400" />
+                ) : (
+                  <AlertCircle size={16} className="text-orange-400" />
+                )}
+                <span className="text-white text-sm">
+                  {hasPermission ? t('permission_granted') : t('permission_required')}
+                </span>
               </div>
-              <Switch
-                checked={isEnabled}
-                onCheckedChange={toggleNotifications}
-                disabled={isLoading}
-              />
+              <Badge variant="outline" className="text-white border-white/30">
+                {scheduledCount} {t('scheduled')}
+              </Badge>
             </div>
 
-            {isEnabled && (
-              <>
-                <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                  <div className="flex items-center space-x-2">
-                    {hasPermission ? (
-                      <CheckCircle size={16} className="text-green-400" />
-                    ) : (
-                      <AlertCircle size={16} className="text-orange-400" />
-                    )}
-                    <span className="text-white text-sm">
-                      {hasPermission ? t('permission_granted') : t('permission_required')}
-                    </span>
-                  </div>
-                  <Badge variant="outline" className="text-white border-white/30">
-                    {scheduledCount} {t('scheduled')}
-                  </Badge>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="text-white/70 text-xs">
-                    {t('notification_schedule_info')}
-                  </div>
-                  <ul className="space-y-1 text-white/60 text-xs">
-                    <li>• {t('three_days_before')}</li>
-                    <li>• {t('one_day_before')}</li>
-                    <li>• {t('on_due_date')}</li>
-                  </ul>
-                </div>
-
-                <Button
-                  onClick={rescheduleNotifications}
-                  disabled={isLoading}
-                  variant="outline"
-                  size="sm"
-                  className="w-full border-white/30 text-white hover:bg-white/10"
-                >
-                  {isLoading ? t('updating') : t('refresh_notifications')}
-                </Button>
-              </>
-            )}
-
-            {!isEnabled && (
-              <div className="flex items-center space-x-2 pt-4 border-t border-white/10">
-                <BellOff size={16} className="text-white/50" />
-                <span className="text-white/70 text-sm">{t('notifications_disabled')}</span>
+            <div className="space-y-3">
+              <div className="text-white/70 text-xs">
+                {t('notification_schedule_info')}
               </div>
-            )}
+              <ul className="space-y-1 text-white/60 text-xs">
+                <li>• {t('three_days_before')}</li>
+                <li>• {t('one_day_before')}</li>
+                <li>• {t('on_due_date')}</li>
+              </ul>
+            </div>
+
+            <Button
+              onClick={rescheduleNotifications}
+              disabled={isLoading}
+              variant="outline"
+              size="sm"
+              className="w-full border-white/30 text-white hover:bg-white/10"
+            >
+              {isLoading ? t('updating') : t('refresh_notifications')}
+            </Button>
           </CardContent>
         </Card>
 
@@ -192,8 +194,8 @@ const NotificationSettings = () => {
                 <div className="text-white/60 text-xs">{t('recurring_payment_reminders')}</div>
               </div>
               <Switch
-                checked={isEnabled}
-                onCheckedChange={toggleNotifications}
+                checked={notifications.monthlyBills}
+                onCheckedChange={() => toggleNotification('monthlyBills')}
                 disabled={isLoading}
               />
             </div>
@@ -204,8 +206,8 @@ const NotificationSettings = () => {
                 <div className="text-white/60 text-xs">{t('loan_credit_reminders')}</div>
               </div>
               <Switch
-                checked={isEnabled}
-                onCheckedChange={toggleNotifications}
+                checked={notifications.loanPayments}
+                onCheckedChange={() => toggleNotification('loanPayments')}
                 disabled={isLoading}
               />
             </div>
@@ -216,8 +218,8 @@ const NotificationSettings = () => {
                 <div className="text-white/60 text-xs">{t('credit_card_payment_reminders')}</div>
               </div>
               <Switch
-                checked={isEnabled}
-                onCheckedChange={toggleNotifications}
+                checked={notifications.creditReminders}
+                onCheckedChange={() => toggleNotification('creditReminders')}
                 disabled={isLoading}
               />
             </div>
@@ -228,8 +230,8 @@ const NotificationSettings = () => {
                 <div className="text-white/60 text-xs">{t('all_upcoming_payment_reminders')}</div>
               </div>
               <Switch
-                checked={isEnabled}
-                onCheckedChange={toggleNotifications}
+                checked={notifications.upcomingPayments}
+                onCheckedChange={() => toggleNotification('upcomingPayments')}
                 disabled={isLoading}
               />
             </div>
@@ -240,8 +242,8 @@ const NotificationSettings = () => {
                 <div className="text-white/60 text-xs">{t('alert_when_balance_low')}</div>
               </div>
               <Switch
-                checked={isEnabled}
-                onCheckedChange={toggleNotifications}
+                checked={notifications.lowBalanceAlerts}
+                onCheckedChange={() => toggleNotification('lowBalanceAlerts')}
                 disabled={isLoading}
               />
             </div>
@@ -252,8 +254,8 @@ const NotificationSettings = () => {
                 <div className="text-white/60 text-xs">{t('remind_to_backup_data')}</div>
               </div>
               <Switch
-                checked={isEnabled}
-                onCheckedChange={toggleNotifications}
+                checked={notifications.backupReminders}
+                onCheckedChange={() => toggleNotification('backupReminders')}
                 disabled={isLoading}
               />
             </div>

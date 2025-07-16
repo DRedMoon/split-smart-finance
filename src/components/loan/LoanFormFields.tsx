@@ -209,23 +209,6 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
         placeholder={t('select_day')}
       />
 
-      {/* Payment Breakdown Note */}
-      <div className="bg-info/10 p-3 rounded-lg border border-info/20">
-        <div className="text-sm font-medium mb-2">{t('payment_breakdown_note')}</div>
-        <div className="text-xs text-muted-foreground mb-2">
-          {t('payment_breakdown_varies_monthly')}
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => navigate('/quick-payment-entry')}
-          className="w-full"
-        >
-          <Plus size={14} className="mr-1" />
-          {t('use_quick_payment_entry')}
-        </Button>
-      </div>
 
       {calculatedValues.estimatedEuribor > 0 && calculatedValues.estimatedMargin > 0.1 && (
         <div className="bg-info/20 p-3 rounded border border-info/30">

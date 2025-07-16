@@ -40,8 +40,23 @@ const BackupSettings = () => {
     if (data?.settings) {
       setSettings(prev => ({
         ...prev,
-        backupFrequency: data.settings.backupFrequency,
-        backupPassword: data.settings.backupPassword || ''
+        backupFrequency: data.settings.backupFrequency || 'weekly',
+        backupPassword: data.settings.backupPassword || '',
+        automaticBackup: data.settings.automaticBackup !== false,
+        cloudBackup: data.settings.cloudBackup || false,
+        cloudProvider: data.settings.cloudProvider || 'google_drive',
+        compressionEnabled: data.settings.compressionEnabled !== false
+      }));
+    }
+    
+    // Load backup status
+    const lastBackupStr = localStorage.getItem('last-backup-date');
+    const backupSizeStr = localStorage.getItem('last-backup-size');
+    if (lastBackupStr) {
+      setBackupStatus(prev => ({
+        ...prev,
+        lastBackup: new Date(lastBackupStr),
+        backupSize: parseInt(backupSizeStr || '0', 10)
       }));
     }
   }, []);
@@ -63,12 +78,7 @@ const BackupSettings = () => {
     // Save to storage
     const data = loadFinancialData();
     if (data) {
-      if (key === 'backupFrequency') {
-        data.settings.backupFrequency = value;
-      }
-      if (key === 'backupPassword') {
-        data.settings.backupPassword = value;
-      }
+      data.settings = { ...data.settings, [key]: value };
       saveFinancialData(data);
     }
     
@@ -107,11 +117,45 @@ const BackupSettings = () => {
   };
 
   const handleManualBackup = () => {
-    exportFinancialData(settings.backupPassword);
-    toast({
-      title: t('backup_created'),
-      description: t('backup_downloaded_to_device')
-    });
+    setBackupStatus(prev => ({ ...prev, isBackingUp: true }));
+    
+    try {
+      const data = loadFinancialData();
+      const backupData = JSON.stringify(data);
+      const backupSize = new Blob([backupData]).size;
+      
+      exportFinancialData(settings.backupPassword);
+      
+      // Update backup status
+      const now = new Date();
+      localStorage.setItem('last-backup-date', now.toISOString());
+      localStorage.setItem('last-backup-size', backupSize.toString());
+      
+      setBackupStatus(prev => ({
+        ...prev,
+        lastBackup: now,
+        backupSize,
+        isBackingUp: false,
+        backupError: null
+      }));
+      
+      toast({
+        title: t('backup_created'),
+        description: t('backup_downloaded_to_device')
+      });
+    } catch (error) {
+      setBackupStatus(prev => ({
+        ...prev,
+        isBackingUp: false,
+        backupError: (error as Error).message
+      }));
+      
+      toast({
+        title: t('backup_failed'),
+        description: t('backup_error_occurred'),
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
@@ -292,9 +336,13 @@ const BackupSettings = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Button onClick={handleManualBackup} className="w-full bg-white text-[#294D73]">
+          <Button 
+            onClick={handleManualBackup} 
+            disabled={backupStatus.isBackingUp}
+            className="w-full bg-white text-[#294D73]"
+          >
             <Download size={16} className="mr-2" />
-            {t('create_backup_now')}
+            {backupStatus.isBackingUp ? t('creating_backup') : t('create_backup_now')}
           </Button>
         </CardContent>
       </Card>

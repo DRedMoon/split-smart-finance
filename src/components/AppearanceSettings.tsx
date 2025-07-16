@@ -29,12 +29,18 @@ const AppearanceSettings = () => {
   useEffect(() => {
     const data = loadFinancialData();
     if (data?.settings) {
-      setSettings(prev => ({
-        ...prev,
-        theme: data.settings.theme,
-        fontSize: data.settings.fontSize,
+      const loadedSettings = {
+        ...settings,
+        theme: data.settings.theme || 'dark',
+        fontSize: data.settings.fontSize || 'medium',
         highContrast: data.settings.highContrast || false
-      }));
+      };
+      setSettings(loadedSettings);
+      
+      // Apply all loaded settings immediately
+      Object.entries(loadedSettings).forEach(([key, value]) => {
+        applySettings(key, value);
+      });
     }
   }, []);
 
@@ -46,38 +52,56 @@ const AppearanceSettings = () => {
     const data = loadFinancialData();
     if (data) {
       data.settings = { ...data.settings, [key]: value };
-      if (key === 'highContrast') {
-        data.settings.highContrast = value;
-      }
       saveFinancialData(data);
     }
     
-    // Apply theme changes immediately
-    if (key === 'theme') {
-      document.documentElement.className = value === 'dark' ? 'dark' : '';
-      document.documentElement.setAttribute('data-theme', value);
-    }
-    
-    // Apply font size changes
-    if (key === 'fontSize') {
-      const sizeMap = { small: '14px', medium: '16px', large: '18px' };
-      document.documentElement.style.fontSize = sizeMap[value as keyof typeof sizeMap];
-    }
-    
-    // Apply high contrast
-    if (key === 'highContrast') {
-      document.documentElement.style.filter = value ? 'contrast(1.5)' : 'contrast(1)';
-    }
-    
-    // Apply brightness changes
-    if (key === 'screenBrightness') {
-      document.documentElement.style.filter = `brightness(${value}%)`;
-    }
+    // Apply changes immediately
+    applySettings(key, value);
     
     toast({
       title: t('setting_updated'),
       description: `${key} ${t('updated_successfully')}`
     });
+  };
+
+  const applySettings = (key: string, value: any) => {
+    const root = document.documentElement;
+    
+    // Apply theme changes
+    if (key === 'theme') {
+      root.className = value === 'dark' ? 'dark' : '';
+      root.setAttribute('data-theme', value);
+      // Update CSS custom properties
+      if (value === 'dark') {
+        root.style.setProperty('--background', '222.2 84% 4.9%');
+        root.style.setProperty('--foreground', '210 40% 98%');
+      } else {
+        root.style.setProperty('--background', '0 0% 100%');
+        root.style.setProperty('--foreground', '222.2 84% 4.9%');
+      }
+    }
+    
+    // Apply font size changes
+    if (key === 'fontSize') {
+      const sizeMap = { small: '14px', medium: '16px', large: '18px' };
+      root.style.fontSize = sizeMap[value as keyof typeof sizeMap];
+    }
+    
+    // Apply high contrast
+    if (key === 'highContrast') {
+      if (value) {
+        root.style.filter = 'contrast(1.5)';
+        root.style.setProperty('--contrast-multiplier', '1.5');
+      } else {
+        root.style.filter = 'contrast(1)';
+        root.style.setProperty('--contrast-multiplier', '1');
+      }
+    }
+    
+    // Apply brightness changes
+    if (key === 'screenBrightness') {
+      root.style.filter = `brightness(${value}%)`;
+    }
   };
 
   return (

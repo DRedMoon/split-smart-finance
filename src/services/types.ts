@@ -73,6 +73,10 @@ export interface FinancialData {
     theme: 'light' | 'dark';
     fontSize: 'small' | 'medium' | 'large';
     highContrast?: boolean;
+    automaticBackup?: boolean;
+    cloudBackup?: boolean;
+    cloudProvider?: 'google_drive' | 'icloud' | 'dropbox' | 'onedrive';
+    compressionEnabled?: boolean;
     notifications?: {
       upcomingPayments: boolean;
       backupReminders: boolean;

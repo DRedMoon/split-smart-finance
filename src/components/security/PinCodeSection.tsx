@@ -31,7 +31,7 @@ const PinCodeSection: React.FC<PinCodeSectionProps> = ({
     if (enabled && pin.length !== 4) {
       toast({
         title: t('error'),
-        description: t('pin_error'),
+        description: t('pin_must_be_4_digits'),
         variant: "destructive"
       });
       return;
@@ -46,6 +46,7 @@ const PinCodeSection: React.FC<PinCodeSectionProps> = ({
       onPinToggle(enabled);
     } else {
       if (pinEnabled) {
+        // Require PIN verification to disable
         setPendingAction('disable');
         setShowVerification(true);
       } else {
