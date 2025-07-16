@@ -167,27 +167,27 @@ const AddExpense = () => {
   );
 
   return (
-    <div className="p-4 pb-20 bg-[#192E45] min-h-screen">
+    <div className="p-4 pb-20 bg-sidebar min-h-screen">
       <div className="flex items-center space-x-3 mb-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-white hover:bg-white/10">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-sidebar-foreground hover:bg-sidebar-accent">
           <ArrowLeft size={20} />
         </Button>
-        <h1 className="text-2xl font-bold text-white">{t('quick_add')}</h1>
+        <h1 className="text-2xl font-bold text-sidebar-foreground">{t('quick_add')}</h1>
       </div>
 
       {/* Quick Add Form */}
-      <Card className="mb-6 bg-[#294D73] border-none">
+      <Card className="mb-6 bg-sidebar-accent border-none">
         <CardHeader>
-          <CardTitle className="text-white">{t('quick_add')}</CardTitle>
+          <CardTitle className="text-sidebar-foreground">{t('quick_add')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex space-x-1 bg-[#192E45] p-1 rounded-lg">
+          <div className="flex space-x-1 bg-sidebar p-1 rounded-lg">
             <button
               onClick={() => setQuickData(prev => ({ ...prev, type: 'expense' }))}
               className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                 quickData.type === 'expense' 
-                  ? 'bg-[#294D73] text-white' 
-                  : 'text-white/70 hover:text-white'
+                  ? 'bg-sidebar-accent text-sidebar-foreground' 
+                  : 'text-sidebar-foreground/70 hover:text-sidebar-foreground'
               }`}
             >
               {t('expense')}
@@ -196,8 +196,8 @@ const AddExpense = () => {
               onClick={() => setQuickData(prev => ({ ...prev, type: 'income' }))}
               className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                 quickData.type === 'income' 
-                  ? 'bg-[#294D73] text-white' 
-                  : 'text-white/70 hover:text-white'
+                  ? 'bg-sidebar-accent text-sidebar-foreground' 
+                  : 'text-sidebar-foreground/70 hover:text-sidebar-foreground'
               }`}
             >
               {t('income')}
@@ -205,34 +205,34 @@ const AddExpense = () => {
           </div>
 
           <div>
-            <Label htmlFor="quick-name" className="text-white">
+            <Label htmlFor="quick-name" className="text-sidebar-foreground">
               {quickData.type === 'expense' ? t('expense_name') : t('income_name')}
             </Label>
             <Input
               id="quick-name"
               value={quickData.name}
               onChange={(e) => setQuickData(prev => ({ ...prev, name: e.target.value }))}
-              className="bg-white/10 border-white/20 text-white mt-2"
+              className="bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground mt-2"
               placeholder={quickData.type === 'expense' ? t('expense_name') : t('income_name')}
             />
           </div>
           
           <div>
-            <Label htmlFor="quick-amount" className="text-white">{t('sum')}</Label>
+            <Label htmlFor="quick-amount" className="text-sidebar-foreground">{t('sum')}</Label>
             <Input
               id="quick-amount"
               type="number"
               value={quickData.amount || ''}
               onChange={(e) => setQuickData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
-              className="bg-white/10 border-white/20 text-white mt-2"
+              className="bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground mt-2"
               placeholder="0.00"
             />
           </div>
           
           <div>
-            <Label htmlFor="quick-category" className="text-white">{t('category')}</Label>
+            <Label htmlFor="quick-category" className="text-sidebar-foreground">{t('category')}</Label>
             <Select value={quickData.category} onValueChange={(value) => setQuickData(prev => ({ ...prev, category: value }))}>
-              <SelectTrigger className="bg-white/10 border-white/20 text-white mt-2">
+              <SelectTrigger className="bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground mt-2">
                 <SelectValue placeholder={t('select_category')} />
               </SelectTrigger>
               <SelectContent>
@@ -261,15 +261,15 @@ const AddExpense = () => {
                 id="recurring"
                 checked={quickData.isRecurring}
                 onCheckedChange={(checked) => setQuickData(prev => ({ ...prev, isRecurring: !!checked }))}
-                className="border-white/20 data-[state=checked]:bg-white data-[state=checked]:text-[#294D73]"
+                className="border-sidebar-border data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
               />
-              <Label htmlFor="recurring" className="text-white text-sm">
+              <Label htmlFor="recurring" className="text-sidebar-foreground text-sm">
                 {t('recurring_payment')}
               </Label>
             </div>
           )}
           
-          <Button onClick={handleQuickAdd} className="w-full bg-white text-[#294D73]">
+          <Button onClick={handleQuickAdd} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
             <Plus size={16} className="mr-2" />
             {quickData.type === 'expense' ? t('add_expense') : t('add_income')}
           </Button>
@@ -277,12 +277,12 @@ const AddExpense = () => {
       </Card>
 
       {/* Category Management */}
-      <Card className="bg-[#294D73] border-none">
+      <Card className="bg-sidebar-accent border-none">
         <CardContent className="p-4">
           <Button
             variant="ghost"
             onClick={() => navigate('/create-category')}
-            className="w-full justify-start text-white hover:bg-white/10"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
           >
             <Settings size={16} className="mr-2" />
             {t('create_edit_category')}

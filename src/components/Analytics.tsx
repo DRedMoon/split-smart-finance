@@ -152,22 +152,22 @@ const Analytics = React.memo(() => {
     };
   }, [financialData, selectedPeriod]);
 
-  if (!financialData) {
-    return (
-      <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-4xl mx-auto">
-        <div className="text-white text-center py-8">{t('loading')}</div>
-      </div>
-    );
-  }
-
-  // Memoized data processing for better performance
+  // Memoized data processing for better performance - Move before conditional return
   const expenseData = useMemo(() => processExpenseData(), [processExpenseData]);
   const categoryData = useMemo(() => processCategoryData(), [processCategoryData]);
   const comparisonData = useMemo(() => processMonthlyComparisonData(), [processMonthlyComparisonData]);
   const overviewStats = useMemo(() => calculateOverviewStats(), [calculateOverviewStats]);
 
+  if (!financialData) {
+    return (
+      <div className="min-h-screen bg-sidebar p-4 pb-20 max-w-4xl mx-auto">
+        <div className="text-sidebar-foreground text-center py-8">{t('loading')}</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#192E45] p-4 pb-20 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-sidebar p-4 pb-20 max-w-4xl mx-auto">
       {/* Header */}
       <header className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
@@ -175,12 +175,12 @@ const Analytics = React.memo(() => {
             variant="ghost" 
             size="sm" 
             onClick={() => navigate('/')} 
-            className="text-white hover:bg-white/10 focus:ring-2 focus:ring-white/50"
+            className="text-sidebar-foreground hover:bg-sidebar-accent focus:ring-2 focus:ring-sidebar-ring"
             aria-label={t('back_to_home')}
           >
             <ArrowLeft size={20} aria-hidden="true" />
           </Button>
-          <h1 className="text-2xl font-bold text-white flex items-center space-x-2">
+          <h1 className="text-2xl font-bold text-sidebar-foreground flex items-center space-x-2">
             <BarChart3 size={24} aria-hidden="true" />
             <span>{t('analytics')}</span>
           </h1>
@@ -191,7 +191,7 @@ const Analytics = React.memo(() => {
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
             <SelectTrigger 
               id="period-select"
-              className="w-32 bg-[#294D73] border-none text-white focus:ring-2 focus:ring-white/50"
+              className="w-32 bg-sidebar-accent border-none text-sidebar-foreground focus:ring-2 focus:ring-sidebar-ring"
               aria-label={t('select_time_period')}
             >
               <SelectValue />
@@ -210,11 +210,11 @@ const Analytics = React.memo(() => {
 
       {/* Tabbed Interface */}
       <Tabs defaultValue="historical" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 bg-[#294D73]">
-          <TabsTrigger value="historical" className="text-white data-[state=active]:bg-[#192E45]">
+        <TabsList className="grid w-full grid-cols-2 bg-sidebar-accent">
+          <TabsTrigger value="historical" className="text-sidebar-foreground data-[state=active]:bg-sidebar data-[state=active]:text-sidebar-foreground">
             {t('historical_data')}
           </TabsTrigger>
-          <TabsTrigger value="forecasting" className="text-white data-[state=active]:bg-[#192E45]">
+          <TabsTrigger value="forecasting" className="text-sidebar-foreground data-[state=active]:bg-sidebar data-[state=active]:text-sidebar-foreground">
             {t('forecasting')}
           </TabsTrigger>
         </TabsList>

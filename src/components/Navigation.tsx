@@ -13,7 +13,7 @@ const Navigation = React.memo(() => {
     { path: '/', icon: Home, label: t('home') },
     { path: '/upcoming', icon: Calendar, label: t('upcoming') },
     { path: '/add', icon: Plus, label: t('add'), special: true },
-    { path: '/analytics', icon: BarChart3, label: t('analytics_dashboard') },
+    { path: '/analytics', icon: BarChart3, label: t('analytics') },
     { path: '/settings', icon: Settings, label: t('settings') }
   ], [t]);
 
@@ -30,7 +30,7 @@ const Navigation = React.memo(() => {
 
   return (
     <nav 
-      className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-[#294D73] border-t border-[#192E45] px-4 py-2"
+      className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-sidebar-accent border-t border-sidebar-border px-4 py-2"
       role="navigation"
       aria-label={t('main_navigation')}
     >
@@ -43,12 +43,12 @@ const Navigation = React.memo(() => {
               key={path}
               onClick={() => handleNavigation(path)}
               onKeyDown={(e) => handleKeyDown(e, path)}
-              className={`flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 ${
+              className={`flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-sidebar-ring ${
                 special 
-                  ? 'bg-[#192E45] text-white' 
+                  ? 'bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/50' 
                   : isActive 
-                    ? 'bg-[#192E45] text-white' 
-                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                    ? 'bg-sidebar text-sidebar-foreground' 
+                    : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent'
               }`}
               aria-label={label}
               aria-current={isActive ? 'page' : undefined}

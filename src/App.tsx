@@ -42,13 +42,13 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#192E45] flex items-center justify-center p-4">
-          <div className="bg-[#294D73] p-6 rounded-lg text-white text-center max-w-md">
+        <div className="min-h-screen bg-sidebar flex items-center justify-center p-4">
+          <div className="bg-sidebar-accent p-6 rounded-lg text-sidebar-foreground text-center max-w-md">
             <h2 className="text-xl font-bold mb-4">Something went wrong</h2>
             <p className="mb-4">The app encountered an error. Please refresh the page.</p>
             <button 
               onClick={() => window.location.reload()}
-              className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded text-white"
+              className="bg-primary hover:bg-primary/90 px-4 py-2 rounded text-primary-foreground"
             >
               Refresh Page
             </button>
