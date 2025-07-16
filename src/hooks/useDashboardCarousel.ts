@@ -25,9 +25,10 @@ export const useDashboardCarousel = () => {
       setCurrentSlide(viewIndex);
       
       window.history.replaceState({}, '', '/');
-    } else {
-      setNavigationReady(true);
     }
+    
+    // Always set navigation ready after processing
+    setNavigationReady(true);
   }, [location.search]);
 
   // Navigate when carousel API is ready and we have a target view
@@ -36,10 +37,7 @@ export const useDashboardCarousel = () => {
       console.log('Dashboard - Navigating carousel to view:', initialView);
       setTimeout(() => {
         carouselApi.scrollTo(initialView);
-        setNavigationReady(true);
       }, 50);
-    } else if (carouselApi) {
-      setNavigationReady(true);
     }
   }, [carouselApi, initialView]);
 

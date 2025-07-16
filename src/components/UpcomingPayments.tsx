@@ -29,15 +29,20 @@ const UpcomingPayments = () => {
 
   // Load financial data
   useEffect(() => {
-    let data = loadFinancialData();
-    if (data) {
-      data = migratePaymentDataToMonthSpecific(data);
-      setFinancialData(data);
+    try {
+      let data = loadFinancialData();
+      if (data) {
+        data = migratePaymentDataToMonthSpecific(data);
+        setFinancialData(data);
+      }
+    } catch (error) {
+      console.error('Error loading financial data:', error);
+      setFinancialData(null);
     }
   }, []);
 
-  // All helper functions - always defined
-  const getUpcomingPayments = useCallback((view: 'week' | 'month'): NormalizedPayment[] => {
+  // Simple helper functions without complex dependencies
+  const getUpcomingPayments = (view: 'week' | 'month'): NormalizedPayment[] => {
     if (!financialData?.monthlyBills) return [];
 
     const today = new Date();
@@ -74,9 +79,9 @@ const UpcomingPayments = () => {
       type: bill.type,
       isPaid: isPaymentPaidForMonth(bill, currentYear, currentMonth)
     }));
-  }, [financialData, currentYear, currentMonth]);
+  };
 
-  const getNextMonthPayments = useCallback((): NormalizedPayment[] => {
+  const getNextMonthPayments = (): NormalizedPayment[] => {
     if (!financialData) return [];
     
     const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
@@ -109,9 +114,9 @@ const UpcomingPayments = () => {
       }));
 
     return [...loanPayments, ...regularBills];
-  }, [financialData, currentMonth, currentYear]);
+  };
 
-  const getYearlyUpcomingPayments = useCallback(() => {
+  const getYearlyUpcomingPayments = () => {
     if (!financialData?.monthlyBills) return [];
 
     const today = new Date();
@@ -161,9 +166,9 @@ const UpcomingPayments = () => {
     }
 
     return monthlyData;
-  }, [financialData]);
+  };
 
-  const navigateMonth = useCallback((direction: 'prev' | 'next') => {
+  const navigateMonth = (direction: 'prev' | 'next') => {
     if (direction === 'next') {
       if (currentMonth === 11) {
         setCurrentMonth(0);
@@ -179,15 +184,15 @@ const UpcomingPayments = () => {
         setCurrentMonth(currentMonth - 1);
       }
     }
-  }, [currentMonth, currentYear]);
+  };
 
-  const getMonthName = useCallback((month: number) => {
+  const getMonthName = (month: number) => {
     const months = [
       t('january'), t('february'), t('march'), t('april'), t('may'), t('june'),
       t('july'), t('august'), t('september'), t('october'), t('november'), t('december')
     ];
     return months[month];
-  }, [t]);
+  };
 
   // All hooks must be called before any conditional returns
   const upcomingPayments = useMemo(() => {

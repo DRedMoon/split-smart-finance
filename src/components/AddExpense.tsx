@@ -86,21 +86,8 @@ const AddExpense = () => {
         type: 'expense'
       });
 
-      // Only add to monthly bills if it's explicitly marked as recurring AND it's a bill-type category
-      const data = loadFinancialData();
-      const categoryData = data?.categories?.find(cat => 
-        cat.name.toLowerCase().replace(/\s+/g, '_') === quickData.category
-      );
-
-      // Only these categories should be added to monthly bills
-      const billCategories = ['insurance', 'subscription', 'bill', 'maintenance_charge', 'hoitovastike', 'housing_company_expenditure'];
-      const isBillCategory = categoryData?.isMonthlyPayment || 
-                            categoryData?.isMaintenanceCharge || 
-                            categoryData?.isHousingCompanyExpenditure ||
-                            billCategories.includes(quickData.category);
-
-      // Only add to monthly bills if it's both recurring AND a bill-type category
-      if (quickData.isRecurring && isBillCategory) {
+      // Only add to monthly bills if it's explicitly marked as recurring AND requires a due date
+      if (quickData.isRecurring && requiresDueDate(quickData.category)) {
         addMonthlyBill({
           name: quickData.name,
           amount: quickData.amount,
