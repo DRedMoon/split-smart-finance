@@ -197,11 +197,15 @@ const UpcomingPayments = () => {
 
   // Memoized calculations for better performance
   const upcomingPayments = useMemo(() => {
-    return currentView === 'month' && currentMonth !== new Date().getMonth() 
-      ? getNextMonthPayments() 
-      : currentView === 'yearly' 
-      ? [] 
-      : getUpcomingPayments(currentView);
+    if (currentView === 'yearly') {
+      return [];
+    }
+    
+    if (currentView === 'month' && currentMonth !== new Date().getMonth()) {
+      return getNextMonthPayments();
+    }
+    
+    return getUpcomingPayments(currentView);
   }, [currentView, currentMonth, getNextMonthPayments, getUpcomingPayments]);
 
   const yearlyData = useMemo(() => {
