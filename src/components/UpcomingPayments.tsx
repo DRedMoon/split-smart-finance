@@ -195,7 +195,7 @@ const UpcomingPayments = () => {
     return <div className="p-4 text-sidebar-foreground bg-sidebar min-h-screen max-w-md mx-auto">{t('loading')}</div>;
   }
 
-  // Memoized calculations for better performance
+  // Memoized calculations for better performance - always execute hooks in same order
   const upcomingPayments = useMemo(() => {
     if (currentView === 'yearly') {
       return [];
@@ -209,30 +209,34 @@ const UpcomingPayments = () => {
   }, [currentView, currentMonth, getNextMonthPayments, getUpcomingPayments]);
 
   const yearlyData = useMemo(() => {
-    return currentView === 'yearly' ? getYearlyUpcomingPayments() : [];
+    if (currentView === 'yearly') {
+      return getYearlyUpcomingPayments();
+    }
+    return [];
   }, [currentView, getYearlyUpcomingPayments]);
 
-  // Separate loan/credit payments from regular bills - memoized
-  const { loanCreditPayments, regularBills } = useMemo(() => {
-    const loanCredit = upcomingPayments.filter(bill => 
+  // Separate loan/credit payments from regular bills - always execute
+  const loanCreditPayments = useMemo(() => {
+    return upcomingPayments.filter(bill => 
       bill.category === 'Loan' || bill.category === 'Credit Card' || 
       bill.type === 'laina' || bill.type === 'luottokortti' ||
       bill.type === 'loan_payment' || bill.type === 'credit_payment'
     );
+  }, [upcomingPayments]);
 
-    const regular = upcomingPayments.filter(bill => 
+  const regularBills = useMemo(() => {
+    return upcomingPayments.filter(bill => 
       bill.category !== 'Loan' && bill.category !== 'Credit Card' && 
       bill.type !== 'laina' && bill.type !== 'luottokortti' &&
       bill.type !== 'loan_payment' && bill.type !== 'credit_payment'
     );
-
-    return { loanCreditPayments: loanCredit, regularBills: regular };
   }, [upcomingPayments]);
 
   const totalAmount = useMemo(() => {
-    return currentView === 'yearly' 
-      ? yearlyData.reduce((sum, monthData) => sum + monthData.totalAmount, 0)
-      : upcomingPayments.reduce((sum, bill) => sum + bill.amount, 0);
+    if (currentView === 'yearly') {
+      return yearlyData.reduce((sum, monthData) => sum + monthData.totalAmount, 0);
+    }
+    return upcomingPayments.reduce((sum, bill) => sum + bill.amount, 0);
   }, [currentView, yearlyData, upcomingPayments]);
 
   return (
