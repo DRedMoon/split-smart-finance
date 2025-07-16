@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import PinVerificationDialog from './PinVerificationDialog';
 
 interface PinCodeSectionProps {
   pin: string;
@@ -23,6 +24,8 @@ const PinCodeSection: React.FC<PinCodeSectionProps> = ({
 }) => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const [showVerification, setShowVerification] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'enable' | 'disable' | null>(null);
 
   const handlePinToggle = (enabled: boolean) => {
     if (enabled && pin.length !== 4) {
@@ -40,15 +43,28 @@ const PinCodeSection: React.FC<PinCodeSectionProps> = ({
         title: t('pin_enabled'),
         description: t('pin_set_successfully'),
       });
+      onPinToggle(enabled);
     } else {
+      if (pinEnabled) {
+        setPendingAction('disable');
+        setShowVerification(true);
+      } else {
+        onPinToggle(false);
+      }
+    }
+  };
+
+  const handleVerifiedAction = () => {
+    if (pendingAction === 'disable') {
       localStorage.removeItem('app-pin');
+      onPinToggle(false);
+      onPinChange('');
       toast({
         title: t('pin_disabled'),
         description: t('pin_disabled_description'),
       });
     }
-    
-    onPinToggle(enabled);
+    setPendingAction(null);
   };
 
   return (
@@ -83,6 +99,17 @@ const PinCodeSection: React.FC<PinCodeSectionProps> = ({
           />
         </div>
       </CardContent>
+      
+      <PinVerificationDialog
+        isOpen={showVerification}
+        onClose={() => {
+          setShowVerification(false);
+          setPendingAction(null);
+        }}
+        onVerified={handleVerifiedAction}
+        title={t('verify_pin')}
+        description={t('enter_current_pin_to_continue')}
+      />
     </Card>
   );
 };

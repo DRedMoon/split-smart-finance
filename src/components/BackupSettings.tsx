@@ -24,7 +24,15 @@ const BackupSettings = () => {
     backupLocation: 'downloads',
     customBackupPath: '',
     cloudBackup: false,
-    compressionEnabled: true
+    compressionEnabled: true,
+    cloudProvider: 'google_drive' as 'google_drive' | 'icloud' | 'dropbox' | 'onedrive'
+  });
+  
+  const [backupStatus, setBackupStatus] = useState({
+    lastBackup: null as Date | null,
+    backupSize: 0,
+    isBackingUp: false,
+    backupError: null as string | null
   });
 
   useEffect(() => {
@@ -39,6 +47,16 @@ const BackupSettings = () => {
   }, []);
 
   const handleSettingChange = (key: string, value: any) => {
+    // Validate cloud backup requires password
+    if (key === 'cloudBackup' && value && !settings.backupPassword) {
+      toast({
+        title: t('password_required'),
+        description: t('cloud_backup_requires_password'),
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     
@@ -226,6 +244,41 @@ const BackupSettings = () => {
               checked={settings.cloudBackup}
               onCheckedChange={(checked) => handleSettingChange('cloudBackup', checked)}
             />
+          </div>
+          
+          {settings.cloudBackup && (
+            <div>
+              <label className="text-white font-medium mb-2 block">{t('cloud_provider')}</label>
+              <Select value={settings.cloudProvider} onValueChange={(value) => handleSettingChange('cloudProvider', value)}>
+                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="google_drive">{t('google_drive')}</SelectItem>
+                  <SelectItem value="icloud">{t('icloud')}</SelectItem>
+                  <SelectItem value="dropbox">{t('dropbox')}</SelectItem>
+                  <SelectItem value="onedrive">{t('onedrive')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
+          {/* Backup Status */}
+          <div className="mt-4 p-3 bg-white/5 rounded border border-white/10">
+            <div className="text-white font-medium mb-2">{t('backup_status')}</div>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between text-white/70">
+                <span>{t('last_backup')}</span>
+                <span>{backupStatus.lastBackup ? backupStatus.lastBackup.toLocaleDateString() : t('never')}</span>
+              </div>
+              <div className="flex justify-between text-white/70">
+                <span>{t('backup_size')}</span>
+                <span>{backupStatus.backupSize > 0 ? `${(backupStatus.backupSize / 1024).toFixed(1)} KB` : t('unknown')}</span>
+              </div>
+              {backupStatus.backupError && (
+                <div className="text-red-400 text-xs">{backupStatus.backupError}</div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

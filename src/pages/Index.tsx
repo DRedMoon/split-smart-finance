@@ -21,6 +21,7 @@ import BackupSettings from '@/components/BackupSettings';
 import DataManagement from '@/components/DataManagement';
 import Navigation from '@/components/Navigation';
 import Analytics from '@/components/Analytics';
+import QuickPaymentEntry from '@/components/QuickPaymentEntry';
 
 const Index = () => {
   const location = useLocation();
@@ -92,6 +93,7 @@ const Index = () => {
         <Route path="/add-loan" element={<AddLoan />} />
         <Route path="/add-credit" element={<div>Add Credit</div>} />
         <Route path="/edit-loan/:loanId" element={<EditLoan />} />
+        <Route path="/quick-payment-entry" element={<QuickPaymentEntry />} />
       </Routes>
       <Navigation />
     </div>

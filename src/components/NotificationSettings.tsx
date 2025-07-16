@@ -185,15 +185,17 @@ const NotificationSettings = () => {
           <CardHeader>
             <CardTitle className="text-white text-sm">{t('notification_types')}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-white text-sm">{t('monthly_bills')}</div>
                 <div className="text-white/60 text-xs">{t('recurring_payment_reminders')}</div>
               </div>
-              <Badge variant="outline" className="text-white border-white/30">
-                {t('enabled')}
-              </Badge>
+              <Switch
+                checked={isEnabled}
+                onCheckedChange={toggleNotifications}
+                disabled={isLoading}
+              />
             </div>
             
             <div className="flex items-center justify-between">
@@ -201,9 +203,59 @@ const NotificationSettings = () => {
                 <div className="text-white text-sm">{t('loan_payments')}</div>
                 <div className="text-white/60 text-xs">{t('loan_credit_reminders')}</div>
               </div>
-              <Badge variant="outline" className="text-white border-white/30">
-                {t('enabled')}
-              </Badge>
+              <Switch
+                checked={isEnabled}
+                onCheckedChange={toggleNotifications}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-white text-sm">{t('credit_reminders')}</div>
+                <div className="text-white/60 text-xs">{t('credit_card_payment_reminders')}</div>
+              </div>
+              <Switch
+                checked={isEnabled}
+                onCheckedChange={toggleNotifications}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-white text-sm">{t('upcoming_payments')}</div>
+                <div className="text-white/60 text-xs">{t('all_upcoming_payment_reminders')}</div>
+              </div>
+              <Switch
+                checked={isEnabled}
+                onCheckedChange={toggleNotifications}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-white text-sm">{t('low_balance_alerts')}</div>
+                <div className="text-white/60 text-xs">{t('alert_when_balance_low')}</div>
+              </div>
+              <Switch
+                checked={isEnabled}
+                onCheckedChange={toggleNotifications}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-white text-sm">{t('backup_reminders')}</div>
+                <div className="text-white/60 text-xs">{t('remind_to_backup_data')}</div>
+              </div>
+              <Switch
+                checked={isEnabled}
+                onCheckedChange={toggleNotifications}
+                disabled={isLoading}
+              />
             </div>
           </CardContent>
         </Card>

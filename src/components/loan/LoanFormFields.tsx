@@ -1,7 +1,10 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 import DueDatePicker from './DueDatePicker';
@@ -16,6 +19,7 @@ interface LoanFormFieldsProps {
 
 const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, setIsCredit }: LoanFormFieldsProps) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   const handleNumberInput = (field: string, value: string) => {
     console.log('LoanFormFields - Input received:', field, value);
@@ -205,57 +209,22 @@ const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, set
         placeholder={t('select_day')}
       />
 
-      {/* Payment Breakdown Section */}
-      <div className="bg-card/30 p-4 rounded-lg border border-border/30">
-        <h3 className="text-card-foreground font-medium mb-3">{t('payment_breakdown')}</h3>
-        
-        <div className="grid grid-cols-1 gap-3">
-          <div>
-            <Label htmlFor="principal-amount" className="text-card-foreground text-sm">
-              {t('principal_amount')} ({t('lyhennys')})
-            </Label>
-            <Input
-              id="principal-amount"
-              type="text"
-              value={formatDisplayValue(loanData.principalAmount)}
-              onChange={(e) => handleNumberInput('principalAmount', e.target.value)}
-              className="bg-card/10 border-border/20 text-card-foreground mt-1"
-              placeholder="500"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="interest-amount" className="text-card-foreground text-sm">
-              {t('interest_amount')} ({t('korko')})
-            </Label>
-            <Input
-              id="interest-amount"
-              type="text"
-              value={formatDisplayValue(loanData.interestAmount)}
-              onChange={(e) => handleNumberInput('interestAmount', e.target.value)}
-              className="bg-card/10 border-border/20 text-card-foreground mt-1"
-              placeholder="455.5"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="management-fee-amount" className="text-card-foreground text-sm">
-              {t('management_fee')} ({t('tilinhoitopalkkio')})
-            </Label>
-            <Input
-              id="management-fee-amount"
-              type="text"
-              value={formatDisplayValue(loanData.managementFeeAmount)}
-              onChange={(e) => handleNumberInput('managementFeeAmount', e.target.value)}
-              className="bg-card/10 border-border/20 text-card-foreground mt-1"
-              placeholder="2.50"
-            />
-          </div>
+      {/* Payment Breakdown Note */}
+      <div className="bg-info/10 p-3 rounded-lg border border-info/20">
+        <div className="text-sm font-medium mb-2">{t('payment_breakdown_note')}</div>
+        <div className="text-xs text-muted-foreground mb-2">
+          {t('payment_breakdown_varies_monthly')}
         </div>
-        
-        <div className="mt-3 p-2 bg-muted/20 rounded text-xs text-muted-foreground">
-          {t('payment_breakdown_help')}
-        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/quick-payment-entry')}
+          className="w-full"
+        >
+          <Plus size={14} className="mr-1" />
+          {t('use_quick_payment_entry')}
+        </Button>
       </div>
 
       {calculatedValues.estimatedEuribor > 0 && calculatedValues.estimatedMargin > 0.1 && (

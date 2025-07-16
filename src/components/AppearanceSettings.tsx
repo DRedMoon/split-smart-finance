@@ -54,7 +54,19 @@ const AppearanceSettings = () => {
     
     // Apply theme changes immediately
     if (key === 'theme') {
+      document.documentElement.className = value === 'dark' ? 'dark' : '';
       document.documentElement.setAttribute('data-theme', value);
+    }
+    
+    // Apply font size changes
+    if (key === 'fontSize') {
+      const sizeMap = { small: '14px', medium: '16px', large: '18px' };
+      document.documentElement.style.fontSize = sizeMap[value as keyof typeof sizeMap];
+    }
+    
+    // Apply high contrast
+    if (key === 'highContrast') {
+      document.documentElement.style.filter = value ? 'contrast(1.5)' : 'contrast(1)';
     }
     
     // Apply brightness changes
