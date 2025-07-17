@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { addTransaction, addIncome, loadFinancialData, addMonthlyBill } from '@/services/storageService';
+import { addTransaction, addIncome, loadFinancialData, addMonthlyBill, saveFinancialData } from '@/services/storageService';
 import DueDatePicker from './loan/DueDatePicker';
+import { getAllCategories, isLoanPaymentCategory, requiresDueDate as categoryRequiresDueDate } from '@/services/categoryService';
 
 const AddExpense = () => {
   const navigate = useNavigate();
@@ -24,16 +25,23 @@ const AddExpense = () => {
     category: '',
     type: 'expense',
     isRecurring: false,
-    dueDate: ''
+    dueDate: '',
+    selectedLoan: '',
+    principalAmount: 0,
+    interestAmount: 0
   });
 
   const [availableCategories, setAvailableCategories] = useState([]);
+  const [availableLoans, setAvailableLoans] = useState([]);
 
   useEffect(() => {
-    // Load existing categories from financial data
     const data = loadFinancialData();
-    const customCategories = data?.categories || [];
-    setAvailableCategories(customCategories);
+    const categories = getAllCategories();
+    setAvailableCategories(categories);
+    
+    // Load loans for loan payment selection
+    const loans = data?.loans || [];
+    setAvailableLoans(loans);
   }, []);
 
   // Auto-set recurring for subscription category
@@ -45,16 +53,12 @@ const AddExpense = () => {
 
   // Check if category requires due date
   const requiresDueDate = (category) => {
-    const dueDateCategories = ['subscription', 'bill', 'insurance', 'loan_repayment', 'credit_repayment', 'credit_purchase'];
-    
-    // Check default categories
-    if (dueDateCategories.includes(category)) return true;
-    
-    // Check custom categories
-    const categoryData = availableCategories.find(cat => 
-      cat.name.toLowerCase().replace(/\s+/g, '_') === category
-    );
-    return categoryData?.requiresDueDate || false;
+    return categoryRequiresDueDate(category);
+  };
+
+  // Check if selected category is loan payment
+  const isLoanPayment = (category) => {
+    return isLoanPaymentCategory(category);
   };
 
   const handleQuickAdd = () => {
@@ -77,14 +81,58 @@ const AddExpense = () => {
       return;
     }
 
+    // For loan payments, validate principal and interest amounts
+    if (isLoanPayment(quickData.category)) {
+      if (!quickData.selectedLoan || quickData.principalAmount === 0 || quickData.interestAmount === 0) {
+        toast({
+          title: t('error'),
+          description: 'Please select a loan and enter both principal and interest amounts',
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (quickData.principalAmount + quickData.interestAmount !== quickData.amount) {
+        toast({
+          title: t('error'),
+          description: 'Principal + Interest must equal the total amount',
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     if (quickData.type === 'expense') {
-      addTransaction({
+      const transactionData = {
         name: quickData.name,
         amount: -quickData.amount, // Expenses are negative
         category: quickData.category,
         date: new Date().toISOString().split('T')[0],
-        type: 'expense'
-      });
+        type: 'expense',
+        ...(isLoanPayment(quickData.category) && {
+          loanId: parseInt(quickData.selectedLoan),
+          principalAmount: quickData.principalAmount,
+          interestAmount: quickData.interestAmount
+        })
+      };
+
+      addTransaction(transactionData);
+
+      // Update loan balance if it's a loan payment
+      if (isLoanPayment(quickData.category) && quickData.selectedLoan) {
+        const data = loadFinancialData();
+        if (data && data.loans) {
+          const loanIndex = data.loans.findIndex(loan => loan.id === parseInt(quickData.selectedLoan));
+          if (loanIndex !== -1) {
+            // Update loan amounts
+            data.loans[loanIndex].currentAmount -= quickData.principalAmount;
+            if (data.loans[loanIndex].totalInterest) {
+              data.loans[loanIndex].totalInterest -= quickData.interestAmount;
+            }
+            saveFinancialData(data);
+          }
+        }
+      }
 
       // Only add to monthly bills if it's explicitly marked as recurring AND requires a due date
       if (quickData.isRecurring && requiresDueDate(quickData.category)) {
@@ -122,37 +170,18 @@ const AddExpense = () => {
       category: '',
       type: 'expense',
       isRecurring: false,
-      dueDate: ''
+      dueDate: '',
+      selectedLoan: '',
+      principalAmount: 0,
+      interestAmount: 0
     });
   };
 
-  const defaultCategories = [
-    { value: 'food', label: t('food') },
-    { value: 'transport', label: t('transport') },
-    { value: 'entertainment', label: t('entertainment') },
-    { value: 'bill', label: t('bill') },
-    { value: 'insurance', label: t('insurance') },
-    { value: 'subscription', label: t('subscription') },
-    { value: 'other', label: t('other') },
-    { value: 'paycheck', label: t('paycheck') },
-    { value: 'loan_repayment', label: t('loan_repayment') },
-    { value: 'credit_repayment', label: t('credit_repayment') },
-    { value: 'credit_purchase', label: t('credit_purchase') }
-  ];
-
-  // Combine default categories with custom categories
-  const allCategories = [
-    ...defaultCategories,
-    ...availableCategories.map(cat => ({
-      value: cat.name.toLowerCase().replace(/\s+/g, '_'),
-      label: cat.name
-    }))
-  ];
-
-  // Remove duplicates based on value
-  const uniqueCategories = allCategories.filter((category, index, self) =>
-    index === self.findIndex((t) => t.value === category.value)
-  );
+  // Use categories from the centralized service
+  const allCategories = availableCategories.map(cat => ({
+    value: cat.englishKey,
+    label: cat.name
+  }));
 
   return (
     <div className="p-4 pb-20 bg-sidebar min-h-screen">
@@ -223,25 +252,91 @@ const AddExpense = () => {
               <SelectTrigger className="bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground mt-2">
                 <SelectValue placeholder={t('select_category')} />
               </SelectTrigger>
-              <SelectContent>
-                {uniqueCategories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+               <SelectContent>
+                 {allCategories.map((category) => (
+                   <SelectItem key={category.value} value={category.value}>
+                     {category.label}
+                   </SelectItem>
+                 ))}
+               </SelectContent>
             </Select>
           </div>
 
-          {/* Due Date Picker - only show for categories that require it */}
-          {quickData.category && requiresDueDate(quickData.category) && (
-            <DueDatePicker
-              value={quickData.dueDate}
-              onChange={(value) => setQuickData(prev => ({ ...prev, dueDate: value }))}
-              label={t('due_date')}
-              placeholder={t('select_day')}
-            />
-          )}
+           {/* Due Date Picker - only show for categories that require it */}
+           {quickData.category && requiresDueDate(quickData.category) && (
+             <DueDatePicker
+               value={quickData.dueDate}
+               onChange={(value) => setQuickData(prev => ({ ...prev, dueDate: value }))}
+               label={t('due_date')}
+               placeholder={t('select_day')}
+             />
+           )}
+
+           {/* Loan Payment Fields - only show for loan payment category */}
+           {quickData.category && isLoanPayment(quickData.category) && (
+             <>
+               <div>
+                 <Label htmlFor="loan-select" className="text-sidebar-foreground">{t('select_loan')}</Label>
+                 <Select value={quickData.selectedLoan} onValueChange={(value) => setQuickData(prev => ({ ...prev, selectedLoan: value }))}>
+                   <SelectTrigger className="bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground mt-2">
+                     <SelectValue placeholder={t('select_loan')} />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {availableLoans.map((loan) => (
+                       <SelectItem key={loan.id} value={loan.id.toString()}>
+                         {loan.name} - €{loan.currentAmount.toFixed(2)}
+                       </SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
+               </div>
+
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <Label htmlFor="principal-amount" className="text-sidebar-foreground">{t('principal_amount')}</Label>
+                   <Input
+                     id="principal-amount"
+                     type="number"
+                     value={quickData.principalAmount || ''}
+                     onChange={(e) => setQuickData(prev => ({ ...prev, principalAmount: parseFloat(e.target.value) || 0 }))}
+                     className="bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground mt-2"
+                     placeholder="0.00"
+                   />
+                 </div>
+                 <div>
+                   <Label htmlFor="interest-amount" className="text-sidebar-foreground">{t('interest_amount')}</Label>
+                   <Input
+                     id="interest-amount"
+                     type="number"
+                     value={quickData.interestAmount || ''}
+                     onChange={(e) => setQuickData(prev => ({ ...prev, interestAmount: parseFloat(e.target.value) || 0 }))}
+                     className="bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground mt-2"
+                     placeholder="0.00"
+                   />
+                 </div>
+               </div>
+
+               {/* Show calculation summary */}
+               {quickData.principalAmount > 0 && quickData.interestAmount > 0 && (
+                 <div className="bg-sidebar-accent/30 p-3 rounded-lg">
+                   <div className="text-sidebar-foreground text-sm">
+                     <div className="flex justify-between">
+                       <span>{t('principal')}:</span>
+                       <span>€{quickData.principalAmount.toFixed(2)}</span>
+                     </div>
+                     <div className="flex justify-between">
+                       <span>{t('interest')}:</span>
+                       <span>€{quickData.interestAmount.toFixed(2)}</span>
+                     </div>
+                     <div className="flex justify-between font-semibold border-t border-sidebar-border pt-2 mt-2">
+                       <span>{t('total')}:</span>
+                       <span>€{(quickData.principalAmount + quickData.interestAmount).toFixed(2)}</span>
+                     </div>
+                   </div>
+                 </div>
+               )}
+             </>
+           )}
 
           {quickData.type === 'expense' && (
             <div className="flex items-center space-x-2">

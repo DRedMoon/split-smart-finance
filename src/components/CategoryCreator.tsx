@@ -9,14 +9,19 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { loadFinancialData, saveFinancialData, deleteCategory, getDefaultFinancialData } from '@/services/storageService';
+import { 
+  getAllCategories, 
+  addCategory, 
+  deleteCategory as deleteCategoryService, 
+  Category 
+} from '@/services/categoryService';
 
 const CategoryCreator = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { toast } = useToast();
   
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [newCategory, setNewCategory] = useState({
     name: '',
     description: '',
@@ -29,31 +34,13 @@ const CategoryCreator = () => {
 
   // Load existing categories on component mount
   useEffect(() => {
-    const data = loadFinancialData() || getDefaultFinancialData();
-    
-    // Default categories that exist in the system
-    const defaultCategories = [
-      { id: 1, name: 'Ruoka', color: '#FF6B6B', description: 'Food and dining', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 2, name: 'Liikenne', color: '#4ECDC4', description: 'Transport and travel', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 3, name: 'Viihde', color: '#45B7D1', description: 'Entertainment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 4, name: 'Lasku', color: '#96CEB4', description: 'Bills and utilities', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 5, name: 'Vakuutus', color: '#FFEAA7', description: 'Insurance', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 6, name: 'Tilaus', color: '#DDA0DD', description: 'Subscriptions', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 7, name: 'Muu', color: '#F7DC6F', description: 'Other expenses', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 8, name: 'Lainan lyhennys', color: '#85C1E9', description: 'Loan repayment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 9, name: 'Luottokorttiostos', color: '#F8C471', description: 'Credit card purchase', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 10, name: 'Luottokortin maksu', color: '#82E0AA', description: 'Credit card payment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 11, name: 'Hoitovastike', color: '#D7BDE2', description: 'Maintenance charge', isMaintenanceCharge: true, isHousingCompanyExpenditure: false, isMonthlyPayment: true, createdAt: '2024-01-01' },
-      { id: 12, name: 'Taloyhtiön meno', color: '#A9DFBF', description: 'Housing company expenditure', isMaintenanceCharge: false, isHousingCompanyExpenditure: true, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 13, name: 'monthly_payment', color: '#F9E79F', description: 'Monthly payment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: true, createdAt: '2024-01-01' }
-    ];
-    
-    // Combine default categories with custom categories
-    const customCategories = data?.categories || [];
-    const allCategories = [...defaultCategories, ...customCategories];
-    
-    setCategories(allCategories);
+    loadCategories();
   }, []);
+
+  const loadCategories = () => {
+    const allCategories = getAllCategories();
+    setCategories(allCategories);
+  };
 
   const handleCreateCategory = () => {
     if (!newCategory.name.trim()) {
@@ -65,36 +52,13 @@ const CategoryCreator = () => {
       return;
     }
 
-    const data = loadFinancialData() || getDefaultFinancialData();
-    if (!data.categories) data.categories = [];
-
     const categoryToAdd = {
       ...newCategory,
-      id: Date.now() + Math.random(),
-      createdAt: new Date().toISOString()
+      englishKey: newCategory.name.toLowerCase().replace(/\s+/g, '_')
     };
 
-    data.categories.push(categoryToAdd);
-    saveFinancialData(data);
-    
-    // Reload categories to show the new one
-    const defaultCategories = [
-      { id: 1, name: 'Ruoka', color: '#FF6B6B', description: 'Food and dining', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 2, name: 'Liikenne', color: '#4ECDC4', description: 'Transport and travel', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 3, name: 'Viihde', color: '#45B7D1', description: 'Entertainment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 4, name: 'Lasku', color: '#96CEB4', description: 'Bills and utilities', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 5, name: 'Vakuutus', color: '#FFEAA7', description: 'Insurance', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 6, name: 'Tilaus', color: '#DDA0DD', description: 'Subscriptions', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 7, name: 'Muu', color: '#F7DC6F', description: 'Other expenses', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 8, name: 'Lainan lyhennys', color: '#85C1E9', description: 'Loan repayment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 9, name: 'Luottokorttiostos', color: '#F8C471', description: 'Credit card purchase', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 10, name: 'Luottokortin maksu', color: '#82E0AA', description: 'Credit card payment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 11, name: 'Hoitovastike', color: '#D7BDE2', description: 'Maintenance charge', isMaintenanceCharge: true, isHousingCompanyExpenditure: false, isMonthlyPayment: true, createdAt: '2024-01-01' },
-      { id: 12, name: 'Taloyhtiön meno', color: '#A9DFBF', description: 'Housing company expenditure', isMaintenanceCharge: false, isHousingCompanyExpenditure: true, isMonthlyPayment: false, createdAt: '2024-01-01' },
-      { id: 13, name: 'monthly_payment', color: '#F9E79F', description: 'Monthly payment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: true, createdAt: '2024-01-01' }
-    ];
-    const allCategories = [...defaultCategories, ...data.categories];
-    setCategories(allCategories);
+    addCategory(categoryToAdd);
+    loadCategories();
     
     setNewCategory({
       name: '',
@@ -112,29 +76,10 @@ const CategoryCreator = () => {
     });
   };
 
-  const handleDeleteCategory = (categoryId, categoryName) => {
+  const handleDeleteCategory = (categoryId: number, categoryName: string) => {
     if (confirm(`${t('confirm_delete_category')} "${categoryName}"?`)) {
-      deleteCategory(categoryId);
-      const data = loadFinancialData() || getDefaultFinancialData();
-      
-      // Reload categories after deletion
-      const defaultCategories = [
-        { id: 1, name: 'Ruoka', color: '#FF6B6B', description: 'Food and dining', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-        { id: 2, name: 'Liikenne', color: '#4ECDC4', description: 'Transport and travel', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-        { id: 3, name: 'Viihde', color: '#45B7D1', description: 'Entertainment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-        { id: 4, name: 'Lasku', color: '#96CEB4', description: 'Bills and utilities', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-        { id: 5, name: 'Vakuutus', color: '#FFEAA7', description: 'Insurance', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-        { id: 6, name: 'Tilaus', color: '#DDA0DD', description: 'Subscriptions', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-        { id: 7, name: 'Muu', color: '#F7DC6F', description: 'Other expenses', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-        { id: 8, name: 'Lainan lyhennys', color: '#85C1E9', description: 'Loan repayment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-        { id: 9, name: 'Luottokorttiostos', color: '#F8C471', description: 'Credit card purchase', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-        { id: 10, name: 'Luottokortin maksu', color: '#82E0AA', description: 'Credit card payment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, createdAt: '2024-01-01' },
-        { id: 11, name: 'Hoitovastike', color: '#D7BDE2', description: 'Maintenance charge', isMaintenanceCharge: true, isHousingCompanyExpenditure: false, isMonthlyPayment: true, createdAt: '2024-01-01' },
-        { id: 12, name: 'Taloyhtiön meno', color: '#A9DFBF', description: 'Housing company expenditure', isMaintenanceCharge: false, isHousingCompanyExpenditure: true, isMonthlyPayment: false, createdAt: '2024-01-01' },
-        { id: 13, name: 'monthly_payment', color: '#F9E79F', description: 'Monthly payment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: true, createdAt: '2024-01-01' }
-      ];
-      const allCategories = [...defaultCategories, ...(data.categories || [])];
-      setCategories(allCategories);
+      deleteCategoryService(categoryId);
+      loadCategories();
       
       toast({
         title: t('category_deleted'),
@@ -190,14 +135,16 @@ const CategoryCreator = () => {
                     >
                       <Edit size={16} />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteCategory(category.id, category.name)}
-                      className="text-red-300 hover:bg-red-500/20"
-                    >
-                      <Trash2 size={16} />
-                    </Button>
+                    {!category.isDefault && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteCategory(category.id, category.name)}
+                        className="text-red-300 hover:bg-red-500/20"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    )}
                   </div>
                 </div>
                 
