@@ -39,6 +39,7 @@ const CategoryCreator = () => {
 
   const loadCategories = () => {
     const allCategories = getAllCategories();
+    console.log('Loaded categories:', allCategories); // Debug log
     setCategories(allCategories);
   };
 

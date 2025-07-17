@@ -83,23 +83,28 @@ const AddExpense = () => {
 
     // For loan payments, validate principal and interest amounts
     if (isLoanPayment(quickData.category)) {
-      if (!quickData.selectedLoan || quickData.principalAmount === 0 || quickData.interestAmount === 0) {
+      // Only require loan selection for actual loan repayment
+      if (quickData.category === 'loan_repayment' && !quickData.selectedLoan) {
         toast({
           title: t('error'),
-          description: 'Please select a loan and enter both principal and interest amounts',
+          description: 'Please select a loan',
           variant: "destructive"
         });
         return;
       }
 
-      if (quickData.principalAmount + quickData.interestAmount !== quickData.amount) {
+      if (quickData.principalAmount === 0 || quickData.interestAmount === 0) {
         toast({
           title: t('error'),
-          description: 'Principal + Interest must equal the total amount',
+          description: 'Please enter both principal and interest amounts',
           variant: "destructive"
         });
         return;
       }
+
+      // Auto-calculate total amount from principal + interest
+      const totalAmount = quickData.principalAmount + quickData.interestAmount;
+      setQuickData(prev => ({ ...prev, amount: totalAmount }));
     }
 
     if (quickData.type === 'expense') {
@@ -234,17 +239,20 @@ const AddExpense = () => {
             />
           </div>
           
-          <div>
-            <Label htmlFor="quick-amount" className="text-sidebar-foreground">{t('sum')}</Label>
-            <Input
-              id="quick-amount"
-              type="number"
-              value={quickData.amount || ''}
-              onChange={(e) => setQuickData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
-              className="bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground mt-2"
-              placeholder="0.00"
-            />
-          </div>
+          {/* Only show sum field when not in loan payment mode */}
+          {!isLoanPayment(quickData.category) && (
+            <div>
+              <Label htmlFor="quick-amount" className="text-sidebar-foreground">{t('sum')}</Label>
+              <Input
+                id="quick-amount"
+                type="number"
+                value={quickData.amount || ''}
+                onChange={(e) => setQuickData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
+                className="bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground mt-2"
+                placeholder="0.00"
+              />
+            </div>
+          )}
           
           <div>
             <Label htmlFor="quick-category" className="text-sidebar-foreground">{t('category')}</Label>
@@ -272,24 +280,27 @@ const AddExpense = () => {
              />
            )}
 
-           {/* Loan Payment Fields - only show for loan payment category */}
+           {/* Principal/Interest Fields - show for loan payment and credit card categories */}
            {quickData.category && isLoanPayment(quickData.category) && (
              <>
-               <div>
-                 <Label htmlFor="loan-select" className="text-sidebar-foreground">{t('select_loan')}</Label>
-                 <Select value={quickData.selectedLoan} onValueChange={(value) => setQuickData(prev => ({ ...prev, selectedLoan: value }))}>
-                   <SelectTrigger className="bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground mt-2">
-                     <SelectValue placeholder={t('select_loan')} />
-                   </SelectTrigger>
-                   <SelectContent>
-                     {availableLoans.map((loan) => (
-                       <SelectItem key={loan.id} value={loan.id.toString()}>
-                         {loan.name} - €{loan.currentAmount.toFixed(2)}
-                       </SelectItem>
-                     ))}
-                   </SelectContent>
-                 </Select>
-               </div>
+               {/* Only show loan selection for actual loan repayment */}
+               {quickData.category === 'loan_repayment' && (
+                 <div>
+                   <Label htmlFor="loan-select" className="text-sidebar-foreground">{t('select_loan')}</Label>
+                   <Select value={quickData.selectedLoan} onValueChange={(value) => setQuickData(prev => ({ ...prev, selectedLoan: value }))}>
+                     <SelectTrigger className="bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground mt-2">
+                       <SelectValue placeholder={t('select_loan')} />
+                     </SelectTrigger>
+                     <SelectContent>
+                       {availableLoans.map((loan) => (
+                         <SelectItem key={loan.id} value={loan.id.toString()}>
+                           {loan.name} - €{loan.currentAmount.toFixed(2)}
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                 </div>
+               )}
 
                <div className="grid grid-cols-2 gap-4">
                  <div>

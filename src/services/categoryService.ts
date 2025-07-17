@@ -26,8 +26,8 @@ const DEFAULT_CATEGORIES: Category[] = [
   { id: 6, name: 'Tilaus', englishKey: 'subscription', color: '#DDA0DD', description: 'Subscriptions', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, requiresDueDate: true, createdAt: '2024-01-01', isDefault: true },
   { id: 7, name: 'Muu', englishKey: 'other', color: '#F7DC6F', description: 'Other expenses', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, requiresDueDate: false, createdAt: '2024-01-01', isDefault: true },
   { id: 8, name: 'Lainan lyhennys', englishKey: 'loan_repayment', color: '#85C1E9', description: 'Loan repayment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, requiresDueDate: false, isLoanPayment: true, createdAt: '2024-01-01', isDefault: true },
-  { id: 9, name: 'Luottokorttiostos', englishKey: 'credit_purchase', color: '#F8C471', description: 'Credit card purchase', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, requiresDueDate: false, createdAt: '2024-01-01', isDefault: true },
-  { id: 10, name: 'Luottokortin maksu', englishKey: 'credit_repayment', color: '#82E0AA', description: 'Credit card payment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, requiresDueDate: false, createdAt: '2024-01-01', isDefault: true },
+  { id: 9, name: 'Luottokorttiostos', englishKey: 'credit_purchase', color: '#F8C471', description: 'Credit card purchase', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, requiresDueDate: false, isLoanPayment: true, createdAt: '2024-01-01', isDefault: true },
+  { id: 10, name: 'Luottokortin maksu', englishKey: 'credit_repayment', color: '#82E0AA', description: 'Credit card payment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: false, requiresDueDate: false, isLoanPayment: true, createdAt: '2024-01-01', isDefault: true },
   { id: 11, name: 'Hoitovastike', englishKey: 'maintenance_charge', color: '#D7BDE2', description: 'Maintenance charge', isMaintenanceCharge: true, isHousingCompanyExpenditure: false, isMonthlyPayment: true, requiresDueDate: false, createdAt: '2024-01-01', isDefault: true },
   { id: 12, name: 'Taloyhtiön meno', englishKey: 'housing_company_expenditure', color: '#A9DFBF', description: 'Housing company expenditure', isMaintenanceCharge: false, isHousingCompanyExpenditure: true, isMonthlyPayment: false, requiresDueDate: false, createdAt: '2024-01-01', isDefault: true },
   { id: 13, name: 'Kuukausimaksu', englishKey: 'monthly_payment', color: '#F9E79F', description: 'Monthly payment', isMaintenanceCharge: false, isHousingCompanyExpenditure: false, isMonthlyPayment: true, requiresDueDate: false, createdAt: '2024-01-01', isDefault: true },
@@ -41,12 +41,14 @@ export const getAllCategories = (): Category[] => {
   // Convert custom categories to the new format if needed
   const formattedCustomCategories = customCategories.map(cat => ({
     ...cat,
-    englishKey: cat.name.toLowerCase().replace(/\s+/g, '_'),
+    englishKey: (cat as any).englishKey || cat.name.toLowerCase().replace(/\s+/g, '_'),
     isDefault: false,
     requiresDueDate: cat.requiresDueDate || false
   }));
   
-  return [...DEFAULT_CATEGORIES, ...formattedCustomCategories];
+  const allCategories = [...DEFAULT_CATEGORIES, ...formattedCustomCategories];
+  console.log('getAllCategories returning:', allCategories); // Debug log
+  return allCategories;
 };
 
 export const getCategoryByName = (name: string): Category | undefined => {
@@ -75,7 +77,7 @@ export const addCategory = (categoryData: Omit<Category, 'id' | 'createdAt' | 'i
   
   const newCategory = {
     ...categoryData,
-    id: Date.now() + Math.random(),
+    id: Math.floor(Date.now() + Math.random() * 1000), // Ensure integer ID
     createdAt: new Date().toISOString(),
     isDefault: false
   };
