@@ -69,16 +69,12 @@ const AppearanceSettings = () => {
     
     // Apply theme changes
     if (key === 'theme') {
-      root.className = value === 'dark' ? 'dark' : '';
-      root.setAttribute('data-theme', value);
-      // Update CSS custom properties
       if (value === 'dark') {
-        root.style.setProperty('--background', '222.2 84% 4.9%');
-        root.style.setProperty('--foreground', '210 40% 98%');
+        root.classList.add('dark');
       } else {
-        root.style.setProperty('--background', '0 0% 100%');
-        root.style.setProperty('--foreground', '222.2 84% 4.9%');
+        root.classList.remove('dark');
       }
+      root.setAttribute('data-theme', value);
     }
     
     // Apply font size changes
@@ -89,18 +85,24 @@ const AppearanceSettings = () => {
     
     // Apply high contrast
     if (key === 'highContrast') {
+      const existingFilter = root.style.filter;
+      const filters = existingFilter.split(' ').filter(f => !f.startsWith('contrast('));
       if (value) {
-        root.style.filter = 'contrast(1.5)';
+        filters.push('contrast(1.5)');
         root.style.setProperty('--contrast-multiplier', '1.5');
       } else {
-        root.style.filter = 'contrast(1)';
+        filters.push('contrast(1)');
         root.style.setProperty('--contrast-multiplier', '1');
       }
+      root.style.filter = filters.join(' ');
     }
     
     // Apply brightness changes
     if (key === 'screenBrightness') {
-      root.style.filter = `brightness(${value}%)`;
+      const existingFilter = root.style.filter;
+      const filters = existingFilter.split(' ').filter(f => !f.startsWith('brightness('));
+      filters.push(`brightness(${value}%)`);
+      root.style.filter = filters.join(' ');
     }
   };
 

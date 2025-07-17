@@ -1,15 +1,47 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, Eye, Database, Cookie } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { loadFinancialData, saveFinancialData } from '@/services/storageService';
 
 const PrivacySettings = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  
+  const [privacySettings, setPrivacySettings] = useState({
+    analytics: false,
+    errorReporting: true,
+    hideBalances: false,
+    screenshotProtection: false
+  });
+
+  useEffect(() => {
+    const data = loadFinancialData();
+    if (data?.settings) {
+      setPrivacySettings({
+        analytics: data.settings.analytics || false,
+        errorReporting: data.settings.errorReporting !== false,
+        hideBalances: data.settings.hideBalances || false,
+        screenshotProtection: data.settings.screenshotProtection || false
+      });
+    }
+  }, []);
+
+  const handleSettingChange = (key: string, value: boolean) => {
+    const newSettings = { ...privacySettings, [key]: value };
+    setPrivacySettings(newSettings);
+    
+    // Save to storage
+    const data = loadFinancialData();
+    if (data) {
+      data.settings = { ...data.settings, [key]: value };
+      saveFinancialData(data);
+    }
+  };
 
   return (
     <div className="p-4 pb-20 bg-[#192E45] min-h-screen">
@@ -49,14 +81,20 @@ const PrivacySettings = () => {
               <div className="font-medium">{t('analytics')}</div>
               <div className="text-sm text-white/70">{t('usage_data_collection')}</div>
             </div>
-            <Switch defaultChecked={false} />
+            <Switch 
+              checked={privacySettings.analytics}
+              onCheckedChange={(checked) => handleSettingChange('analytics', checked)}
+            />
           </div>
           <div className="flex items-center justify-between">
             <div className="text-white">
               <div className="font-medium">{t('error_reports')}</div>
               <div className="text-sm text-white/70">{t('automatic_error_reports')}</div>
             </div>
-            <Switch defaultChecked={true} />
+            <Switch 
+              checked={privacySettings.errorReporting}
+              onCheckedChange={(checked) => handleSettingChange('errorReporting', checked)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -75,14 +113,20 @@ const PrivacySettings = () => {
               <div className="font-medium">{t('hide_balances')}</div>
               <div className="text-sm text-white/70">{t('hide_balances_background')}</div>
             </div>
-            <Switch defaultChecked={false} />
+            <Switch 
+              checked={privacySettings.hideBalances}
+              onCheckedChange={(checked) => handleSettingChange('hideBalances', checked)}
+            />
           </div>
           <div className="flex items-center justify-between">
             <div className="text-white">
               <div className="font-medium">{t('screenshot_protection')}</div>
               <div className="text-sm text-white/70">{t('prevent_screenshots')}</div>
             </div>
-            <Switch defaultChecked={false} />
+            <Switch 
+              checked={privacySettings.screenshotProtection}
+              onCheckedChange={(checked) => handleSettingChange('screenshotProtection', checked)}
+            />
           </div>
         </CardContent>
       </Card>

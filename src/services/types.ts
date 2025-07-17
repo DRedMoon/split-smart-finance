@@ -23,7 +23,9 @@ export interface FinancialData {
     lastPayment: string;
     totalPayback: number;
     yearlyInterestRate: number;
-    paymentBreakdown?: LoanPaymentBreakdown;
+    totalInterest?: number;
+    type?: 'loan' | 'credit';
+    categoryId?: number;
   }>;
   monthlyBills: Array<{
     id: number;
@@ -48,6 +50,11 @@ export interface FinancialData {
     date: string;
     type: string;
     category: string;
+    description?: string;
+    paymentMethod?: string;
+    loanId?: number;
+    principalAmount?: number;
+    interestAmount?: number;
   }>;
   categories?: Array<{
     id: number;
@@ -73,6 +80,8 @@ export interface FinancialData {
     theme: 'light' | 'dark';
     fontSize: 'small' | 'medium' | 'large';
     highContrast?: boolean;
+    hideBalances?: boolean;
+    screenshotProtection?: boolean;
     automaticBackup?: boolean;
     cloudBackup?: boolean;
     cloudProvider?: 'google_drive' | 'icloud' | 'dropbox' | 'onedrive';
