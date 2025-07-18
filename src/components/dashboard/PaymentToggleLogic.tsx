@@ -2,15 +2,14 @@
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentMonthYear, isPaymentPaidForMonth, setPaymentStatusForMonth, migratePaymentDataToMonthSpecific } from '@/utils/paymentUtils';
+import { calculateBalanceForValidation } from '@/services/balanceService';
 
 export const usePaymentToggleLogic = () => {
   const { toast } = useToast();
 
+  // Use centralized balance calculation for consistency
   const calculateCurrentBalance = (data: any) => {
-    const baseBalance = data?.balance || 0;
-    const allTransactions = data?.transactions || [];
-    const transactionSum = allTransactions.reduce((sum: number, transaction: any) => sum + transaction.amount, 0);
-    return baseBalance + transactionSum;
+    return calculateBalanceForValidation(data);
   };
 
   const handleTogglePaid = (billId: string | number, event?: React.MouseEvent) => {

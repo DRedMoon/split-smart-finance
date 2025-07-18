@@ -2,13 +2,12 @@
 import { useCallback } from 'react';
 import { saveFinancialData } from '@/services/storageService';
 import { getCurrentMonthYear, isPaymentPaidForMonth, setPaymentStatusForMonth, migratePaymentDataToMonthSpecific } from '@/utils/paymentUtils';
+import { calculateBalanceForValidation } from '@/services/balanceService';
 
 export const usePaymentToggleHandler = (financialData: any, setFinancialData: any, toast: any) => {
+  // Use centralized balance calculation for consistency
   const calculateCurrentBalance = (data: any) => {
-    const baseBalance = data?.balance || 0;
-    const allTransactions = data?.transactions || [];
-    const transactionSum = allTransactions.reduce((sum: number, transaction: any) => sum + transaction.amount, 0);
-    return baseBalance + transactionSum;
+    return calculateBalanceForValidation(data);
   };
 
   const handleTogglePaid = useCallback((billId: string | number) => {

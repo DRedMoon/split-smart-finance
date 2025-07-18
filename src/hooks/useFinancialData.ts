@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { loadFinancialData, saveFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
 import { isPaymentPaidForMonth } from '@/utils/paymentUtils';
+import { calculateBalance } from '@/services/balanceService';
 
 export const useFinancialData = (refreshKey: number) => {
   const [data, setData] = useState(null);
@@ -41,11 +42,10 @@ export const useFinancialData = (refreshKey: number) => {
     });
   }, [allTransactions, monthlyBills]);
 
-  // Memoized balance calculation
+  // Memoized balance calculation using centralized service
   const balance = useMemo(() => {
-    const regularTransactionSum = regularTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-    return baseBalance + regularTransactionSum;
-  }, [baseBalance, regularTransactions]);
+    return calculateBalance(data);
+  }, [data]);
 
   // Memoized recent transactions calculation
   const sortedRecentTransactions = useMemo(() => {
