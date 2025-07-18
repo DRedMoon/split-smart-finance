@@ -63,11 +63,13 @@ export const getCategoryByKey = (key: string): Category | undefined => {
 
 export const isLoanPaymentCategory = (categoryNameOrKey: string): boolean => {
   const category = getCategoryByName(categoryNameOrKey) || getCategoryByKey(categoryNameOrKey);
+  console.log('isLoanPaymentCategory check for:', categoryNameOrKey, 'found category:', category, 'isLoanPayment:', category?.isLoanPayment);
   return category?.isLoanPayment || false;
 };
 
 export const requiresDueDate = (categoryNameOrKey: string): boolean => {
   const category = getCategoryByName(categoryNameOrKey) || getCategoryByKey(categoryNameOrKey);
+  console.log('requiresDueDate check for:', categoryNameOrKey, 'found category:', category, 'requiresDueDate:', category?.requiresDueDate);
   return category?.requiresDueDate || false;
 };
 

@@ -45,14 +45,14 @@ const DueDatePicker = ({ value, onChange, label, placeholder }: DueDatePickerPro
 
   return (
     <div>
-      <Label className="text-white">{displayLabel}</Label>
+      <Label className="text-sidebar-foreground">{displayLabel}</Label>
       <Popover>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             className={cn(
-              "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20 mt-2",
-              !value && "text-white/70"
+              "w-full justify-start text-left font-normal bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent mt-2",
+              !value && "text-sidebar-foreground/70"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
