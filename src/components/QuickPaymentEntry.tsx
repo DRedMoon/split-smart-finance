@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calculator, CreditCard, DollarSign } from 'lucide-react';
@@ -56,8 +57,8 @@ const QuickPaymentEntry = () => {
 
     if (!paymentData.loanId || totalAmount <= 0) {
       toast({
-        title: "Virhe",
-        description: "Valitse laina ja syötä maksusummat",
+        title: t('error'),
+        description: t('select_loan_enter_amounts'),
         variant: "destructive",
       });
       return;
@@ -71,8 +72,8 @@ const QuickPaymentEntry = () => {
     const loanIndex = data.loans.findIndex(loan => loan.id === parseInt(paymentData.loanId));
     if (loanIndex === -1) {
       toast({
-        title: "Virhe",
-        description: "Lainaa ei löydy",
+        title: t('error'),
+        description: t('loan_not_found'),
         variant: "destructive",
       });
       return;
@@ -81,11 +82,11 @@ const QuickPaymentEntry = () => {
     // Add the transaction
     const loan = data.loans[loanIndex];
     const transaction = {
-      name: `${loan.name} - Lainan maksu`,
+      name: `${loan.name} - ${t('loan_credit_payment')}`,
       date: paymentData.date,
       amount: totalAmount,
       category: "Lainan lyhennys",
-      description: `Lainan maksu: ${principalAmount}€ pääoma + ${interestAmount}€ korko`,
+      description: `${t('loan_credit_payment')}: ${principalAmount}€ ${t('principal_euro').replace(' (€)', '')} + ${interestAmount}€ ${t('interest_euro').replace(' (€)', '')}`,
       type: "expense" as const,
       paymentMethod: "Bank Transfer",
       loanId: parseInt(paymentData.loanId),
@@ -111,15 +112,15 @@ const QuickPaymentEntry = () => {
       window.dispatchEvent(new CustomEvent('financial-data-updated'));
       
       toast({
-        title: "Onnistui",
-        description: `Lainan maksu kirjattu: ${principalAmount}€ pääoma + ${interestAmount}€ korko`,
+        title: t('payment_processed'),
+        description: `${t('loan_credit_payment')}: ${principalAmount}€ ${t('principal_euro').replace(' (€)', '')} + ${interestAmount}€ ${t('interest_euro').replace(' (€)', '')}`,
       });
       
       navigate('/loans-credits');
     } catch (error) {
       toast({
-        title: "Virhe",
-        description: "Maksun kirjaaminen epäonnistui",
+        title: t('error'),
+        description: t('payment_recording_failed'),
         variant: "destructive",
       });
     }
@@ -186,7 +187,7 @@ const QuickPaymentEntry = () => {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="principal">Pääoma (€)</Label>
+                <Label htmlFor="principal">{t('principal_euro')}</Label>
                 <Input
                   id="principal"
                   type="text"
@@ -198,7 +199,7 @@ const QuickPaymentEntry = () => {
               </div>
               
               <div>
-                <Label htmlFor="interest">Korko (€)</Label>
+                <Label htmlFor="interest">{t('interest_euro')}</Label>
                 <Input
                   id="interest"
                   type="text"
@@ -211,7 +212,7 @@ const QuickPaymentEntry = () => {
             </div>
 
             <div>
-              <Label htmlFor="total">Yhteensä (€)</Label>
+              <Label htmlFor="total">{t('total_euro')}</Label>
               <Input
                 id="total"
                 type="text"
@@ -227,15 +228,15 @@ const QuickPaymentEntry = () => {
           {/* Selected Loan Info */}
           {selectedLoan && (
             <div className="bg-muted/20 p-3 rounded-lg border">
-              <div className="text-sm font-medium mb-2">Valittu laina</div>
+              <div className="text-sm font-medium mb-2">{t('selected_loan')}</div>
               <div className="text-xs space-y-1">
-                <div>Nykyinen saldo: {selectedLoan.currentAmount.toFixed(2)} €</div>
-                <div>Kuukausierä: {selectedLoan.monthly.toFixed(2)} €</div>
+                <div>{t('current_balance')}: {selectedLoan.currentAmount.toFixed(2)} €</div>
+                <div>{t('monthly_payment_euro')}: {selectedLoan.monthly.toFixed(2)} €</div>
                 {selectedLoan.managementFee && (
-                  <div>Hoitomaksu: {selectedLoan.managementFee.toFixed(2)} €</div>
+                  <div>{t('management_fee')}: {selectedLoan.managementFee.toFixed(2)} €</div>
                 )}
                 {selectedLoan.totalInterest && (
-                  <div>Jäljellä olevat korot: {selectedLoan.totalInterest.toFixed(2)} €</div>
+                  <div>{t('remaining_interest')}: {selectedLoan.totalInterest.toFixed(2)} €</div>
                 )}
               </div>
             </div>
@@ -244,7 +245,7 @@ const QuickPaymentEntry = () => {
           {/* Submit Button */}
           <Button onClick={handleSubmit} className="w-full">
             <DollarSign size={16} className="mr-2" />
-            Kirjaa maksu
+            {t('record_payment')}
           </Button>
         </CardContent>
       </Card>

@@ -32,7 +32,7 @@ const UpcomingWeekCard = ({ filteredWeekPayments }: UpcomingWeekCardProps) => {
       </CardHeader>
       <CardContent className="pt-0">
         {filteredWeekPayments.length === 0 ? (
-          <p className="text-white/70 text-center py-4">Ei maksuja tällä viikolla</p>
+          <p className="text-white/70 text-center py-4">{t('no_payments_this_week')}</p>
         ) : (
           <div className="space-y-3">
             {filteredWeekPayments.slice(0, 3).map(bill => (
@@ -45,7 +45,7 @@ const UpcomingWeekCard = ({ filteredWeekPayments }: UpcomingWeekCardProps) => {
               </div>
             ))}
             {filteredWeekPayments.length > 3 && (
-              <p className="text-white/70 text-sm text-center">+{filteredWeekPayments.length - 3} more this week</p>
+              <p className="text-white/70 text-sm text-center">+{filteredWeekPayments.length - 3} {t('more_this_week')}</p>
             )}
           </div>
         )}

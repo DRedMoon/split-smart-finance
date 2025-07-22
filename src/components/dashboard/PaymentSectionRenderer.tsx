@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 import PaymentBillItem from './PaymentBillItem';
 
 interface PaymentSectionRendererProps {
@@ -24,6 +25,7 @@ const PaymentSectionRenderer = ({
   onTogglePaid,
   isLoanSection = false 
 }: PaymentSectionRendererProps) => {
+  const { t } = useLanguage();
   const displayedBills = showAll ? bills : bills.slice(0, 2);
 
   if (bills.length === 0 && isLoanSection) {
@@ -35,11 +37,11 @@ const PaymentSectionRenderer = ({
       <h3 className="text-white font-medium mb-3">{title}</h3>
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <p className="text-white/70 text-sm">Yhteensä</p>
+          <p className="text-white/70 text-sm">{t('total')}</p>
           <p className="text-white font-semibold">€{totalAmount.toFixed(2)}</p>
         </div>
         <div>
-          <p className="text-white/70 text-sm">Maksettu</p>
+          <p className="text-white/70 text-sm">{t('paid')}</p>
           <p className="text-green-400 font-semibold">€{paidAmount.toFixed(2)}</p>
         </div>
       </div>
@@ -60,12 +62,12 @@ const PaymentSectionRenderer = ({
               onClick={onToggleShowAll}
               className="w-full text-white/70 hover:text-white hover:bg-white/10 text-sm"
             >
-              {showAll ? 'Näytä vähemmän' : `+${bills.length - 2} lisää`}
+              {showAll ? t('show_less') : `+${bills.length - 2} ${t('more')}`}
             </Button>
           )}
         </div>
       ) : (
-        <p className="text-white/60 text-sm mb-4">Ei laskuja</p>
+        <p className="text-white/60 text-sm mb-4">{t('no_bills')}</p>
       )}
     </div>
   );
