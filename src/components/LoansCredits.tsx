@@ -52,7 +52,7 @@ const LoansCredits = () => {
   };
 
   if (!financialData) {
-    return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">Ladataan...</div>;
+    return <div className="p-4 text-white bg-[#192E45] min-h-screen max-w-md mx-auto">{t('loading')}</div>;
   }
 
   return (

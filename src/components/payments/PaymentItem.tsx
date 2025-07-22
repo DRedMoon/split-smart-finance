@@ -4,6 +4,7 @@ import { Check, X, Calendar } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PaymentItemProps {
   bill: any;
@@ -12,6 +13,7 @@ interface PaymentItemProps {
 }
 
 const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) => {
+  const { t } = useLanguage();
   const isPaid = bill.paid || false;
   const daysUntilDue = getDaysUntilDue(bill.dueDate);
   const isLoanCredit = bill.category === 'Loan' || bill.category === 'Credit Card' || 
@@ -36,6 +38,14 @@ const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) 
     return 'text-white/70';
   };
 
+  const getDueDateText = () => {
+    if (daysUntilDue !== null && !isPaid) {
+      if (daysUntilDue === 0) return ` (${t('today')})`;
+      return ` (${daysUntilDue} ${t('days_short')})`;
+    }
+    return '';
+  };
+
   return (
     <Card className={getCardBackground()}>
       <CardContent className="p-4">
@@ -55,11 +65,7 @@ const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) 
                 <Calendar size={12} className={getDueDateColor()} />
                 <span className={`text-sm ${getDueDateColor()}`}>
                   {bill.dueDate}
-                  {daysUntilDue !== null && !isPaid && (
-                    <span className="ml-1">
-                      ({daysUntilDue === 0 ? 'Tänään' : `${daysUntilDue} pv`})
-                    </span>
-                  )}
+                  {getDueDateText()}
                 </span>
               </div>
             </div>
@@ -71,14 +77,14 @@ const PaymentItem = ({ bill, onTogglePaid, getDaysUntilDue }: PaymentItemProps) 
             <div className="flex items-center space-x-1 mt-1">
               {isLoanCredit && (
                 <Badge variant="outline" className="text-xs border-red-300 text-red-300">
-                  {bill.category === 'Credit Card' ? 'Luotto' : 'Laina'}
+                  {bill.category === 'Credit Card' ? t('credit') : t('loan')}
                 </Badge>
               )}
               <Badge
                 variant="outline"
                 className={`text-xs ${isPaid ? 'border-green-300 text-green-300' : 'border-white/30 text-white/70'}`}
               >
-                {isPaid ? 'Maksettu' : 'Maksamaton'}
+                {isPaid ? t('paid') : t('unpaid')}
               </Badge>
             </div>
           </div>

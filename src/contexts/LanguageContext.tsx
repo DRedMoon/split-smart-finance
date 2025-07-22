@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 type Language = 'fi' | 'en';
@@ -20,6 +21,7 @@ const translations = {
     no_transactions: 'Ei tapahtumia',
     all_transactions: 'Kaikki tapahtumat',
     upcoming_week: 'Tuleva viikko',
+    payments: 'Maksut',
     
     // Payment status
     paid: 'Maksettu',
@@ -86,6 +88,24 @@ const translations = {
     no_bills: 'Ei laskuja',
     total: 'Yhteensä',
     
+    // Loan and Credit terms - NEW
+    loans_and_credits: 'Lainat ja luotot',
+    credit: 'Luotto',
+    loan: 'Laina',
+    monthly: 'kuukausittain',
+    used: 'käytetty',
+    loans_summary: 'Lainojen yhteenveto',
+    no_loans_credits: 'Ei lainoja tai luottoja',
+    calculated_values: 'Lasketut arvot',
+    monthly_payment: 'Kuukausimaksu',
+    total_payback: 'Kokonaismaksu',
+    
+    // Time-related terms - NEW
+    today: 'Tänään',
+    days_short: 'pv',
+    days_until: '{days} päivää',
+    loading: 'Ladataan...',
+    
     // Settings
     settings: 'Asetukset',
     account: 'Tili',
@@ -129,6 +149,7 @@ const translations = {
     no_transactions: 'No transactions',
     all_transactions: 'All Transactions',
     upcoming_week: 'Upcoming Week',
+    payments: 'Payments',
     
     // Payment status
     paid: 'Paid',
@@ -194,6 +215,24 @@ const translations = {
     more_this_week: 'more this week',
     no_bills: 'No bills',
     total: 'Total',
+    
+    // Loan and Credit terms - NEW
+    loans_and_credits: 'Loans and Credits',
+    credit: 'Credit',
+    loan: 'Loan',
+    monthly: 'monthly',
+    used: 'used',
+    loans_summary: 'Loans Summary',
+    no_loans_credits: 'No loans or credits',
+    calculated_values: 'Calculated Values',
+    monthly_payment: 'Monthly Payment',
+    total_payback: 'Total Payback',
+    
+    // Time-related terms - NEW
+    today: 'Today',
+    days_short: 'd',
+    days_until: '{days} days',
+    loading: 'Loading...',
     
     // Settings
     settings: 'Settings',

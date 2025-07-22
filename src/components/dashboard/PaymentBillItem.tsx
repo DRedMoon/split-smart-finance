@@ -2,6 +2,7 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PaymentBillItemProps {
   bill: any;
@@ -10,6 +11,7 @@ interface PaymentBillItemProps {
 }
 
 const PaymentBillItem = ({ bill, isLoanPayment, onTogglePaid }: PaymentBillItemProps) => {
+  const { t } = useLanguage();
   const isPaid = bill.paid || false;
   
   const handleClick = (e: React.MouseEvent) => {
@@ -35,11 +37,11 @@ const PaymentBillItem = ({ bill, isLoanPayment, onTogglePaid }: PaymentBillItemP
             <div className="flex items-center space-x-2">
               {isLoanPayment && (
                 <span className="text-xs bg-red-500/30 px-1 py-0.5 rounded text-red-200">
-                  {bill.category === 'Credit Card' ? 'Luotto' : 'Laina'}
+                  {bill.category === 'Credit Card' ? t('credit') : t('loan')}
                 </span>
               )}
               <span className={`text-xs ${isPaid ? 'text-green-400' : 'text-red-400'}`}>
-                {isPaid ? 'Maksettu' : 'Maksamaton'}
+                {isPaid ? t('paid') : t('unpaid')}
               </span>
             </div>
           </div>

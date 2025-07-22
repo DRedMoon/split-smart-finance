@@ -82,7 +82,7 @@ const LoansCreditsCard = ({ loans, totalLoanAmount, totalMonthlyPayments, curren
                 onClick={() => setShowAll(!showAll)}
                 className="w-full text-white/70 hover:text-white hover:bg-white/10"
               >
-                {showAll ? 'Näytä vähemmän' : `+${loans.length - 2} lisää`}
+                {showAll ? t('show_less') : `+${loans.length - 2} ${t('more')}`}
               </Button>
             )}
           </div>

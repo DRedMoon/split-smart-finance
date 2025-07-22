@@ -3,10 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { useDashboardCarousel } from '@/hooks/useDashboardCarousel';
 import { useDashboardSpacing } from '@/hooks/useDashboardSpacing';
 import { useFinancialData } from '@/hooks/useFinancialData';
+import { useLanguage } from '@/contexts/LanguageContext';
 import DashboardCarousel from './dashboard/DashboardCarousel';
 import DashboardContent from './dashboard/DashboardContent';
 
 const Dashboard = () => {
+  const { t } = useLanguage();
   const [refreshKey, setRefreshKey] = useState(0);
   const { 
     carouselApi, 
@@ -55,7 +57,7 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-sidebar p-4 pb-20 max-w-md mx-auto">
         <div className="text-center mb-4">
-          <h1 className="text-3xl font-bold text-sidebar-foreground">Maksut</h1>
+          <h1 className="text-3xl font-bold text-sidebar-foreground">{t('payments')}</h1>
         </div>
         <div className="bg-sidebar-accent/50 rounded-lg h-64 mb-4 animate-pulse"></div>
       </div>
@@ -66,7 +68,7 @@ const Dashboard = () => {
     <div className="h-screen bg-sidebar p-4 pb-20 max-w-md mx-auto flex flex-col overflow-hidden">
       {/* Title */}
       <div className="text-center mb-4 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-sidebar-foreground">Maksut</h1>
+        <h1 className="text-2xl font-bold text-sidebar-foreground">{t('payments')}</h1>
       </div>
 
       {/* Main Carousel */}
