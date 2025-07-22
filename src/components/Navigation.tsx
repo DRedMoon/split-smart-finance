@@ -7,7 +7,27 @@ import { useLanguage } from '@/contexts/LanguageContext';
 const Navigation = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLanguage();
+  
+  // Add error boundary for context
+  let t;
+  try {
+    const languageContext = useLanguage();
+    t = languageContext.t;
+  } catch (error) {
+    console.error('LanguageContext error:', error);
+    // Fallback to English
+    t = (key: string) => {
+      const fallbackTranslations: Record<string, string> = {
+        home: 'Home',
+        upcoming: 'Upcoming',
+        add: 'Add',
+        analytics: 'Analytics',
+        settings: 'Settings',
+        main_navigation: 'Main Navigation'
+      };
+      return fallbackTranslations[key] || key;
+    };
+  }
 
   const navItems = useMemo(() => [
     { path: '/', icon: Home, label: t('home') },
