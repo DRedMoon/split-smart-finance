@@ -91,7 +91,6 @@ const translations = {
     // Loan and Credit terms - NEW
     loans_and_credits: 'Lainat ja luotot',
     credit: 'Luotto',
-    loan: 'Laina',
     monthly: 'kuukausittain',
     used: 'käytetty',
     loans_summary: 'Lainojen yhteenveto',
@@ -219,7 +218,6 @@ const translations = {
     // Loan and Credit terms - NEW
     loans_and_credits: 'Loans and Credits',
     credit: 'Credit',
-    loan: 'Loan',
     monthly: 'monthly',
     used: 'used',
     loans_summary: 'Loans Summary',
