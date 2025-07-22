@@ -61,9 +61,9 @@ const MonthlyPaymentsSummary = ({ totals }: MonthlyPaymentsSummaryProps) => {
                 <span className="font-bold text-red-300">€{totals.remainingLoanCredit.toFixed(2)}</span>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
