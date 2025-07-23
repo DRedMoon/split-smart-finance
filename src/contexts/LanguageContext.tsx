@@ -270,11 +270,26 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('fi');
+  const [isReady, setIsReady] = useState(false);
+
+  // Use useEffect to ensure provider is ready before rendering children
+  React.useEffect(() => {
+    setIsReady(true);
+  }, []);
 
   const t = (key: string): string => {
     const translation = translations[language][key as keyof typeof translations[typeof language]];
     return translation || key;
   };
+
+  // Show loading state until context is ready
+  if (!isReady) {
+    return (
+      <div className="min-h-screen bg-[#192E45] flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
@@ -286,6 +301,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
+    // More informative error with fallback
+    console.error('useLanguage must be used within a LanguageProvider. Check your component tree.');
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;

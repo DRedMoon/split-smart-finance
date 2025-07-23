@@ -3,12 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { useDashboardCarousel } from '@/hooks/useDashboardCarousel';
 import { useDashboardSpacing } from '@/hooks/useDashboardSpacing';
 import { useFinancialData } from '@/hooks/useFinancialData';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import DashboardCarousel from './dashboard/DashboardCarousel';
 import DashboardContent from './dashboard/DashboardContent';
 
 const Dashboard = () => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const [refreshKey, setRefreshKey] = useState(0);
   const { 
     carouselApi, 
