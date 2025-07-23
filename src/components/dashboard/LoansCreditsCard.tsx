@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ArrowRight, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useNavigate } from 'react-router-dom';
 
 interface LoansCreditsCardProps {
@@ -14,7 +14,7 @@ interface LoansCreditsCardProps {
 }
 
 const LoansCreditsCard = ({ loans, totalLoanAmount, totalMonthlyPayments, currentSlide = 0 }: LoansCreditsCardProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const navigate = useNavigate();
   const [showAll, setShowAll] = useState(false);
 

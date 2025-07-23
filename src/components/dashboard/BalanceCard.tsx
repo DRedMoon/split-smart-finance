@@ -2,7 +2,7 @@
 import React from 'react';
 import { Wallet } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 
 interface BalanceCardProps {
   balance: number;
@@ -10,7 +10,7 @@ interface BalanceCardProps {
 }
 
 const BalanceCard = ({ balance, currentSlide = 0 }: BalanceCardProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   return (
     <Card className="bg-gradient-to-r from-[#294D73] to-[#1f3a5f] border-none">

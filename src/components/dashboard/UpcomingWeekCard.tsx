@@ -3,7 +3,7 @@ import React from 'react';
 import { ArrowRight, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useNavigate } from 'react-router-dom';
 
 interface UpcomingWeekCardProps {
@@ -11,7 +11,7 @@ interface UpcomingWeekCardProps {
 }
 
 const UpcomingWeekCard = ({ filteredWeekPayments }: UpcomingWeekCardProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const navigate = useNavigate();
 
   return (

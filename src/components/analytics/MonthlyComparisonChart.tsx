@@ -1,7 +1,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { format } from 'date-fns';
 
 interface MonthlyComparisonChartProps {
@@ -10,7 +10,7 @@ interface MonthlyComparisonChartProps {
 }
 
 const MonthlyComparisonChart = ({ data, title }: MonthlyComparisonChartProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   const formatTooltip = (value: any, name: string) => {
     return [`€${value.toFixed(2)}`, name];

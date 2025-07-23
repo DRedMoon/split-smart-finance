@@ -5,7 +5,7 @@ import { ArrowLeft, User, Bell, Shield, Download, Upload, Database, Palette, Set
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import LanguageSelector from '@/components/LanguageSelector';
 import { exportFinancialData, importFinancialData, saveFinancialData, loadFinancialData, clearAllData, logError, logAnalytics } from '@/services/storageService';
 import { initializeNotifications, showNotification }  from '@/services/notificationService';
@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 

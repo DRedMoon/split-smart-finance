@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { loadFinancialData, type FinancialData } from '@/services/storageService';
 import { forecastingService } from '@/services/forecastingService';
 
@@ -23,7 +23,7 @@ import CashFlowChart from './analytics/CashFlowChart';
 
 const Analytics = React.memo(() => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const [financialData, setFinancialData] = useState<FinancialData | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState('6');
 

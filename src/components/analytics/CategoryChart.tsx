@@ -1,7 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 
 interface CategoryChartProps {
   data: any[];
@@ -11,7 +11,7 @@ interface CategoryChartProps {
 const COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8', '#f7dc6f'];
 
 const CategoryChart = ({ data, title }: CategoryChartProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   const formatTooltip = (value: any, name: string) => {
     return [`€${value.toFixed(2)}`, name];

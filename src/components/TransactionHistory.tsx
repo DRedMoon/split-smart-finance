@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { loadFinancialData, updateTransaction, deleteTransaction, type FinancialData } from '@/services/storageService';
 import { toast } from '@/hooks/use-toast';
 import TransactionFilters from './transaction-history/TransactionFilters';
@@ -15,7 +15,7 @@ import TransactionItem from './transaction-history/TransactionItem';
 
 const TransactionHistory = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const [financialData, setFinancialData] = useState<FinancialData | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [editForm, setEditForm] = useState({ name: '', amount: '', category: '' });

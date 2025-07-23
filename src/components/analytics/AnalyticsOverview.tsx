@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, PieChart } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 
 interface AnalyticsOverviewProps {
   totalExpenses: number;
@@ -18,7 +18,7 @@ const AnalyticsOverview = ({
   mostExpensiveCategory,
   savingsRate
 }: AnalyticsOverviewProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   const stats = [
     {

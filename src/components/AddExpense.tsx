@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useToast } from '@/hooks/use-toast';
 import { addTransaction, addIncome, loadFinancialData, addMonthlyBill, saveFinancialData } from '@/services/storageService';
 import DueDatePicker from './loan/DueDatePicker';
@@ -15,7 +15,7 @@ import { getAllCategories, isLoanPaymentCategory, requiresDueDate as categoryReq
 
 const AddExpense = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
   
   // Quick Add state

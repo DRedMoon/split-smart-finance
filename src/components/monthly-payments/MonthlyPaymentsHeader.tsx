@@ -2,7 +2,7 @@
 import React from 'react';
 import { ArrowLeft, Plus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useNavigate } from 'react-router-dom';
 
 interface MonthlyPaymentsHeaderProps {
@@ -10,7 +10,7 @@ interface MonthlyPaymentsHeaderProps {
 }
 
 const MonthlyPaymentsHeader = ({ onBack }: MonthlyPaymentsHeaderProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const navigate = useNavigate();
 
   return (

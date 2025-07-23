@@ -4,7 +4,7 @@ import { ArrowRight, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useNavigate } from 'react-router-dom';
 
 interface RecentTransactionsCardProps {
@@ -13,7 +13,7 @@ interface RecentTransactionsCardProps {
 }
 
 const RecentTransactionsCard = ({ recentTransactions, isExpandedView = false }: RecentTransactionsCardProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const navigate = useNavigate();
 
   // For expanded view, fill available space; for balance view, use fixed height

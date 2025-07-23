@@ -2,7 +2,7 @@ import React from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 
 interface ErrorStateProps {
   title?: string;
@@ -19,7 +19,7 @@ const ErrorState = ({
   onHome,
   showHomeButton = true
 }: ErrorStateProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   return (
     <div className="flex items-center justify-center min-h-[400px] p-4">
