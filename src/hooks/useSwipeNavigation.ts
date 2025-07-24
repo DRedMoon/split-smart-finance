@@ -1,17 +1,17 @@
 import { useState, useRef, useCallback } from 'react';
 
+
 interface SwipeNavigationProps {
   totalViews: number;
-  initialView?: number;
+  currentView: number;
   onViewChange?: (viewIndex: number) => void;
 }
 
 export const useSwipeNavigation = ({ 
   totalViews, 
-  initialView = 0, 
+  currentView, 
   onViewChange 
 }: SwipeNavigationProps) => {
-  const [currentView, setCurrentView] = useState(initialView);
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   const touchStartX = useRef<number | null>(null);
@@ -21,7 +21,6 @@ export const useSwipeNavigation = ({
   const navigateToView = useCallback((viewIndex: number) => {
     if (viewIndex >= 0 && viewIndex < totalViews && viewIndex !== currentView) {
       setIsTransitioning(true);
-      setCurrentView(viewIndex);
       onViewChange?.(viewIndex);
       
       // Reset transition state after animation
@@ -64,7 +63,6 @@ export const useSwipeNavigation = ({
   };
 
   return {
-    currentView,
     isTransitioning,
     navigateToView,
     swipeHandlers,

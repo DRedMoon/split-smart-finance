@@ -10,19 +10,23 @@ import { useNavigate } from 'react-router-dom';
 interface RecentTransactionsCardProps {
   recentTransactions: any[];
   isExpandedView?: boolean;
+  maxHeight?: string;
 }
 
-const RecentTransactionsCard = ({ recentTransactions, isExpandedView = false }: RecentTransactionsCardProps) => {
+const RecentTransactionsCard = ({ 
+  recentTransactions, 
+  isExpandedView = false, 
+  maxHeight 
+}: RecentTransactionsCardProps) => {
   const { t } = useSafeLanguage();
   const navigate = useNavigate();
 
-  // For expanded view, fill available space; for balance view, use fixed height
-  const cardClasses = isExpandedView 
-    ? 'bg-[#294D73] border-none h-full flex flex-col' 
-    : 'bg-[#294D73] border-none flex flex-col h-full';
+  // Apply height constraints based on view type
+  const cardStyle = maxHeight ? { maxHeight } : {};
+  const cardClasses = 'bg-[#294D73] border-none flex flex-col';
 
   return (
-    <Card className={cardClasses}>
+    <Card className={cardClasses} style={cardStyle}>
       <CardHeader className="flex flex-row items-center justify-between pb-3 flex-shrink-0">
         <CardTitle className="text-white text-lg">{t('recent_transactions')}</CardTitle>
         <Button

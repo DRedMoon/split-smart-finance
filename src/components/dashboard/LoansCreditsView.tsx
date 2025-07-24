@@ -31,11 +31,12 @@ const LoansCreditsView = ({
         />
       </div>
 
-      {/* Recent Transactions - Take up ~50% of screen */}
-      <div className="flex-1 min-h-0" style={{ minHeight: '50vh' }}>
+      {/* Recent Transactions - Limit to 50% of viewport */}
+      <div className="flex-1 min-h-0">
         <RecentTransactionsCard 
           recentTransactions={sortedRecentTransactions} 
           isExpandedView={true}
+          maxHeight="50vh"
         />
       </div>
     </div>

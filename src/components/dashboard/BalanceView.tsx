@@ -36,11 +36,12 @@ const BalanceView = ({
         <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />
       </div>
 
-      {/* Recent Transactions - Fill remaining space */}
+      {/* Recent Transactions - Limit to 40% of viewport */}
       <div className="flex-1 min-h-0">
         <RecentTransactionsCard 
           recentTransactions={sortedRecentTransactions} 
           isExpandedView={false}
+          maxHeight="40vh"
         />
       </div>
     </div>

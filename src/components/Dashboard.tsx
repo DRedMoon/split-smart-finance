@@ -20,13 +20,12 @@ const Dashboard = () => {
   } = useDashboardNavigation();
   
   const {
-    currentView,
     isTransitioning,
     swipeHandlers,
     containerRef
   } = useSwipeNavigation({
     totalViews: 3,
-    initialView,
+    currentView: currentSlide,
     onViewChange: navigateToView
   });
   
@@ -64,8 +63,8 @@ const Dashboard = () => {
     return <DashboardSkeleton />;
   }
 
-  // Use currentView from swipe navigation, fall back to currentSlide for initial load
-  const activeView = currentView !== undefined ? currentView : currentSlide;
+  // Use currentSlide as single source of truth
+  const activeView = currentSlide;
 
   return (
     <div 
@@ -80,35 +79,55 @@ const Dashboard = () => {
         <h1 className="text-2xl font-bold text-sidebar-foreground">{t('payments')}</h1>
       </div>
 
-      {/* View-specific layouts */}
-      <div className="flex-1 min-h-0">
-        {activeView === 0 && (
-          <BalanceView 
-            balance={balance}
-            currentSlide={activeView}
-            filteredWeekPayments={filteredWeekPayments}
-            sortedRecentTransactions={sortedRecentTransactions}
+      {/* View Indicator Dots */}
+      <div className="flex justify-center gap-2 mb-4 flex-shrink-0">
+        {[0, 1, 2].map((index) => (
+          <div
+            key={index}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              activeView === index ? 'bg-sidebar-foreground' : 'bg-sidebar-foreground/30'
+            }`}
           />
-        )}
-        
-        {activeView === 1 && (
-          <LoansCreditsView 
-            loans={loans}
-            totalLoanAmount={totalLoanAmount}
-            totalMonthlyPayments={totalMonthlyPayments}
-            currentSlide={activeView}
-            sortedRecentTransactions={sortedRecentTransactions}
-          />
-        )}
-        
-        {activeView === 2 && (
-          <MonthlyPaymentsView 
-            monthlyBills={monthlyBills}
-            totalBillsAmount={totalBillsAmount}
-            currentSlide={activeView}
-            sortedRecentTransactions={sortedRecentTransactions}
-          />
-        )}
+        ))}
+      </div>
+
+      {/* View-specific layouts with slide animation */}
+      <div className="flex-1 min-h-0 relative overflow-hidden">
+        <div 
+          className="flex transition-transform duration-300 ease-out h-full"
+          style={{ transform: `translateX(-${activeView * 100}%)` }}
+        >
+          {/* Balance View */}
+          <div className="w-full flex-shrink-0 h-full">
+            <BalanceView 
+              balance={balance}
+              currentSlide={activeView}
+              filteredWeekPayments={filteredWeekPayments}
+              sortedRecentTransactions={sortedRecentTransactions}
+            />
+          </div>
+          
+          {/* Loans Credits View */}
+          <div className="w-full flex-shrink-0 h-full">
+            <LoansCreditsView 
+              loans={loans}
+              totalLoanAmount={totalLoanAmount}
+              totalMonthlyPayments={totalMonthlyPayments}
+              currentSlide={activeView}
+              sortedRecentTransactions={sortedRecentTransactions}
+            />
+          </div>
+          
+          {/* Monthly Payments View */}
+          <div className="w-full flex-shrink-0 h-full">
+            <MonthlyPaymentsView 
+              monthlyBills={monthlyBills}
+              totalBillsAmount={totalBillsAmount}
+              currentSlide={activeView}
+              sortedRecentTransactions={sortedRecentTransactions}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
