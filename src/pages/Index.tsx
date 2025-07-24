@@ -1,6 +1,9 @@
 
 import React, { useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+
+console.log('🚀 Index.tsx: Starting imports');
+
 import Dashboard from '@/components/Dashboard';
 import AddExpense from '@/components/AddExpense';
 import MonthlyPayments from '@/components/MonthlyPayments';
@@ -23,7 +26,10 @@ import Navigation from '@/components/Navigation';
 import Analytics from '@/components/Analytics';
 import QuickPaymentEntry from '@/components/QuickPaymentEntry';
 
+console.log('🚀 Index.tsx: All imports completed successfully');
+
 const Index = () => {
+  console.log('🚀 Index.tsx: Rendering Index component');
   const location = useLocation();
   const navigate = useNavigate();
 
