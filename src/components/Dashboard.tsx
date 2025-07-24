@@ -78,10 +78,11 @@ const Dashboard = () => {
   return (
     <div 
       ref={containerRef}
-      className={`h-screen bg-sidebar p-4 pb-20 max-w-md mx-auto flex flex-col overflow-hidden transition-transform duration-300 ${
+      className={`h-screen bg-sidebar p-4 pb-20 max-w-md mx-auto flex flex-col overflow-hidden transition-transform duration-300 touch-pan-x ${
         isTransitioning ? 'pointer-events-none' : ''
       }`}
       {...swipeHandlers}
+      style={{ touchAction: 'pan-x' }}
     >
       {/* Title */}
       <div className="text-center mb-4 flex-shrink-0">
