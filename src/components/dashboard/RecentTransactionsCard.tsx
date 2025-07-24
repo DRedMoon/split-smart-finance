@@ -22,7 +22,7 @@ const RecentTransactionsCard = ({
   const navigate = useNavigate();
 
   // Apply height constraints based on view type
-  const cardStyle = maxHeight ? { maxHeight } : {};
+  const cardStyle = maxHeight ? { maxHeight, height: maxHeight } : {};
   const cardClasses = 'bg-[#294D73] border-none flex flex-col';
 
   return (

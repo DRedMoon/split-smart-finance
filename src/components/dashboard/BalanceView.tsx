@@ -22,9 +22,12 @@ const BalanceView = ({
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Balance Card */}
-      <div className="flex-shrink-0 mb-4">
+      <div className="flex-shrink-0 mb-6">
         <BalanceCard balance={balance} currentSlide={currentSlide} />
       </div>
+
+      {/* Empty Space for better visual balance */}
+      <div className="flex-1 min-h-[60px]" />
 
       {/* Navigation Buttons */}
       <div className="flex-shrink-0 mb-4">
@@ -36,12 +39,12 @@ const BalanceView = ({
         <UpcomingWeekCard filteredWeekPayments={filteredWeekPayments} />
       </div>
 
-      {/* Recent Transactions - Limit to 40% of viewport */}
-      <div className="flex-1 min-h-0">
+      {/* Recent Transactions - Fixed height, not filling remaining space */}
+      <div className="flex-shrink-0">
         <RecentTransactionsCard 
-          recentTransactions={sortedRecentTransactions} 
+          recentTransactions={sortedRecentTransactions.slice(0, 5)} 
           isExpandedView={false}
-          maxHeight="40vh"
+          maxHeight="200px"
         />
       </div>
     </div>
