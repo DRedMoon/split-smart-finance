@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { loadFinancialData, saveFinancialData } from '@/services/dataService';
+import { loadFinancialData, saveFinancialData, getDefaultFinancialData } from '@/services/dataService';
 import { getThisWeekUpcomingPayments } from '@/services/storageService';
 import { isPaymentPaidForMonth } from '@/utils/paymentUtils';
 import { calculateBalance } from '@/services/balanceService';
@@ -9,8 +9,30 @@ export const useFinancialData = (refreshKey: number) => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    const financialData = loadFinancialData();
-    setData(financialData);
+    console.log('useFinancialData: Loading financial data, refreshKey:', refreshKey);
+    
+    try {
+      let financialData = loadFinancialData();
+      
+      // If no data exists, create and save default data
+      if (!financialData) {
+        console.log('useFinancialData: No financial data found, creating default data');
+        financialData = getDefaultFinancialData();
+        saveFinancialData(financialData);
+        console.log('useFinancialData: Default data created and saved:', financialData);
+      } else {
+        console.log('useFinancialData: Financial data loaded successfully');
+      }
+      
+      setData(financialData);
+    } catch (error) {
+      console.error('useFinancialData: Error loading financial data:', error);
+      // Fallback to default data
+      const defaultData = getDefaultFinancialData();
+      setData(defaultData);
+      saveFinancialData(defaultData);
+      console.log('useFinancialData: Fallback to default data due to error');
+    }
   }, [refreshKey]);
 
   const { currentYear, currentMonth } = useMemo(() => {
@@ -22,12 +44,23 @@ export const useFinancialData = (refreshKey: number) => {
   }, []);
 
   // Safe data loading with fallbacks - memoized for performance
-  const { baseBalance, loans, allTransactions, monthlyBills } = useMemo(() => ({
-    baseBalance: data?.balance || 0,
-    loans: data?.loans || [],
-    allTransactions: data?.transactions || [],
-    monthlyBills: data?.monthlyBills || []
-  }), [data]);
+  const { baseBalance, loans, allTransactions, monthlyBills } = useMemo(() => {
+    if (!data) {
+      return {
+        baseBalance: 0,
+        loans: [],
+        allTransactions: [],
+        monthlyBills: []
+      };
+    }
+    
+    return {
+      baseBalance: data.balance || 0,
+      loans: data.loans || [],
+      allTransactions: data.transactions || [],
+      monthlyBills: data.monthlyBills || []
+    };
+  }, [data]);
 
   // Memoized regular transactions calculation
   const regularTransactions = useMemo(() => {
@@ -44,6 +77,7 @@ export const useFinancialData = (refreshKey: number) => {
 
   // Memoized balance calculation using centralized service
   const balance = useMemo(() => {
+    if (!data) return 0;
     return calculateBalance(data);
   }, [data]);
 

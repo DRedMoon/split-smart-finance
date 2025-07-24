@@ -58,8 +58,8 @@ const Dashboard = () => {
     };
   }, []);
 
-  // Show loading while navigation is not ready
-  if (!navigationReady) {
+  // Show loading while navigation is not ready or financial data is loading
+  if (!navigationReady || balance === undefined || loans === undefined) {
     return <DashboardSkeleton />;
   }
 
