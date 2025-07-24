@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useToast } from '@/hooks/use-toast';
 import { 
   getAllCategories, 
@@ -18,7 +18,7 @@ import {
 
 const CategoryCreator = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
   
   const [categories, setCategories] = useState<Category[]>([]);

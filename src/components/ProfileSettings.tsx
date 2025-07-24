@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState({
     name: '',

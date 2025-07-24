@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Area, Co
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import type { ForecastData } from '@/services/forecastingService';
 
 interface ForecastChartProps {
@@ -13,7 +13,7 @@ interface ForecastChartProps {
 }
 
 const ForecastChart = ({ data, title, type = 'expense' }: ForecastChartProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   if (!data || data.length === 0) {
     return (

@@ -7,13 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
 
 const AppearanceSettings = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
   
   const [settings, setSettings] = useState({

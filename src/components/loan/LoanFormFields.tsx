@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import DueDatePicker from './DueDatePicker';
 
 interface LoanFormFieldsProps {
@@ -18,7 +18,7 @@ interface LoanFormFieldsProps {
 }
 
 const LoanFormFields = ({ loanData, setLoanData, calculatedValues, isCredit, setIsCredit }: LoanFormFieldsProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const navigate = useNavigate();
 
   const handleNumberInput = (field: string, value: string) => {

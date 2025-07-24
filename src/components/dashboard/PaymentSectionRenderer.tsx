@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import PaymentBillItem from './PaymentBillItem';
 
 interface PaymentSectionRendererProps {
@@ -25,7 +25,7 @@ const PaymentSectionRenderer = ({
   onTogglePaid,
   isLoanSection = false 
 }: PaymentSectionRendererProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const displayedBills = showAll ? bills : bills.slice(0, 2);
 
   if (bills.length === 0 && isLoanSection) {

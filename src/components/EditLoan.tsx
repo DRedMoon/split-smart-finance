@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
 import { calculateInterestFromPayments } from '@/services/calculationService';
@@ -13,7 +13,7 @@ import LoanCalculationDisplay from './loan/LoanCalculationDisplay';
 const EditLoan = () => {
   const navigate = useNavigate();
   const { loanId } = useParams();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
   
   const [loanData, setLoanData] = useState({

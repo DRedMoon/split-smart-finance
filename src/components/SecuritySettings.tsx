@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import PinCodeSection from './security/PinCodeSection';
 import BiometricSection from './security/BiometricSection';
 import TwoFactorSection from './security/TwoFactorSection';
@@ -11,7 +11,7 @@ import SecurityActions from './security/SecurityActions';
 
 const SecuritySettings = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const [pinEnabled, setPinEnabled] = useState(false);
   const [fingerprintEnabled, setFingerprintEnabled] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);

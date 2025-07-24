@@ -5,12 +5,12 @@ import { ArrowLeft, Shield, Eye, Database, Cookie } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { loadFinancialData, saveFinancialData } from '@/services/storageService';
 
 const PrivacySettings = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   
   const [privacySettings, setPrivacySettings] = useState({
     analytics: false,

@@ -3,7 +3,7 @@ import React from 'react';
 import { CreditCard, Coins } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { calculateInterestFromPayments } from '@/services/calculationService';
 
 interface LoanCardProps {
@@ -17,7 +17,7 @@ interface LoanCardProps {
 }
 
 const LoanCard = ({ loan, calculateLoanDetails }: LoanCardProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   
   const details = calculateLoanDetails(loan);
   const isCredit = loan.remaining === 'Credit Card';

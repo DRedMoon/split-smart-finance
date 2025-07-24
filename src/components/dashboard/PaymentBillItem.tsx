@@ -2,7 +2,7 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 
 interface PaymentBillItemProps {
   bill: any;
@@ -11,7 +11,7 @@ interface PaymentBillItemProps {
 }
 
 const PaymentBillItem = ({ bill, isLoanPayment, onTogglePaid }: PaymentBillItemProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const isPaid = bill.paid || false;
   
   const handleClick = (e: React.MouseEvent) => {

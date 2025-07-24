@@ -3,7 +3,7 @@ import React from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import PaymentItem from '../payments/PaymentItem';
 
 interface MonthlyPaymentsListProps {
@@ -27,7 +27,7 @@ const MonthlyPaymentsList = ({
   onTogglePaid,
   getDaysUntilDue
 }: MonthlyPaymentsListProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   const sortBills = (bills: any[]) => bills.sort((a, b) => {
     // Paid bills go to bottom

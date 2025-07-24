@@ -4,13 +4,13 @@ import { ArrowLeft, Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import DataExport from './data-management/DataExport';
 import DataImport from './data-management/DataImport';
 
 const DataManagement = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const [activeTab, setActiveTab] = useState('export');
 
   const handleImportComplete = () => {

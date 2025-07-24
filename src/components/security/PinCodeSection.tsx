@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useToast } from '@/hooks/use-toast';
 import PinVerificationDialog from './PinVerificationDialog';
 
@@ -22,7 +22,7 @@ const PinCodeSection: React.FC<PinCodeSectionProps> = ({
   onPinChange,
   onPinToggle
 }) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
   const [showVerification, setShowVerification] = useState(false);
   const [pendingAction, setPendingAction] = useState<'enable' | 'disable' | null>(null);

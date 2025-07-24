@@ -45,6 +45,37 @@ export const useSafeLanguage = () => {
       income: 'Income',
       other: 'Other',
       
+      // Forms and Input
+      fill_required_fields: 'Fill all required fields',
+      due_date_required: 'Due date is required',
+      expense_added: 'Expense Added',
+      income_added: 'Income Added',
+      quick_add: 'Quick Add',
+      expense_name: 'Expense Name',
+      income_name: 'Income Name',
+      sum: 'Amount',
+      select_category: 'Select Category',
+      recurring_payment: 'Recurring Payment',
+      add_expense: 'Add Expense',
+      add_income: 'Add Income',
+      create_edit_category: 'Create/Edit Category',
+      
+      // Loans and Credits
+      add_credit_card: 'Add Credit Card',
+      credit_card_added: 'Credit Card Added',
+      loan_added: 'Loan Added',
+      add_loan: 'Add Loan',
+      
+      // Analytics
+      back_to_home: 'Back to Home',
+      select_time_period: 'Select Time Period',
+      months: 'months',
+      
+      // Transaction Filters
+      search_transactions: 'Search Transactions',
+      filter_by_type: 'Filter by Type',
+      expenses: 'Expenses',
+      
       // General
       total_bills: 'Total Bills',
       total_monthly: 'Total Monthly',
@@ -54,6 +85,21 @@ export const useSafeLanguage = () => {
       manage_loans_credits: 'Manage Loans & Credits',
       no_monthly_payments: 'No monthly payments',
       due: 'Due',
+      
+      // General Actions
+      edit: 'Edit',
+      delete: 'Delete',
+      save: 'Save',
+      cancel: 'Cancel',
+      confirm: 'Confirm',
+      close: 'Close',
+      
+      // Security
+      enable_biometric: 'Enable Biometric Authentication',
+      biometric_authentication: 'Biometric Authentication',
+      pin_code: 'PIN Code',
+      two_factor: 'Two-Factor Authentication',
+      security_actions: 'Security Actions',
       
       // Navigation
       home: 'Home',

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Shield, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import type { FinancialHealthScore } from '@/services/forecastingService';
 
 interface FinancialHealthCardProps {
@@ -11,7 +11,7 @@ interface FinancialHealthCardProps {
 }
 
 const FinancialHealthCard = ({ healthScore }: FinancialHealthCardProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-400';

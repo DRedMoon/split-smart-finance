@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useToast } from '@/hooks/use-toast';
 
 interface PinVerificationDialogProps {
@@ -15,7 +15,7 @@ interface PinVerificationDialogProps {
 }
 
 const PinVerificationDialog = ({ isOpen, onClose, onVerified, title, description }: PinVerificationDialogProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
   const [pin, setPin] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);

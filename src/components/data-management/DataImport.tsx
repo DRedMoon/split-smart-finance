@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileText, Database, CheckCircle, AlertCircle } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useToast } from '@/hooks/use-toast';
 import { importFromJSON, mergeImportedData } from '@/services/exportImportService';
 import { loadFinancialData, saveFinancialData, type FinancialData } from '@/services/storageService';
@@ -14,7 +14,7 @@ interface DataImportProps {
 }
 
 const DataImport = ({ onImportComplete }: DataImportProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);

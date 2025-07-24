@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, TrendingDown, Minus, Target } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import type { SpendingPattern } from '@/services/forecastingService';
 
 interface SpendingPatternsCardProps {
@@ -11,7 +11,7 @@ interface SpendingPatternsCardProps {
 }
 
 const SpendingPatternsCard = ({ patterns }: SpendingPatternsCardProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   if (!patterns || patterns.length === 0) {
     return (

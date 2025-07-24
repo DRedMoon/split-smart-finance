@@ -3,7 +3,7 @@ import React from 'react';
 import { Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData } from '@/services/storageService';
 
@@ -22,7 +22,7 @@ const TwoFactorSection: React.FC<TwoFactorSectionProps> = ({
   onTwoFactorToggle,
   onSecretGenerated
 }) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
 
   const generateTwoFactorSecret = () => {

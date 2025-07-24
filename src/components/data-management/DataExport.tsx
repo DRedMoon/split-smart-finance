@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Download, FileText, Database, CheckCircle } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useToast } from '@/hooks/use-toast';
 import { exportToJSON, exportToCSV } from '@/services/exportImportService';
 import { loadFinancialData } from '@/services/storageService';
 
 const DataExport = () => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
   const [exporting, setExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);

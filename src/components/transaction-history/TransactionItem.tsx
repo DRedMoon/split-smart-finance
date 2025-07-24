@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 
 interface TransactionItemProps {
   transaction: any;
@@ -14,7 +14,7 @@ interface TransactionItemProps {
 }
 
 const TransactionItem = ({ transaction, onEdit, onDelete }: TransactionItemProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   const getCategoryEmoji = (category: string) => {
     const emojis: { [key: string]: string } = {

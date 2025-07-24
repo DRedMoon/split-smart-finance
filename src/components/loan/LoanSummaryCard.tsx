@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, CreditCard, Coins } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { calculateCreditPayment } from '@/services/calculationService';
 
 interface LoanSummaryCardProps {
@@ -11,7 +11,7 @@ interface LoanSummaryCardProps {
 }
 
 const LoanSummaryCard = ({ loans }: LoanSummaryCardProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!loans || loans.length === 0) {

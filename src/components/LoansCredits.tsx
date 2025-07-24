@@ -4,14 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Settings } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { loadFinancialData } from '@/services/storageService';
 import LoanCard from './loan/LoanCard';
 import LoanSummaryCard from './loan/LoanSummaryCard';
 
 const LoansCredits = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const [financialData, setFinancialData] = useState(null);
 
   useEffect(() => {

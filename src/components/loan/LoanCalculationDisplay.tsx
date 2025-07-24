@@ -2,7 +2,7 @@
 import React from 'react';
 import { Calculator } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 
 interface LoanCalculationDisplayProps {
   calculatedValues: {
@@ -15,7 +15,7 @@ interface LoanCalculationDisplayProps {
 }
 
 const LoanCalculationDisplay = ({ calculatedValues }: LoanCalculationDisplayProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   if (calculatedValues.monthlyPayment === 0 && calculatedValues.estimatedEuribor === 0) {
     return null;

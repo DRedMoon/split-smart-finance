@@ -4,7 +4,7 @@ import { Search, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 
 interface TransactionFiltersProps {
   searchTerm: string;
@@ -23,7 +23,7 @@ const TransactionFilters = ({
   dateRange,
   onDateRangeChange
 }: TransactionFiltersProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   const handleQuickDateRange = (range: string) => {
     const today = new Date();

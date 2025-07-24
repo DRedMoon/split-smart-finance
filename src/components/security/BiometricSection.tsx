@@ -3,7 +3,7 @@ import React from 'react';
 import { Fingerprint } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useToast } from '@/hooks/use-toast';
 
 interface BiometricSectionProps {
@@ -15,7 +15,7 @@ const BiometricSection: React.FC<BiometricSectionProps> = ({
   fingerprintEnabled,
   onFingerprintToggle
 }) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
 
   const handleFingerprintToggle = async (enabled: boolean) => {

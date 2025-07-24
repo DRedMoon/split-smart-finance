@@ -8,14 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { useToast } from '@/hooks/use-toast';
 import { loadFinancialData, updateCategory, deleteCategory } from '@/services/storageService';
 
 const CategoryEditor = () => {
   const navigate = useNavigate();
   const { categoryId } = useParams<{ categoryId: string }>();
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const { toast } = useToast();
   
   const [category, setCategory] = useState({

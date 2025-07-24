@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 
 interface PaymentTotals {
   totalRegular: number;
@@ -17,7 +17,7 @@ interface MonthlyPaymentsSummaryProps {
 }
 
 const MonthlyPaymentsSummary = ({ totals }: MonthlyPaymentsSummaryProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   return (
     <div className="space-y-4 mb-6">

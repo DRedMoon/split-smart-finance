@@ -10,7 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 
 interface DueDatePickerProps {
   value: string;
@@ -20,7 +20,7 @@ interface DueDatePickerProps {
 }
 
 const DueDatePicker = ({ value, onChange, label, placeholder }: DueDatePickerProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
   const [date, setDate] = React.useState<Date | undefined>();
 
   const displayLabel = label || t('due_date');

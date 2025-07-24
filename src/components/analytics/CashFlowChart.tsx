@@ -3,7 +3,7 @@ import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import type { CashFlowProjection } from '@/services/forecastingService';
 
 interface CashFlowChartProps {
@@ -11,7 +11,7 @@ interface CashFlowChartProps {
 }
 
 const CashFlowChart = ({ projections }: CashFlowChartProps) => {
-  const { t } = useLanguage();
+  const { t } = useSafeLanguage();
 
   if (!projections || projections.length === 0) {
     return (

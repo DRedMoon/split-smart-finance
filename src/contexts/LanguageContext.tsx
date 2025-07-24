@@ -131,6 +131,73 @@ const translations = {
     change_password: 'Vaihda salasana',
     add_password: 'Lisää salasana',
     
+    // Forms and Input
+    fill_required_fields: 'Täytä kaikki pakolliset kentät',
+    due_date_required: 'Eräpäivä on pakollinen',
+    expense_added: 'Kulu lisätty',
+    income_added: 'Tulo lisätty',
+    quick_add: 'Pikalisäys',
+    expense_name: 'Kulun nimi',
+    income_name: 'Tulon nimi',
+    sum: 'Summa',
+    select_category: 'Valitse kategoria',
+    recurring_payment: 'Toistuva maksu',
+    add_expense: 'Lisää kulu',
+    add_income: 'Lisää tulo',
+    create_edit_category: 'Luo/muokkaa kategoria',
+    select_day: 'Valitse päivä',
+    select_loan: 'Valitse laina',
+    principal_amount: 'Pääoma',
+    interest_amount: 'Korko',
+    principal: 'Pääoma',
+    interest: 'Korko',
+    
+    // Loans and Credits - Extended
+    add_credit_card: 'Lisää luottokortti',
+    credit_card_added: 'Luottokortti lisätty',
+    credit_card_name: 'Luottokortin nimi',
+    credit_limit: 'Luottoraja',
+    used_credit: 'Käytetty luotto',
+    yearly_interest: 'Vuosikorko',
+    minimum_payment_percent: 'Vähimmäismaksu-%',
+    management_fee: 'Hoitokulu',
+    loan_added: 'Laina lisätty',
+    add_loan: 'Lisää laina',
+    minimum_monthly_payment: 'Vähimmäiskuukausimaksu',
+    estimated_total_with_interest: 'Arvioitu kokonaissumma korkojen kanssa',
+    
+    // Analytics
+    back_to_home: 'Takaisin kotiin',
+    select_time_period: 'Valitse aikajakso',
+    months: 'kuukautta',
+    
+    // Transaction Filters
+    search_transactions: 'Hae tapahtumia',
+    filter_by_type: 'Suodata tyypin mukaan',
+    expenses: 'Kulut',
+    date_range: 'Aikajakso',
+    last_week: 'Viime viikko',
+    last_month: 'Viime kuukausi',
+    last_quarter: 'Viime neljännes',
+    last_year: 'Viime vuosi',
+    from_date: 'Alkaen',
+    to_date: 'Päättyen',
+    
+    // General Actions
+    edit: 'Muokkaa',
+    delete: 'Poista',
+    save: 'Tallenna',
+    cancel: 'Peruuta',
+    confirm: 'Vahvista',
+    close: 'Sulje',
+    
+    // Security
+    enable_biometric: 'Ota biometrinen tunnistus käyttöön',
+    biometric_authentication: 'Biometrinen tunnistus',
+    pin_code: 'PIN-koodi',
+    two_factor: 'Kaksivaiheinen tunnistus',
+    security_actions: 'Turvallisuustoimet',
+    
     // Navigation
     home: 'Koti',
     add: 'Lisää',
@@ -257,6 +324,73 @@ const translations = {
     version: 'Version',
     change_password: 'Change Password',
     add_password: 'Add Password',
+    
+    // Forms and Input
+    fill_required_fields: 'Fill all required fields',
+    due_date_required: 'Due date is required',
+    expense_added: 'Expense Added',
+    income_added: 'Income Added',
+    quick_add: 'Quick Add',
+    expense_name: 'Expense Name',
+    income_name: 'Income Name',
+    sum: 'Amount',
+    select_category: 'Select Category',
+    recurring_payment: 'Recurring Payment',
+    add_expense: 'Add Expense',
+    add_income: 'Add Income',
+    create_edit_category: 'Create/Edit Category',
+    select_day: 'Select Day',
+    select_loan: 'Select Loan',
+    principal_amount: 'Principal Amount',
+    interest_amount: 'Interest Amount',
+    principal: 'Principal',
+    interest: 'Interest',
+    
+    // Loans and Credits - Extended
+    add_credit_card: 'Add Credit Card',
+    credit_card_added: 'Credit Card Added',
+    credit_card_name: 'Credit Card Name',
+    credit_limit: 'Credit Limit',
+    used_credit: 'Used Credit',
+    yearly_interest: 'Annual Interest',
+    minimum_payment_percent: 'Minimum Payment %',
+    management_fee: 'Management Fee',
+    loan_added: 'Loan Added',
+    add_loan: 'Add Loan',
+    minimum_monthly_payment: 'Minimum Monthly Payment',
+    estimated_total_with_interest: 'Estimated Total with Interest',
+    
+    // Analytics
+    back_to_home: 'Back to Home',
+    select_time_period: 'Select Time Period',
+    months: 'months',
+    
+    // Transaction Filters
+    search_transactions: 'Search Transactions',
+    filter_by_type: 'Filter by Type',
+    expenses: 'Expenses',
+    date_range: 'Date Range',
+    last_week: 'Last Week',
+    last_month: 'Last Month',
+    last_quarter: 'Last Quarter',
+    last_year: 'Last Year',
+    from_date: 'From Date',
+    to_date: 'To Date',
+    
+    // General Actions
+    edit: 'Edit',
+    delete: 'Delete',
+    save: 'Save',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    close: 'Close',
+    
+    // Security
+    enable_biometric: 'Enable Biometric Authentication',
+    biometric_authentication: 'Biometric Authentication',
+    pin_code: 'PIN Code',
+    two_factor: 'Two-Factor Authentication',
+    security_actions: 'Security Actions',
     
     // Navigation
     home: 'Home',
