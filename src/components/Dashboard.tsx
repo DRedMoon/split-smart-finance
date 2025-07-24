@@ -1,27 +1,34 @@
 
 import React, { useEffect, useState } from 'react';
-import { useDashboardCarousel } from '@/hooks/useDashboardCarousel';
-import { useDashboardSpacing } from '@/hooks/useDashboardSpacing';
+import { useDashboardNavigation } from '@/hooks/useDashboardNavigation';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useSafeLanguage } from '@/hooks/useSafeLanguage';
-import DashboardCarousel from './dashboard/DashboardCarousel';
-import DashboardContent from './dashboard/DashboardContent';
+import BalanceView from './dashboard/BalanceView';
+import LoansCreditsView from './dashboard/LoansCreditsView';
+import MonthlyPaymentsView from './dashboard/MonthlyPaymentsView';
+import DashboardSkeleton from './ui/DashboardSkeleton';
 
 const Dashboard = () => {
   const { t } = useSafeLanguage();
   const [refreshKey, setRefreshKey] = useState(0);
   const { 
-    carouselApi, 
-    setCarouselApi, 
     initialView, 
     navigationReady, 
-    currentSlide 
-  } = useDashboardCarousel();
+    currentSlide,
+    navigateToView
+  } = useDashboardNavigation();
   
-  const { 
-    isBalanceView, 
-    carouselSpacing 
-  } = useDashboardSpacing(currentSlide);
+  const {
+    currentView,
+    isTransitioning,
+    swipeHandlers,
+    containerRef
+  } = useSwipeNavigation({
+    totalViews: 3,
+    initialView,
+    onViewChange: navigateToView
+  });
   
   const {
     balance,
@@ -54,45 +61,55 @@ const Dashboard = () => {
 
   // Show loading while navigation is not ready
   if (!navigationReady) {
-    return (
-      <div className="min-h-screen bg-sidebar p-4 pb-20 max-w-md mx-auto">
-        <div className="text-center mb-4">
-          <h1 className="text-3xl font-bold text-sidebar-foreground">{t('payments')}</h1>
-        </div>
-        <div className="bg-sidebar-accent/50 rounded-lg h-64 mb-4 animate-pulse"></div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
+  // Use currentView from swipe navigation, fall back to currentSlide for initial load
+  const activeView = currentView !== undefined ? currentView : currentSlide;
+
   return (
-    <div className="h-screen bg-sidebar p-4 pb-20 max-w-md mx-auto flex flex-col overflow-hidden">
+    <div 
+      ref={containerRef}
+      className={`h-screen bg-sidebar p-4 pb-20 max-w-md mx-auto flex flex-col overflow-hidden transition-transform duration-300 ${
+        isTransitioning ? 'pointer-events-none' : ''
+      }`}
+      {...swipeHandlers}
+    >
       {/* Title */}
       <div className="text-center mb-4 flex-shrink-0">
         <h1 className="text-2xl font-bold text-sidebar-foreground">{t('payments')}</h1>
       </div>
 
-      {/* Main Carousel */}
-      <div className={`flex-shrink-0 ${carouselSpacing}`}>
-        <DashboardCarousel 
-          key={refreshKey}
-          balance={balance}
-          loans={loans}
-          monthlyBills={monthlyBills}
-          totalLoanAmount={totalLoanAmount}
-          totalMonthlyPayments={totalMonthlyPayments}
-          totalBillsAmount={totalBillsAmount}
-          onApiReady={setCarouselApi}
-          initialSlide={initialView}
-          currentSlide={currentSlide}
-        />
+      {/* View-specific layouts */}
+      <div className="flex-1 min-h-0">
+        {activeView === 0 && (
+          <BalanceView 
+            balance={balance}
+            currentSlide={activeView}
+            filteredWeekPayments={filteredWeekPayments}
+            sortedRecentTransactions={sortedRecentTransactions}
+          />
+        )}
+        
+        {activeView === 1 && (
+          <LoansCreditsView 
+            loans={loans}
+            totalLoanAmount={totalLoanAmount}
+            totalMonthlyPayments={totalMonthlyPayments}
+            currentSlide={activeView}
+            sortedRecentTransactions={sortedRecentTransactions}
+          />
+        )}
+        
+        {activeView === 2 && (
+          <MonthlyPaymentsView 
+            monthlyBills={monthlyBills}
+            totalBillsAmount={totalBillsAmount}
+            currentSlide={activeView}
+            sortedRecentTransactions={sortedRecentTransactions}
+          />
+        )}
       </div>
-
-      {/* Dynamic Content based on current view */}
-      <DashboardContent 
-        isBalanceView={isBalanceView}
-        filteredWeekPayments={filteredWeekPayments}
-        sortedRecentTransactions={sortedRecentTransactions}
-      />
     </div>
   );
 };

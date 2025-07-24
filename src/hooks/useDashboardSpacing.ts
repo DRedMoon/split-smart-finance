@@ -4,14 +4,9 @@ export const useDashboardSpacing = (currentSlide: number) => {
   const isLoansCreditsView = currentSlide === 1;
   const isMonthlyPaymentsView = currentSlide === 2;
 
-  const getCarouselSpacing = () => {
-    return 'mb-4';
-  };
-
   return {
     isBalanceView,
     isLoansCreditsView,
-    isMonthlyPaymentsView,
-    carouselSpacing: getCarouselSpacing()
+    isMonthlyPaymentsView
   };
 };

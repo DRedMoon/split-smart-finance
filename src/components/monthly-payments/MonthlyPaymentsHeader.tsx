@@ -19,7 +19,7 @@ const MonthlyPaymentsHeader = ({ onBack }: MonthlyPaymentsHeaderProps) => {
         <Button variant="ghost" size="sm" onClick={onBack} className="text-white hover:bg-white/10">
           <ArrowLeft size={20} />
         </Button>
-        <h1 className="text-2xl font-bold text-white">{t('monthly_payments')}</h1>
+        <h1 className="text-2xl font-bold text-white">{t('all_payments')}</h1>
       </div>
       <div className="flex space-x-2">
         <Button 

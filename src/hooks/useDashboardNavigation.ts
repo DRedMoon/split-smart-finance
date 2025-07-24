@@ -1,10 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-export const useDashboardCarousel = () => {
+export const useDashboardNavigation = () => {
   const location = useLocation();
-  const [carouselApi, setCarouselApi] = useState(null);
   const [initialView, setInitialView] = useState(0);
   const [navigationReady, setNavigationReady] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -24,6 +22,7 @@ export const useDashboardCarousel = () => {
       setInitialView(viewIndex);
       setCurrentSlide(viewIndex);
       
+      // Clean up URL
       window.history.replaceState({}, '', '/');
     }
     
@@ -31,30 +30,14 @@ export const useDashboardCarousel = () => {
     setNavigationReady(true);
   }, [location.search]);
 
-  // Navigate when carousel API is ready and we have a target view
-  useEffect(() => {
-    if (carouselApi && initialView !== 0) {
-      console.log('Dashboard - Navigating carousel to view:', initialView);
-      setTimeout(() => {
-        carouselApi.scrollTo(initialView);
-      }, 50);
-    }
-  }, [carouselApi, initialView]);
-
-  // Track carousel slide changes
-  useEffect(() => {
-    if (carouselApi) {
-      carouselApi.on("select", () => {
-        setCurrentSlide(carouselApi.selectedScrollSnap());
-      });
-    }
-  }, [carouselApi]);
+  const navigateToView = (viewIndex: number) => {
+    setCurrentSlide(viewIndex);
+  };
 
   return {
-    carouselApi,
-    setCarouselApi,
     initialView,
     navigationReady,
-    currentSlide
+    currentSlide,
+    navigateToView
   };
 };
