@@ -58,8 +58,17 @@ const Dashboard = () => {
     };
   }, []);
 
-  // Show loading while navigation is not ready or financial data is loading
-  if (!navigationReady || balance === undefined || loans === undefined) {
+  // Debug logging for startup process
+  console.log('Dashboard render state:', { 
+    navigationReady, 
+    hasBalance: balance !== undefined, 
+    hasLoans: loans !== undefined,
+    hasData: !!balance || !!loans?.length || !!monthlyBills?.length
+  });
+
+  // Show loading only while navigation is not ready (simplified loading condition)
+  if (!navigationReady) {
+    console.log('Dashboard: Showing skeleton - navigation not ready');
     return <DashboardSkeleton />;
   }
 

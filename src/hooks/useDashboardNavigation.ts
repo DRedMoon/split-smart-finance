@@ -9,6 +9,7 @@ export const useDashboardNavigation = () => {
 
   // Handle returnTo parameter immediately
   useEffect(() => {
+    console.log('useDashboardNavigation: Initializing navigation');
     const urlParams = new URLSearchParams(location.search);
     const returnTo = urlParams.get('returnTo');
     
@@ -27,6 +28,7 @@ export const useDashboardNavigation = () => {
     }
     
     // Always set navigation ready after processing
+    console.log('useDashboardNavigation: Setting navigation ready');
     setNavigationReady(true);
   }, [location.search]);
 
