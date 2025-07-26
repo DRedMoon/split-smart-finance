@@ -32,18 +32,7 @@ const LoansCreditsCard = ({ loans, totalLoanAmount, totalMonthlyPayments, curren
           <CreditCard size={20} />
           <span>{t('loans_credits')}</span>
         </CardTitle>
-        <div className="flex items-center justify-between mt-2">
-          {/* Carousel Indicators */}
-          <div className="flex space-x-1">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div
-                key={index}
-                className={`w-2 h-2 rounded-full ${
-                  index === currentSlide ? 'bg-white' : 'bg-white/30'
-                }`}
-              />
-            ))}
-          </div>
+        <div className="flex items-center justify-end mt-2">
           <Button
             variant="ghost"
             size="sm"

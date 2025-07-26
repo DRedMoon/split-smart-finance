@@ -21,6 +21,7 @@ export const SwipeableCarousel = ({
     console.log('🔥 Carousel: Touch start detected', e.touches[0].clientX, e.touches[0].clientY);
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
+    e.preventDefault(); // Prevent default scroll behavior
   }, []);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
@@ -40,6 +41,7 @@ export const SwipeableCarousel = ({
       console.log('🔥 Carousel: Valid swipe detected', deltaX > 0 ? 'left' : 'right');
       
       setIsTransitioning(true);
+      e.preventDefault(); // Prevent any default behavior
       
       if (deltaX > 0 && currentSlide < children.length - 1) {
         // Swipe left - next slide
@@ -60,23 +62,38 @@ export const SwipeableCarousel = ({
   }, [currentSlide, children.length, onSlideChange]);
 
   return (
-    <div 
-      className={`relative overflow-hidden ${className} ${
-        isTransitioning ? 'pointer-events-none' : ''
-      }`}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      style={{ touchAction: 'pan-x' }}
-    >
-      <div 
-        className="flex transition-transform duration-300 ease-out"
-        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-      >
-        {children.map((child, index) => (
-          <div key={index} className="w-full flex-shrink-0">
-            {child}
-          </div>
+    <div className={`relative ${className}`}>
+      {/* Carousel Indicators */}
+      <div className="absolute top-4 right-4 flex space-x-1 z-10">
+        {children.map((_, index) => (
+          <div
+            key={index}
+            className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+              index === currentSlide ? 'bg-white' : 'bg-white/30'
+            }`}
+          />
         ))}
+      </div>
+      
+      {/* Carousel Content */}
+      <div 
+        className={`overflow-hidden ${
+          isTransitioning ? 'pointer-events-none' : ''
+        }`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        style={{ touchAction: 'pan-y pinch-zoom' }}
+      >
+        <div 
+          className="flex transition-transform duration-300 ease-out"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {children.map((child, index) => (
+            <div key={index} className="w-full flex-shrink-0">
+              {child}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

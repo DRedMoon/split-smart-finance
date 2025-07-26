@@ -4,7 +4,9 @@ import { useDashboardNavigation } from '@/hooks/useDashboardNavigation';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useSafeLanguage } from '@/hooks/useSafeLanguage';
 import { SwipeableCarousel } from './dashboard/SwipeableCarousel';
-import UnifiedDashboardCard from './dashboard/UnifiedDashboardCard';
+import BalanceCard from './dashboard/BalanceCard';
+import LoansCreditsCard from './dashboard/LoansCreditsCard';
+import MonthlyPaymentsCard from './dashboard/MonthlyPaymentsCard';
 import DashboardNavigation from './dashboard/DashboardNavigation';
 import UpcomingWeekCard from './dashboard/UpcomingWeekCard';
 import RecentTransactionsCard from './dashboard/RecentTransactionsCard';
@@ -80,31 +82,14 @@ const Dashboard = () => {
           currentSlide={currentSlide}
           onSlideChange={navigateToView}
         >
-          <UnifiedDashboardCard
-            currentSlide={0}
-            balance={balance}
+          <BalanceCard balance={balance} />
+          <LoansCreditsCard 
             loans={loans}
-            monthlyBills={monthlyBills}
             totalLoanAmount={totalLoanAmount}
             totalMonthlyPayments={totalMonthlyPayments}
-            totalBillsAmount={totalBillsAmount}
           />
-          <UnifiedDashboardCard
-            currentSlide={1}
-            balance={balance}
-            loans={loans}
+          <MonthlyPaymentsCard 
             monthlyBills={monthlyBills}
-            totalLoanAmount={totalLoanAmount}
-            totalMonthlyPayments={totalMonthlyPayments}
-            totalBillsAmount={totalBillsAmount}
-          />
-          <UnifiedDashboardCard
-            currentSlide={2}
-            balance={balance}
-            loans={loans}
-            monthlyBills={monthlyBills}
-            totalLoanAmount={totalLoanAmount}
-            totalMonthlyPayments={totalMonthlyPayments}
             totalBillsAmount={totalBillsAmount}
           />
         </SwipeableCarousel>

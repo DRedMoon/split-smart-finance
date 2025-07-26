@@ -42,27 +42,14 @@ const MonthlyPaymentsCard = ({ monthlyBills, currentSlide = 0 }: MonthlyPayments
           <Calendar size={20} />
           <span>Kuukausimaksut</span>
         </CardTitle>
-        <div className="flex items-center space-x-3">
-          {/* Carousel Indicators */}
-          <div className="flex space-x-1">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div
-                key={index}
-                className={`w-2 h-2 rounded-full ${
-                  index === currentSlide ? 'bg-white' : 'bg-white/30'
-                }`}
-              />
-            ))}
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleNavigateToMonthlyPayments}
-            className="text-white hover:bg-white/10 p-2"
-          >
-            <ArrowRight size={20} />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleNavigateToMonthlyPayments}
+          className="text-white hover:bg-white/10 p-2"
+        >
+          <ArrowRight size={20} />
+        </Button>
       </CardHeader>
       <CardContent>
         {/* Regular Monthly Payments Section Only */}
