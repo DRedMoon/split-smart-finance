@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useDashboardNavigation } from '@/hooks/useDashboardNavigation';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useSafeLanguage } from '@/hooks/useSafeLanguage';
-import { SwipeableCarousel } from './dashboard/SwipeableCarousel';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import BalanceCard from './dashboard/BalanceCard';
 import LoansCreditsCard from './dashboard/LoansCreditsCard';
 import MonthlyPaymentsCard from './dashboard/MonthlyPaymentsCard';
@@ -77,22 +77,39 @@ const Dashboard = () => {
       </div>
 
       {/* Blue: Swipeable Balance/Loans/Monthly Cards */}
-      <div className="flex-shrink-0 mb-4">
-        <SwipeableCarousel
-          currentSlide={currentSlide}
-          onSlideChange={navigateToView}
-        >
-          <BalanceCard balance={balance} />
-          <LoansCreditsCard 
-            loans={loans}
-            totalLoanAmount={totalLoanAmount}
-            totalMonthlyPayments={totalMonthlyPayments}
-          />
-          <MonthlyPaymentsCard 
-            monthlyBills={monthlyBills}
-            totalBillsAmount={totalBillsAmount}
-          />
-        </SwipeableCarousel>
+      <div className="flex-shrink-0 mb-4 relative">
+        {/* Carousel Indicators */}
+        <div className="absolute top-4 right-4 flex space-x-1 z-10">
+          {[0, 1, 2].map((index) => (
+            <div
+              key={index}
+              className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                index === currentSlide ? 'bg-white' : 'bg-white/30'
+              }`}
+            />
+          ))}
+        </div>
+        
+        <Carousel className="w-full">
+          <CarouselContent className="-ml-0">
+            <CarouselItem className="pl-0">
+              <BalanceCard balance={balance} />
+            </CarouselItem>
+            <CarouselItem className="pl-0">
+              <LoansCreditsCard 
+                loans={loans}
+                totalLoanAmount={totalLoanAmount}
+                totalMonthlyPayments={totalMonthlyPayments}
+              />
+            </CarouselItem>
+            <CarouselItem className="pl-0">
+              <MonthlyPaymentsCard 
+                monthlyBills={monthlyBills}
+                totalBillsAmount={totalBillsAmount}
+              />
+            </CarouselItem>
+          </CarouselContent>
+        </Carousel>
       </div>
 
       {/* Purple: Empty space for visual balance */}
